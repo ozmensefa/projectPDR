@@ -1,0 +1,297 @@
+================================================================================
+PDR VIDEO ANALİZ SİSTEMİ - BAŞLATMA KILAVUZU
+================================================================================
+sudo su - sefa4
+cd /home/sefa4/projectPDR
+source venv/bin/activate
+
+GENEL BİLGİLER:
+- Proje Adı: PDR Video Analiz Sistemi
+- Framework: Flask + Celery + Redis
+- AI Model: Google Gemini 2.0 Flash
+- Analiz Modülleri: DeepFace (Duygu), MediaPipe (Beden Dili), Whisper (Metin), Librosa (Ses)
+
+================================================================================
+ÖN GEREKSINIMLER
+================================================================================
+
+1. Python 3.12 kurulu olmalı
+2. Redis Server kurulu olmalı (port 6380)
+3. FFmpeg kurulu olmalı (video/ses işleme için)
+4. CUDA destekli GPU (opsiyonel, performans için önerilir)
+
+================================================================================
+İLK KURULUM (Sadece İlk Kez)
+================================================================================
+
+1. SANAL ORTAM OLUŞTURMA:
+   python -m venv venv
+
+2. SANAL ORTAMI AKTİF ETME:
+   Windows PowerShell:
+   .\venv\Scripts\Activate.ps1
+   
+   Windows CMD:
+   venv\Scripts\activate.bat
+
+3. GEREKLİ PAKETLERI YÜKLEME:
+   pip install -r requirements.txt
+
+4. VERİTABANI OLUŞTURMA:
+   python
+   >>> from app import create_app, db
+   >>> app = create_app()
+   >>> with app.app_context():
+   ...     db.create_all()
+   >>> exit()
+
+5. VERİTABANI MİGRASYONU (Asenkron analiz için):
+   python migrate_database.py
+
+================================================================================
+SİSTEM BAŞLATMA (Her Kullanımda)
+================================================================================
+
+ADIM 1: REDIS SERVER BAŞLATMA
+------------------------------
+Windows PowerShell'de (YÖNETİCİ OLARAK):
+cd G:\redis
+.\redis-server.exe --port 6380
+
+VEYA (Redis farklı bir konumdaysa):
+redis-server.exe --port 6380
+
+NOT: Redis terminal penceresini açık tutun!
+
+Test için: redis-cli -p 6380 ping
+(Cevap: PONG)
+
+
+ADIM 2: CELERY WORKER BAŞLATMA
+-------------------------------
+YENİ bir PowerShell penceresi açın:
+cd G:\projectPDR
+.\venv\Scripts\Activate.ps1
+.\start_celery.bat
+
+VEYA manuel başlatma:
+celery -A app.celery_config.celery worker --loglevel=info --pool=solo -E
+
+NOT: Celery worker penceresini açık tutun!
+Analiz loglarını burada göreceksiniz.
+
+
+ADIM 3: FLASK UYGULAMASI BAŞLATMA
+----------------------------------
+YENİ bir PowerShell penceresi açın:
+cd G:\projectPDR
+.\venv\Scripts\Activate.ps1
+python run.py
+
+NOT: Flask uygulaması http://127.0.0.1:5000 adresinde çalışacak
+
+
+ÖZET: 3 Terminal Penceresi Gerekli
+-----------------------------------
+1. Redis Server    (port 6380)
+2. Celery Worker   (arka plan işlemleri)
+3. Flask App       (web sunucusu)
+
+================================================================================
+SİSTEMİ KULLANMA
+================================================================================
+
+1. Tarayıcıda http://127.0.0.1:5000 adresine gidin
+
+2. Kayıt ol / Giriş yap
+
+3. Danışan ekle (Sidebar > Danışan Ekle)
+
+4. Oturum oluştur (Danışan sayfasında > Yeni Oturum)
+
+5. Video yükle (Oturum sayfasında > Video Yükle butonu)
+
+6. Analizi başlat (Video Yükle butonu > Analizi Başlat)
+
+7. Bildirim bekle (Sağ üst köşe, zil ikonu)
+   - Analiz arka planda çalışacak
+   - Tamamlandığında bildirim gelecek
+   - Sayfayı kapatabilirsiniz
+
+8. Raporu görüntüle (Bildirime tıkla VEYA Oturum sayfasına git)
+
+================================================================================
+SORUN GİDERME
+================================================================================
+
+1. REDIS BAĞLANTI HATASI:
+   Çözüm: Redis server'ın çalıştığından emin olun
+   Test: redis-cli -p 6380 ping
+
+2. CELERY BAĞLANTI HATASI:
+   Çözüm: Redis ve Celery worker'ı yeniden başlatın
+
+3. "Working outside of application context" HATASI:
+   Çözüm: Celery worker'ı yeniden başlatın (kod değişikliğinden sonra)
+
+4. VIDEO YÜKLEME HATASI:
+   Çözüm: FFmpeg'in kurulu olduğundan emin olun
+   Test: ffmpeg -version
+
+5. GPU KULLANILMIYOR:
+   Kontrol: CUDA kurulu mu? (nvidia-smi komutu)
+   Not: CPU ile de çalışır, sadece daha yavaş
+
+6. GEMINI API HATASI:
+   Kontrol: app/config.py içinde GEMINI_API_KEY doğru mu?
+   Not: API key geçersizse AI raporu oluşturulamaz
+
+7. ANALİZ BAŞLAMIYOR:
+   - Video yüklenmiş mi kontrol edin
+   - Celery worker çalışıyor mu kontrol edin
+   - Celery worker loglarına bakın
+
+8. BİLDİRİM GELMİYOR:
+   - Sayfayı yenileyin (F5)
+   - Celery worker'da "completed" mesajını kontrol edin
+   - Bildirimler sayfasına gidin (Zil ikonu > Tümünü Gör)
+
+================================================================================
+PERFORMANS İPUÇLARI
+================================================================================
+
+1. GPU Kullanımı:
+   - CUDA destekli GPU varsa otomatik algılanır
+   - 2-5x daha hızlı analiz
+   - Celery worker loglarında GPU bilgisi görünür
+
+2. Video Formatı:
+   - MP4 önerilir (en uyumlu)
+   - Maksimum boyut: 500MB
+   - Çözünürlük: 720p veya 1080p yeterli
+
+3. Analiz Süresi (Ortalama):
+   - CPU: 5-10 dakika (5 dakikalık video için)
+   - GPU: 2-4 dakika (5 dakikalık video için)
+
+4. Bellek Kullanımı:
+   - RAM: Minimum 8GB önerilir
+   - VRAM: 2GB+ (GPU kullanımı için)
+
+================================================================================
+SİSTEMİ DURDURMA
+================================================================================
+
+1. Flask uygulamasını durdurun:
+   Flask terminalinde: Ctrl+C
+
+2. Celery worker'ı durdurun:
+   Celery terminalinde: Ctrl+C
+
+3. Redis server'ı durdurun:
+   Redis terminalinde: Ctrl+C
+   VEYA: redis-cli -p 6380 shutdown
+
+================================================================================
+GÜNCELLEMELERDEN SONRA
+================================================================================
+
+Kod değişikliği yaptıysanız:
+
+1. SADECE TEMPLATE DEĞİŞİKLİĞİ:
+   - Hiçbir şey yapmanıza gerek yok
+   - Sayfayı yenileyin (F5 veya Ctrl+Shift+R)
+
+2. ROUTES/BACKEND DEĞİŞİKLİĞİ:
+   - Flask uygulamasını yeniden başlatın (Ctrl+C, sonra python run.py)
+
+3. TASKS/CELERY DEĞİŞİKLİĞİ:
+   - Celery worker'ı yeniden başlatın (Ctrl+C, sonra .\start_celery.bat)
+
+4. MODEL/DATABASE DEĞİŞİKLİĞİ:
+   - Veritabanı migrasyonu çalıştırın: python migrate_database.py
+   - Flask ve Celery'yi yeniden başlatın
+
+5. YENİ PAKET EKLENMİŞSE:
+   - pip install -r requirements.txt
+   - Tüm servisleri yeniden başlatın
+
+================================================================================
+YARDIMCI SCRIPTLER
+================================================================================
+
+1. check_system_status.py
+   Açıklama: Redis, Celery, DB, klasörleri kontrol eder
+   Kullanım: python check_system_status.py
+
+2. test_async_system.py
+   Açıklama: Asenkron sistem bileşenlerini test eder
+   Kullanım: python test_async_system.py
+
+3. fix_notification_links.py
+   Açıklama: Bildirim linklerini günceller
+   Kullanım: python fix_notification_links.py
+
+4. migrate_database.py
+   Açıklama: Veritabanı şemasını günceller
+   Kullanım: python migrate_database.py
+
+================================================================================
+ÖNEMLİ NOTLAR
+================================================================================
+
+1. Redis varsayılan port (6379) yerine 6380 kullanıyor
+   Sebep: Port çakışmasını önlemek için
+
+2. Celery worker "solo" pool kullanıyor
+   Sebep: Windows uyumluluğu için
+
+3. Video dosyaları "uploads" klasöründe saklanıyor
+   Yol: G:\projectPDR\uploads\
+
+4. Geçici dosyalar "temp_files" klasöründe oluşturuluyor
+   Yol: G:\projectPDR\temp_files\
+
+5. Analiz JSON verileri "sampleJSON" klasöründe saklanıyor
+   Yol: G:\projectPDR\sampleJSON\
+
+6. Veritabanı "instance" klasöründe
+   Yol: G:\projectPDR\instance\app.db
+
+7. Gemini API key sabit olarak tanımlı
+   Yol: app/config.py -> GEMINI_API_KEY
+
+================================================================================
+HIZLI BAŞLATMA (TÜM SİSTEM)
+================================================================================
+
+Terminal 1 (Redis):
+cd G:\redis
+.\redis-server.exe --port 6380
+
+Terminal 2 (Celery):
+cd G:\projectPDR
+.\venv\Scripts\Activate.ps1
+.\start_celery.bat
+
+Terminal 3 (Flask):
+cd G:\projectPDR
+.\venv\Scripts\Activate.ps1
+python run.py
+
+Tarayıcı:
+http://127.0.0.1:5000
+
+================================================================================
+İLETİŞİM VE DESTEK
+================================================================================
+
+Sorun yaşarsanız:
+1. Celery worker loglarını kontrol edin
+2. Flask terminal loglarını kontrol edin
+3. check_system_status.py scriptini çalıştırın
+4. DEGISIKLIK_OZETI.md dosyasını okuyun
+5. ASENKRON_ANALIZ_DOKUMANI.md dosyasını okuyun
+
+================================================================================
+

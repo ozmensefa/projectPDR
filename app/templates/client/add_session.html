@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Yeni Oturum - {{ client.name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Yeni Oturum Ekle - {{ client.name }}</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-heading"></i>
+                            </span>
+                            {{ form.title(class="form-control", placeholder="Oturum başlığını girin...") }}
+                        </div>
+                        {% if form.title.errors %}
+                            {% for error in form.title.errors %}
+                                <div class="text-danger mt-2">
+                                    <i class="fas fa-exclamation-circle"></i> {{ error }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.session_date.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-calendar-alt"></i>
+                            </span>
+                            {{ form.session_date(class="form-control") }}
+                        </div>
+                        {% if form.session_date.errors %}
+                            {% for error in form.session_date.errors %}
+                                <div class="text-danger mt-2">
+                                    <i class="fas fa-exclamation-circle"></i> {{ error }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            <i class="fas fa-info-circle"></i> 
+                            Oturumun gerçekleştiği veya gerçekleşeceği tarih ve saati seçin
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.notes.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-sticky-note"></i>
+                            </span>
+                            {{ form.notes(class="form-control", rows=4, placeholder="Oturum notlarınızı buraya yazabilirsiniz...") }}
+                        </div>
+                        <small class="form-text text-muted">
+                            Bu notlar sadece sizin görebileceğiniz kişisel notlardır.
+                        </small>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('client.view_client', client_id=client.id) }}" 
+                           class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times"></i> İptal
+                        </a>
+                        {{ form.submit(class="btn btn-success") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sessionDateInput = document.getElementById('session_date');
+    
+    if (sessionDateInput) {
+        // Tarih input'una bugünün tarihini varsayılan olarak set et
+        if (!sessionDateInput.value) {
+            const now = new Date();
+            // Türkiye saat dilimi için ayarlama
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            sessionDateInput.value = now.toISOString().slice(0, 16);
+        }
+        
+        // Gelecek tarih seçildiğinde uyarı göster
+        sessionDateInput.addEventListener('change', function() {
+            const selectedDate = new Date(this.value);
+            const now = new Date();
+            
+            if (selectedDate > now) {
+                const warningDiv = document.getElementById('future-date-warning');
+                if (!warningDiv) {
+                    const warning = document.createElement('div');
+                    warning.id = 'future-date-warning';
+                    warning.className = 'alert alert-warning mt-2';
+                    warning.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Gelecek bir tarih seçtiniz. Bu oturum henüz gerçekleşmemiş bir oturum olarak kaydedilecektir.';
+                    this.parentNode.parentNode.appendChild(warning);
+                }
+            } else {
+                const warningDiv = document.getElementById('future-date-warning');
+                if (warningDiv) {
+                    warningDiv.remove();
+                }
+            }
+        });
+    }
+});
+</script>
+
+{% endblock %} 

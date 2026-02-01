@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}{{ client.name }} - Düzenle{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Danışan Bilgilerini Düzenle</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Fotoğraf Alanı -->
+                    <div class="mb-4">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <div class="photo-preview mb-3">
+                                        {% if client.photo_filename %}
+                                            <img id="photo-preview" src="{{ url_for('static', filename='uploads/client_photos/' + client.photo_filename) }}" 
+                                                 alt="Danışan Fotoğrafı" class="img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
+                                        {% else %}
+                                                                                         <img id="photo-preview" src="{{ url_for('static', filename='images/default-avatar.png') }}" 
+                                                  alt="Danışan Fotoğrafı" class="img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
+                                        {% endif %}
+                                    </div>
+                                    {{ form.photo.label(class="form-label") }}
+                                    {{ form.photo(class="form-control", accept="image/*", onchange="previewImage(this)") }}
+                                    {% if form.photo.errors %}
+                                        {% for error in form.photo.errors %}
+                                            <div class="text-danger small">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        {% if client.photo_filename %}
+                                            Mevcut fotoğrafı değiştirmek için yeni fotoğraf seçin.
+                                        {% else %}
+                                            JPG, JPEG, PNG, GIF formatları kabul edilir.
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        {{ form.name.label(class="form-label") }}
+                                        {{ form.name(class="form-control") }}
+                                        {% if form.name.errors %}
+                                            {% for error in form.name.errors %}
+                                                <div class="text-danger">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.age.label(class="form-label") }}
+                                        {{ form.age(class="form-control") }}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.gender.label(class="form-label") }}
+                                        {{ form.gender(class="form-control") }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.contact.label(class="form-label") }}
+                        {{ form.contact(class="form-control") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.notes.label(class="form-label") }}
+                        {{ form.notes(class="form-control", rows=4) }}
+                    </div>
+                    {{ form.submit(class="btn btn-primary") }}
+                    <a href="{{ url_for('client.view_client', client_id=client.id) }}" class="btn btn-secondary">İptal</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('photo-preview').src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+{% endblock %} 

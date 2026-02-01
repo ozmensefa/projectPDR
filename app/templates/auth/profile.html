@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Profilim{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Profilim</h2>
+            <div>
+                <a href="{{ url_for('auth.edit_profile') }}" class="btn btn-primary me-2">
+                    <i class="fas fa-edit"></i> Profili Düzenle
+                </a>
+                <a href="{{ url_for('auth.change_password') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-key"></i> Şifre Değiştir
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <!-- Profil Fotoğrafı Kartı -->
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        {% if counselor.photo_filename %}
+                            <img src="{{ url_for('static', filename='uploads/profile_photos/' + counselor.photo_filename) }}" 
+                                 alt="{{ counselor.name }}" class="img-thumbnail rounded-circle mb-3" 
+                                 style="width: 200px; height: 200px; object-fit: cover;">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='images/default-avatar.png') }}" 
+                                 alt="{{ counselor.name }}" class="img-thumbnail rounded-circle mb-3" 
+                                 style="width: 200px; height: 200px; object-fit: cover;">
+                        {% endif %}
+                        <h4 class="mb-0">{{ counselor.name }}</h4>
+                        {% if counselor.title %}
+                            <p class="text-muted">{{ counselor.title }}</p>
+                        {% endif %}
+                        <small class="text-muted">Kayıt: {{ counselor.created_at.strftime('%d.%m.%Y') }}</small>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="card-title">İstatistikler</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-2">
+                            <div class="col-7"><strong>Toplam Danışan:</strong></div>
+                            <div class="col-5">{{ counselor.clients|length }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-7"><strong>Toplam Oturum:</strong></div>
+                            <div class="col-5">
+                                {% set total_sessions = 0 %}
+                                {% for client in counselor.clients %}
+                                    {% set total_sessions = total_sessions + client.sessions|length %}
+                                {% endfor %}
+                                {{ total_sessions }}
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-7"><strong>Toplam Analiz:</strong></div>
+                            <div class="col-5">
+                                {{ counselor.progress_analyses|length }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-7"><strong>Aktif Danışan:</strong></div>
+                            <div class="col-5">
+                                {% set active_count = 0 %}
+                                {% for client in counselor.clients %}
+                                    {% if client.sessions|length > 0 %}
+                                        {% set active_count = active_count + 1 %}
+                                    {% endif %}
+                                {% endfor %}
+                                {{ active_count }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Kişisel Bilgiler</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-3"><strong>Ad Soyad:</strong></div>
+                            <div class="col-9">{{ counselor.name }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-3"><strong>E-posta:</strong></div>
+                            <div class="col-9">{{ counselor.email }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-3"><strong>Unvan:</strong></div>
+                            <div class="col-9">{{ counselor.title or 'Belirtilmemiş' }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3"><strong>Kayıt Tarihi:</strong></div>
+                            <div class="col-9">{{ counselor.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Son Danışanlar Kartı -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h4 class="card-title">Son Danışanlar</h4>
+                    </div>
+                    <div class="card-body">
+                        {% if counselor.clients %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Ad Soyad</th>
+                                            <th>Oturum Sayısı</th>
+                                            <th>Son Oturum</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for client in counselor.clients|sort(attribute='created_at', reverse=true) %}
+                                        {% if loop.index <= 5 %}
+                                        <tr>
+                                            <td>{{ client.name }}</td>
+                                            <td>
+                                                <span class="badge bg-primary">{{ client.sessions|length }} oturum</span>
+                                            </td>
+                                            <td>
+                                                {% if client.sessions %}
+                                                    <span class="fw-bold">{{ client.sessions[-1].date|friendly_date }}</span>
+                                                    <br><small class="text-muted">{{ client.sessions[-1].date.strftime('%d.%m.%Y') }}</small>
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('client.view_client', client_id=client.id) }}" 
+                                                   class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i> Görüntüle
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            {% if counselor.clients|length > 5 %}
+                            <div class="text-center mt-3">
+                                <a href="{{ url_for('client.list_clients') }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-list"></i> Tüm Danışanları Görüntüle
+                                </a>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Henüz danışanınız bulunmuyor.</p>
+                                <a href="{{ url_for('client.add_client') }}" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> İlk Danışanınızı Ekleyin
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YAKADES - {% block title %}{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">YAKADES</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.index') }}">
+                                <i class="fas fa-home"></i> Ana Sayfa
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('main.calendar') }}">
+                                <i class="fas fa-calendar-alt"></i> Takvim
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('client.add_client') }}">
+                                <i class="fas fa-user-plus"></i> Danışan Ekle
+                            </a>
+                        </li>
+                        
+                        <!-- Admin Menüsü -->
+                        {% if current_user.is_admin %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-warning" href="#" role="button" 
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-shield-alt"></i> Admin
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('main.admin_user_activities') }}">
+                                        <i class="fas fa-history"></i> Kullanıcı Aktiviteleri
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('main.manage_users') }}">
+                                        <i class="fas fa-users-cog"></i> Kullanıcı Yönetimi
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                        <!-- Bildirim İkonu -->
+                        <li class="nav-item dropdown me-3">
+                            <a class="nav-link position-relative" href="#" role="button" 
+                               data-bs-toggle="dropdown" aria-expanded="false" id="notificationDropdown">
+                                <i class="fas fa-bell fa-lg"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                                      id="notificationBadge" style="display: none;">
+                                    0
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" style="min-width: 350px; max-height: 400px; overflow-y: auto;" id="notificationList">
+                                <li class="dropdown-header d-flex justify-content-between align-items-center">
+                                    <span><strong>Bildirimler</strong></span>
+                                    <a href="{{ url_for('main.notifications') }}" class="btn btn-sm btn-link">Tümünü Gör</a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li class="px-3 py-2 text-center text-muted">
+                                    <small>Yükleniyor...</small>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" 
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                {% if current_user.photo_filename %}
+                                    <img src="{{ url_for('static', filename='uploads/profile_photos/' + current_user.photo_filename) }}" 
+                                         alt="{{ current_user.name }}" class="rounded-circle me-2" 
+                                         style="width: 32px; height: 32px; object-fit: cover;">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='images/default-avatar.png') }}" 
+                                         alt="{{ current_user.name }}" class="rounded-circle me-2" 
+                                         style="width: 32px; height: 32px; object-fit: cover;">
+                                {% endif %}
+                                {{ current_user.name }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('auth.profile') }}">
+                                        <i class="fas fa-user me-2"></i> Profilim
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('auth.edit_profile') }}">
+                                        <i class="fas fa-edit me-2"></i> Profili Düzenle
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('auth.change_password') }}">
+                                        <i class="fas fa-key me-2"></i> Şifre Değiştir
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                                        <i class="fas fa-sign-out-alt me-2"></i> Çıkış Yap
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.login') }}">Giriş Yap</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.register') }}">Kayıt Ol</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'message' else 'info' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Bootstrap JS ve diğer scriptler -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    {% if current_user.is_authenticated %}
+    <!-- Bildirim Sistemi -->
+    <script>
+        // Bildirimleri yükle
+        function loadNotifications() {
+            fetch('/get_notifications?limit=5')
+                .then(response => response.json())
+                .then(data => {
+                    updateNotificationBadge(data.unread_count);
+                    renderNotifications(data.notifications);
+                })
+                .catch(error => console.error('Bildirim yükleme hatası:', error));
+        }
+
+        // Bildirim badge'ini güncelle
+        function updateNotificationBadge(count) {
+            const badge = document.getElementById('notificationBadge');
+            if (count > 0) {
+                badge.textContent = count > 9 ? '9+' : count;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        // Bildirimleri render et
+        function renderNotifications(notifications) {
+            const list = document.getElementById('notificationList');
+            
+            // İlk iki li'yi koru (header ve divider)
+            while (list.children.length > 2) {
+                list.removeChild(list.lastChild);
+            }
+            
+            if (notifications.length === 0) {
+                const li = document.createElement('li');
+                li.className = 'px-3 py-2 text-center text-muted';
+                li.innerHTML = '<small>Bildirim yok</small>';
+                list.appendChild(li);
+                return;
+            }
+            
+            notifications.forEach(notification => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.className = 'dropdown-item';
+                a.href = notification.link || '#';
+                
+                // Bildirime tıklandığında okundu işaretle
+                a.addEventListener('click', function(e) {
+                    if (!notification.is_read) {
+                        markNotificationAsRead(notification.id);
+                    }
+                });
+                
+                let iconClass = 'fa-info-circle text-info';
+                if (notification.type === 'success') iconClass = 'fa-check-circle text-success';
+                else if (notification.type === 'error') iconClass = 'fa-times-circle text-danger';
+                else if (notification.type === 'warning') iconClass = 'fa-exclamation-triangle text-warning';
+                
+                a.innerHTML = `
+                    <div class="${notification.is_read ? '' : 'fw-bold'}">
+                        <i class="fas ${iconClass} me-2"></i>
+                        <small>${notification.title}</small>
+                        ${notification.is_read ? '' : '<span class="badge bg-primary ms-2">Yeni</span>'}
+                    </div>
+                    <small class="text-muted d-block mt-1">${notification.time_ago}</small>
+                `;
+                
+                li.appendChild(a);
+                list.appendChild(li);
+            });
+            
+            // "Tümünü Gör" linki
+            const li = document.createElement('li');
+            li.innerHTML = '<hr class="dropdown-divider">';
+            list.appendChild(li);
+            
+            const viewAll = document.createElement('li');
+            viewAll.innerHTML = `
+                <a class="dropdown-item text-center text-primary" href="{{ url_for('main.notifications') }}">
+                    <small><strong>Tüm bildirimleri görüntüle</strong></small>
+                </a>
+            `;
+            list.appendChild(viewAll);
+        }
+
+        // Bildirimi okundu olarak işaretle
+        function markNotificationAsRead(notificationId) {
+            fetch(`/mark_notification_read/${notificationId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Bildirimleri yeniden yükle
+                    setTimeout(() => {
+                        loadNotifications();
+                    }, 500);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Sayfa yüklendiğinde bildirimleri yükle
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNotifications();
+            
+            // Her 30 saniyede bir bildirimleri güncelle
+            setInterval(loadNotifications, 30000);
+        });
+    </script>
+    {% endif %}
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

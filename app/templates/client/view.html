@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}{{ client.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>{{ client.name }}</h2>
+            <div>
+                <a href="{{ url_for('client.add_session', client_id=client.id) }}" class="btn btn-success me-2">
+                    <i class="fas fa-plus"></i> Yeni Oturum
+                </a>
+                <a href="{{ url_for('main.progress_analysis', client_id=client.id) }}" class="btn btn-info me-2">
+                    <i class="fas fa-chart-line"></i> İlerleyiş Analizi
+                </a>
+                <a href="{{ url_for('client.edit_client', client_id=client.id) }}" class="btn btn-primary me-2">
+                    <i class="fas fa-edit"></i> Düzenle
+                </a>
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteClientModal">
+                    <i class="fas fa-trash"></i> Danışanı Sil
+                </button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <!-- Danışan Fotoğrafı Kartı -->
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        {% if client.photo_filename %}
+                            <img src="{{ url_for('static', filename='uploads/client_photos/' + client.photo_filename) }}" 
+                                 alt="{{ client.name }}" class="img-thumbnail rounded-circle mb-3" 
+                                 style="width: 200px; height: 200px; object-fit: cover;">
+                        {% else %}
+                                                         <img src="{{ url_for('static', filename='images/default-avatar.png') }}" 
+                                  alt="{{ client.name }}" class="img-thumbnail rounded-circle mb-3" 
+                                  style="width: 200px; height: 200px; object-fit: cover;">
+                        {% endif %}
+                        <h4 class="mb-0">{{ client.name }}</h4>
+                        <small class="text-muted">Kayıt: {{ client.created_at.strftime('%d.%m.%Y') }}</small>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="card-title">Kişisel Bilgiler</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-2">
+                            <div class="col-5"><strong>Yaş:</strong></div>
+                            <div class="col-7">{{ client.age or 'Belirtilmemiş' }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-5"><strong>Cinsiyet:</strong></div>
+                            <div class="col-7">
+                                {% if client.gender == 'E' %}
+                                    Erkek
+                                {% elif client.gender == 'K' %}
+                                    Kadın
+                                {% elif client.gender == 'D' %}
+                                    Diğer
+                                {% else %}
+                                    Belirtilmemiş
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-5"><strong>İletişim:</strong></div>
+                            <div class="col-7">{{ client.contact or 'Belirtilmemiş' }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-5"><strong>Oturum Sayısı:</strong></div>
+                            <div class="col-7">{{ client.sessions|length }} oturum</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Notlar</h4>
+                    </div>
+                    <div class="card-body">
+                        {{ client.notes or 'Not bulunmuyor.' }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Oturumlar</h4>
+                    </div>
+                    <div class="card-body">
+                        {% if client.sessions %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Tarih</th>
+                                            <th>Başlık</th>
+                                            <th>Durum</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for session in client.sessions|sort(attribute='date', reverse=true) %}
+                                        <tr>
+                                            <td>
+                                                <span class="fw-bold">{{ session.date|friendly_date }}</span>
+                                                <br><small class="text-muted">{{ session.date.strftime('%d.%m.%Y') }}</small>
+                                            </td>
+                                            <td>{{ session.title }}</td>
+                                            <td>
+                                                {% if session.analysis_results %}
+                                                    <span class="badge bg-success">Analiz Tamamlandı</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">Analiz Bekliyor</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('client.view_session', session_id=session.id) }}" 
+                                                   class="btn btn-sm btn-info">Görüntüle</a>
+                                                {% if not session.analysis_results %}
+                                                    <a href="{{ url_for('main.analysis', session_id=session.id) }}" 
+                                                       class="btn btn-sm btn-primary">Analiz Et</a>
+                                                {% endif %}
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-danger" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#deleteModal{{ session.id }}">
+                                                    Sil
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p>Henüz oturum kaydı bulunmuyor.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- İlerleyiş Analizleri Kartı -->
+                <div class="card mt-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">İlerleyiş Analizleri</h4>
+                        <a href="{{ url_for('main.progress_analysis', client_id=client.id) }}" 
+                           class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus"></i> Yeni Analiz
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        {% if client.progress_analyses %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Tarih Aralığı</th>
+                                            <th>Oturum Sayısı</th>
+                                            <th>Oluşturulma</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for analysis in client.progress_analyses|sort(attribute='created_at', reverse=true) %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ analysis.date_range }}</strong>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-primary">{{ analysis.sessions_analyzed }} oturum</span>
+                                            </td>
+                                            <td>
+                                                <span class="fw-bold">{{ analysis.created_at|friendly_date }}</span>
+                                                <br><small class="text-muted">{{ analysis.created_at.strftime('%d.%m.%Y') }}</small>
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('main.view_progress_report', report_id=analysis.id) }}" 
+                                                   class="btn btn-sm btn-info" title="Raporu Görüntüle">
+                                                    <i class="fas fa-eye"></i> Görüntüle
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Henüz ilerleyiş analizi bulunmuyor.</p>
+                                <a href="{{ url_for('main.progress_analysis', client_id=client.id) }}" 
+                                   class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> İlk Analizinizi Oluşturun
+                                </a>
+                            </div>
+                        {% endif %}
+                                         </div>
+                 </div>
+
+                 <!-- Öneriler Kartı -->
+                 {% if suggestions %}
+                 <div class="card mt-4">
+                     <div class="card-header">
+                         <h4 class="card-title mb-0">
+                             <i class="fas fa-lightbulb"></i> Öneriler
+                         </h4>
+                     </div>
+                     <div class="card-body suggestions-container">
+                         <div class="row">
+                             {% for suggestion in suggestions %}
+                             <div class="col-md-6 mb-3">
+                                 <div class="alert alert-{{ suggestion.type if suggestion.type in ['primary', 'success', 'warning', 'danger', 'tip'] else ('primary' if suggestion.type == 'info' else suggestion.type) }} suggestion-item border-0 h-100">
+                                     <div class="d-flex align-items-start">
+                                         <div class="suggestion-icon me-3">
+                                             <i class="{{ suggestion.icon }} fa-2x"></i>
+                                         </div>
+                                         <div class="flex-grow-1">
+                                             <h6 class="alert-heading mb-2">{{ suggestion.title }}</h6>
+                                             <p class="mb-3">{{ suggestion.description }}</p>
+                                             {% set button_type = 'primary' if suggestion.type == 'info' else ('info' if suggestion.type == 'tip' else ('dark' if suggestion.type == 'warning' else ('light' if suggestion.type == 'success' else suggestion.type))) %}
+                                             {% if suggestion.client_id %}
+                                                 <a href="{{ url_for(suggestion.url, client_id=suggestion.client_id) }}" 
+                                                    class="btn btn-sm btn-{{ button_type }}">
+                                                     {{ suggestion.action }}
+                                                     <i class="fas fa-arrow-right ms-1"></i>
+                                                 </a>
+                                             {% elif suggestion.session_id %}
+                                                 <a href="{{ url_for(suggestion.url, session_id=suggestion.session_id) }}" 
+                                                    class="btn btn-sm btn-{{ button_type }}">
+                                                     {{ suggestion.action }}
+                                                     <i class="fas fa-arrow-right ms-1"></i>
+                                                 </a>
+                                             {% endif %}
+                                         </div>
+                                     </div>
+                                 </div>
+                             </div>
+                             {% endfor %}
+                         </div>
+                         
+                         {% if suggestions|length > 0 %}
+                         <div class="text-center mt-2">
+                             <small class="text-muted">
+                                 <i class="fas fa-info-circle"></i> 
+                                 Öneriler danışan durumuna göre otomatik olarak güncellenir.
+                             </small>
+                         </div>
+                         {% endif %}
+                     </div>
+                 </div>
+                 {% endif %}
+             </div>
+         </div>
+     </div>
+ </div>
+ 
+ <!-- Stil ekleyelim -->
+<style>
+    .modal {
+        z-index: 1050 !important;
+    }
+    .modal-backdrop {
+        z-index: 1040 !important;
+    }
+    .modal-dialog {
+        z-index: 1060 !important;
+    }
+</style>
+
+<!-- Danışan silme onay modalı -->
+<div class="modal fade" id="deleteClientModal" tabindex="-1" aria-labelledby="deleteClientModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteClientModalLabel">Danışan Silme Onayı</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>"{{ client.name }}"</strong> adlı danışanı silmek istediğinizden emin misiniz?</p>
+                {% if client.sessions|length > 0 %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Dikkat!</strong> Bu danışanla ilgili <strong>{{ client.sessions|length }} oturum</strong> kayıtları bulunmaktadır. 
+                        Danışan silindiğinde tüm oturum kayıtları, analizler ve yüklenen videolar da kalıcı olarak silinecektir.
+                    </div>
+                {% endif %}
+                <p class="text-danger"><strong>Bu işlem geri alınamaz!</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form action="{{ url_for('client.delete_client', client_id=client.id) }}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Danışanı Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Her oturum için silme onay modalı -->
+{% for session in client.sessions %}
+<div class="modal fade" id="deleteModal{{ session.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ session.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel{{ session.id }}">Oturum Silme Onayı</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>"{{ session.title }}" oturumunu silmek istediğinizden emin misiniz?</p>
+                <p class="text-danger">Bu işlem geri alınamaz!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form action="{{ url_for('client.delete_session', session_id=session.id) }}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Oturumu Sil</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %} 

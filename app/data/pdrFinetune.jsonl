@@ -1,0 +1,50 @@
+[
+ {
+    "Problem": "Seçici Konuşmazlık",
+    "Açıklama": "Kişinin başka ortamlarda konuşabiliyor olmasına rağmen, konuşmanın beklendiği belirli sosyal durumlarda (örneğin okulda veya sosyal ortamlarda) sürekli bir şekilde konuşmayı başaramaması ile tanımlanan bir kaygı bozukluğudur."
+ },
+ {
+    "Problem": "Ayrılma Kaygısı Bozukluğu",
+    "Açıklama": "Kişinin gelişimsel düzeyine göre beklenenden belirgin biçimde aşırı ve uygunsuz bir ayrılma korkusu veya kaygısı yaşaması ile karakterize bir bozukluktur. Bu kaygı, kişinin güçlü bir duygusal bağ kurduğu başlıca kişilerden ayrılma durumlarında ortaya çıkar."
+ },
+ {
+    "Problem": "Yaygın Kaygı Bozukluğu",
+    "Açıklama": "Kişinin en az altı ay boyunca, çoğu gün birçok farklı olay veya etkinlikle (ör. işte ya da okulda başarı gösterme gibi) ilgili aşırı, kontrol edilemez bir kaygı ve kuruntu (kaygılı beklenti) yaşaması ile karakterize bir kaygı bozukluğudur."
+ },
+ {
+    "Problem": "Panik Bozukluğu",
+    "Açıklama": "Kişinin beklenmedik bir şekilde tekrarlayan panik ataklar yaşaması ve bu atakların ardından kalıcı bir endişe, tasalanma ya da kaçınma davranışlarının gelişmesiyle karakterize bir kaygı bozukluğudur."
+ },
+ {
+    "Problem": "Özgül Fobi",
+    "Açıklama": "Belirli bir nesneye ya da duruma (örneğin hayvanlar, iğneler, yükseklik, uçak yolculuğu, kan görme gibi) karşı duyulan yoğun, belirgin, orantısız ve sürekli bir korku ya da kaygı ile karakterize bir kaygı bozukluğudur."
+ },
+ {
+    "Problem": "Toplumsal Kaygı Bozukluğu",
+    "Açıklama": "Kişinin başkaları tarafından değerlendirilebileceği toplumsal ortamlarda belirgin, sürekli ve orantısız bir korku veya kaygı yaşamasıyla karakterize bir kaygı bozukluğudur."
+ },
+ {
+    "Problem": "Agorafobi",
+    "Açıklama": "Kişinin belirli çevresel durumlarda yoğun, orantısız ve sürekli bir korku ya da kaygı yaşaması ve bu durumlardan kaçınması ile tanımlanan bir kaygı bozukluğudur."
+ },
+ {
+    "Problem": "Panik Atak",
+    "Açıklama": "Başlı başına bir ruhsal bozukluk değildir, yani bağımsız bir tanı olarak kodlanmaz. Bunun yerine, başka bir ruhsal bozukluğun (örn. kaygı bozuklukları, depresyon bozuklukları, travma sonrası stres bozukluğu) ya da bazı tıbbi durumların (örn. kalp, solunum, vestibüler, mide-bağırsak rahatsızlıkları) bir belirleyicisi olarak kaydedilir. Panik Atağı, dakikalar içinde doruğa ulaşan ve kişinin birden bastıran yoğun bir korku ya da içsel sıkıntı yaşadığı bir durumdur."
+ },
+ {
+    "Problem": "Maddenin/İlacın Yol Açtığı Kaygı Bozukluğu",
+    "Açıklama": "Kişinin yaşadığı kaygı belirtilerinin (örneğin panik atakları veya yaygın kaygı belirtileri) doğrudan bir maddenin (kötüye kullanılan bir madde, ilaç, toksin vb.) etkileriyle ilişkili olarak ortaya çıktığı bir kaygı bozukluğudur."
+ },
+ {
+    "Problem": "Başka Bir Sağlık Durumuna Bağlı Kaygı Bozukluğu",
+    "Açıklama": "Bireyde görülen panik atakları ya da baskın ve klinik açıdan önemli düzeyde kaygının, başka bir sağlık durumunun doğrudan fizyolojik etkileriyle açıklanabildiği bir kaygı bozukluğudur."
+ },
+ {
+    "Problem": "Diğer Kaygı Bozuklukları",
+    "Açıklama": "Kaygı bozukluğu belirtilerinin klinik açıdan belirgin sıkıntıya ve işlevsellikte düşmeye yol açtığı, ancak kişinin yaşadığı belirtilerin kaygı bozuklukları tanı kümesindeki bilinen herhangi bir bozukluğun tanı ölçütlerini tam olarak karşılamadığı durumlarda kullanılır."
+ },
+ {
+    "Problem": "Tanımlanmamış Kaygı Bozukluğu",
+    "Açıklama": "Kaygı bozukluğu belirtilerinin klinik açıdan belirgin sıkıntıya ve işlevsellikte düşmeye yol açtığı, ancak belirtilerin kaygı bozuklukları tanı kümesindeki bilinen herhangi bir bozukluğun tanı ölçütlerini tam olarak karşılamadığı durumlarda kullanılır."
+ }
+]

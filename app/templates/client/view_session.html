@@ -1,0 +1,768 @@
+{% extends "base.html" %}
+
+{% block title %}{{ session.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>{{ session.title }}</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Video Yükleme Bölümü -->
+                    <div class="video-upload-section mb-4">
+                        <div class="card border-info">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-video"></i> Video Yükleme
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% if session.video_path %}
+                                    <!-- Video zaten yüklenmiş -->
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle"></i> Video başarıyla yüklenmiş
+                                        <div class="mt-2">
+                                            <small class="text-muted">Dosya: {{ session.video_path.split('/')[-1] }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-warning" onclick="showVideoUploadForm()">
+                                            <i class="fas fa-sync-alt"></i> Videoyu Değiştir
+                                        </button>
+                                        <button type="button" class="btn btn-danger" onclick="deleteVideo()">
+                                            <i class="fas fa-trash"></i> Videoyu Sil
+                                        </button>
+                                    </div>
+                                {% else %}
+                                    <!-- Video henüz yüklenmemiş -->
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle"></i> Bu oturum için henüz video yüklenmemiş
+                                    </div>
+                                    <button type="button" class="btn btn-primary" onclick="showVideoUploadForm()">
+                                        <i class="fas fa-upload"></i> Video Yükle
+                                    </button>
+                                {% endif %}
+                                
+                                <!-- Video Yükleme Formu (Gizli) -->
+                                <div id="videoUploadFormDiv" style="display: none;" class="mt-3">
+                                    <form id="videoUploadForm" enctype="multipart/form-data">
+                                        <div class="mb-3">
+                                            <label for="videoFile" class="form-label">Video Dosyası Seçin:</label>
+                                            <input type="file" class="form-control" id="videoFile" name="video" accept="video/*" required>
+                                            <div class="form-text">
+                                                <i class="fas fa-info-circle"></i> Desteklenen formatlar: MP4, AVI, MOV, MKV (Maksimum 500MB)
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Upload Progress -->
+                                        <div class="progress mb-3" id="uploadProgress" style="display: none; height: 25px;">
+                                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                                 role="progressbar" 
+                                                 id="uploadProgressBar"
+                                                 style="width: 0%">
+                                                <span id="uploadProgressText">0%</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-success" id="uploadBtn">
+                                                <i class="fas fa-upload"></i> Yükle
+                                            </button>
+                                            <button type="button" class="btn btn-secondary" onclick="hideVideoUploadForm()">
+                                                <i class="fas fa-times"></i> İptal
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if saved_analysis %}
+                        <!-- AI Analiz Raporu (Ana Rapor) -->
+                        <div class="analysis-section mb-4">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h4 class="mb-0">
+                                        <i class="fas fa-brain"></i> Oturum Analiz Raporu
+                                        <small class="float-end">{{ saved_analysis.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
+                                    </h4>
+                                </div>
+                                <div class="card-body ai-analysis-content">
+                                    {{ saved_analysis.analysis_text|safe }}
+                                </div>
+                                <div class="card-footer">
+                                    <button class="btn btn-info me-2" id="download-report">
+                                        <i class="fas fa-download"></i> Raporu İndir
+                                    </button>
+                                    <button class="btn btn-danger" id="delete-report" data-bs-toggle="modal" data-bs-target="#deleteReportModal">
+                                        <i class="fas fa-trash"></i> Raporu Sil
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <!-- Analiz durumu kontrolü -->
+                        {% if session.analysis_status == 'processing' %}
+                            <!-- Analiz devam ediyor -->
+                            <div class="alert alert-warning text-center" id="analysisInProgress">
+                                <div class="spinner-border text-primary mb-3" role="status">
+                                    <span class="visually-hidden">Yükleniyor...</span>
+                                </div>
+                                <h5>Analiz Devam Ediyor</h5>
+                                <p>Video analizi arka planda işleniyor. Tamamlandığında bildirim alacaksınız.</p>
+                                
+                                <!-- İlerleme Çubuğu -->
+                                <div class="progress mb-3" style="height: 25px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                         role="progressbar" 
+                                         id="analysisProgressBar"
+                                         style="width: {{ session.analysis_progress }}%">
+                                        <span id="progressText">{{ session.analysis_progress }}%</span>
+                                    </div>
+                                </div>
+                                
+                                <small class="text-muted">
+                                    Analiz süreci birkaç dakika sürebilir. Bu sayfayı kapatabilirsiniz.
+                                </small>
+                            </div>
+                        {% elif session.analysis_status == 'failed' %}
+                            <!-- Analiz başarısız -->
+                            <div class="alert alert-danger text-center">
+                                <i class="fas fa-times-circle fa-2x mb-3"></i>
+                                <h5>Analiz Başarısız</h5>
+                                <p>Video analizi sırasında bir hata oluştu. Lütfen tekrar deneyin.</p>
+                                
+                                {% if session.video_path %}
+                                    <button onclick="startAsyncAnalysis()" class="btn btn-danger btn-lg">
+                                        <i class="fas fa-redo"></i> Tekrar Dene
+                                    </button>
+                                {% else %}
+                                    <p class="mt-3 text-warning">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Tekrar denemek için önce bir video yüklemelisiniz.
+                                    </p>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <!-- Hiçbir analiz yoksa -->
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle fa-2x mb-3"></i>
+                                <h5>Bu oturum için henüz analiz yapılmamış.</h5>
+                                
+                                {% if session.video_path %}
+                                    <p class="mb-3">Analiz arka planda başlatılacak ve tamamlandığında bildirim alacaksınız.</p>
+                                    <button onclick="startAsyncAnalysis()" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-play"></i> Analizi Başlat
+                                    </button>
+                                    <p class="mt-3 text-muted">
+                                        <small>Analiz başlatıldıktan sonra bu sayfayı kapatabilirsiniz.</small>
+                                    </p>
+                                {% else %}
+                                    <p class="mb-3 text-danger">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Analiz yapabilmek için önce bir video yüklemelisiniz.
+                                    </p>
+                                    <p class="mt-3 text-muted">
+                                        <small>Yukarıdaki "Video Yükleme" bölümünden video yükleyebilirsiniz.</small>
+                                    </p>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <!-- Danışman Notları Bölümü -->
+                    <hr class="my-4">
+                    <div class="notes-section">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0 text-secondary">
+                                <i class="fas fa-sticky-note"></i> Danışman Notları
+                            </h5>
+                        </div>
+                        
+                        <!-- Not Alma Alanı -->
+                        <div class="mb-3">
+                            <label for="sessionNotes" class="form-label">
+                                <i class="fas fa-pen"></i> Notlar:
+                            </label>
+                            <textarea 
+                                id="sessionNotes" 
+                                class="form-control session-notes-textarea" 
+                                rows="8"
+                                placeholder="Bu oturum hakkında notlarınızı buraya yazabilirsiniz..."
+                            ></textarea>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle"></i> 
+                                
+                                <span class="text-success" id="save-status" style="display: none;">
+                                    <i class="fas fa-check"></i> Kaydedildi
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- İstatistikler -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center text-muted">
+                                    <i class="fas fa-calendar-alt me-2"></i>
+                                    <small>Son güncelleme: <span id="last-updated">Henüz not eklenmemiş</span></small>
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <div class="d-flex align-items-center justify-content-end text-muted">
+                                    <i class="fas fa-keyboard me-2"></i>
+                                    <small>Karakter sayısı: <span id="char-count">0</span></small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Not Butonları -->
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                            <div class="text-muted">
+                                <small>
+                                    <i class="fas fa-shield-alt"></i> 
+                                    Notlarınızı sadece siz görebilirsiniz. Notlarınızı yazdıktan sonra "Kaydet" butonuna tıklayarak kaydedin. 
+                                </small>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm me-2" id="clear-notes">
+                                    <i class="fas fa-eraser"></i> Temizle
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="manual-save">
+                                    <i class="fas fa-save"></i> Kaydet
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('client.view_client', client_id=session.client_id) }}" class="btn btn-secondary me-2">
+                        <i class="fas fa-arrow-left"></i> Danışana Geri Dön
+                    </a>
+                    <a href="{{ url_for('client.edit_session', session_id=session.id) }}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Oturumu Düzenle
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Rapor Silme Modal -->
+<div class="modal fade" id="deleteReportModal" tabindex="-1" aria-labelledby="deleteReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteReportModalLabel">
+                    <i class="fas fa-exclamation-triangle"></i> Oturum Analizini Sil
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Dikkat!</strong> Bu işlem geri alınamaz.
+                </div>
+                <p>Bu oturum analiz raporunu silmek istediğinizden emin misiniz?</p>
+                <div class="text-muted">
+                    <small>
+                        <i class="fas fa-info-circle"></i>
+                        Bu işlem hem oturum analizini hem de AI raporunu tamamen silecektir.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> İptal
+                </button>
+                <form action="{{ url_for('main.delete_complete_analysis', session_id=session.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Evet, Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block head %}
+<style>
+/* Analiz içeriği için markdown stilleri */
+.ai-analysis-container, .ai-analysis-content {
+    line-height: 1.8;
+    font-size: 1.1em;
+}
+
+.ai-analysis-container h2, .ai-analysis-content h2 {
+    color: #0d6efd;
+    border-bottom: 2px solid #0d6efd;
+    padding-bottom: 8px;
+    margin-top: 25px;
+    margin-bottom: 15px;
+    font-size: 1.4em;
+}
+
+.ai-analysis-container h3, .ai-analysis-content h3,
+.ai-analysis-container h4, .ai-analysis-content h4 {
+    color: #6c757d;
+    margin-top: 20px;
+    margin-bottom: 12px;
+}
+
+.ai-analysis-container ul, .ai-analysis-content ul,
+.ai-analysis-container ol, .ai-analysis-content ol {
+    margin: 12px 0;
+    padding-left: 25px;
+}
+
+.ai-analysis-container li, .ai-analysis-content li {
+    margin-bottom: 6px;
+}
+
+.ai-analysis-container p, .ai-analysis-content p {
+    margin-bottom: 12px;
+    text-align: justify;
+}
+
+.ai-analysis-container strong, .ai-analysis-content strong {
+    color: #495057;
+    font-weight: 600;
+}
+
+.analysis-section .card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-width: 2px;
+}
+
+
+
+/* Kompakt alert stilleri */
+.alert-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
+    border-left: 4px solid;
+}
+
+.alert-info.alert-sm {
+    border-left-color: #0dcaf0;
+}
+
+.alert-warning.alert-sm {
+    border-left-color: #ffc107;
+}
+
+
+
+/* Buton stilleri */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Oturum Notları Stilleri */
+.session-notes-textarea {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    resize: vertical;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.session-notes-textarea:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    outline: none;
+}
+
+.session-notes-textarea::placeholder {
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Otomatik kaydetme indikatorü */
+#save-status {
+    animation: fadeInOut 2s ease-in-out;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Karakter sayacı */
+#char-count {
+    font-weight: 600;
+    color: #495057;
+}
+
+
+
+/* Responsive tasarım */
+@media (max-width: 768px) {
+    .session-notes-textarea {
+        font-size: 16px; /* iOS zoom önleme */
+        padding: 12px;
+    }
+    
+    .card-footer .btn-sm {
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+}
+
+/* Focus durumunda görsel iyileştirmeler */
+.session-notes-textarea:focus + .form-text {
+    color: #0d6efd;
+}
+
+/* Loading spinner */
+.btn .fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<!-- Template verilerini data attribute'ları ile aktar -->
+<div id="session-data" 
+     data-session-id="{{ session.id }}" 
+     data-client-name="{{ session.client.name }}" 
+     data-session-date="{{ session.date.strftime('%d-%m-%Y') }}" 
+     style="display: none;"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    // Template verilerini data attribute'larından al
+    var sessionDataEl = document.getElementById('session-data');
+    var sessionId = parseInt(sessionDataEl.getAttribute('data-session-id'));
+    var clientName = sessionDataEl.getAttribute('data-client-name');
+    var sessionDate = sessionDataEl.getAttribute('data-session-date');
+    
+    $(document).ready(function() {
+        console.log('✅ Rapor Görüntüleme Sistemi Yüklendi');
+        
+        // Hem markdown hem HTML formatını destekle
+        const containers = document.querySelectorAll('.ai-analysis-content');
+        containers.forEach(container => {
+            if (container && container.textContent.trim()) {
+                const content = container.textContent.trim();
+                // Eğer içerik HTML etiketleri içeriyorsa, HTML olarak render et
+                if (content.includes('<') && content.includes('>')) {
+                    container.innerHTML = content;
+                } else {
+                    // Markdown formatında ise, markdown'dan HTML'e çevir
+                    container.innerHTML = marked.parse(content);
+                }
+            }
+        });
+        
+        // Raporu İndir butonu
+        const downloadReportBtn = document.getElementById('download-report');
+        if (downloadReportBtn) {
+            downloadReportBtn.addEventListener('click', function() {
+                const container = document.querySelector('.ai-analysis-content');
+                const content = container.innerText || container.textContent || '';
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = clientName + '_oturum_analizi_' + sessionDate + '.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }
+
+        // Oturum Notları Sistemi - Sadece Manuel Kaydetme
+        var notesTextarea = document.getElementById('sessionNotes');
+        var charCountSpan = document.getElementById('char-count');
+        var saveStatusSpan = document.getElementById('save-status');
+        var lastUpdatedSpan = document.getElementById('last-updated');
+        var clearNotesBtn = document.getElementById('clear-notes');
+        var manualSaveBtn = document.getElementById('manual-save');
+
+        if (notesTextarea) {
+            // Karakter sayacını güncelle
+            function updateCharCount() {
+                var count = notesTextarea.value.length;
+                charCountSpan.textContent = count.toLocaleString();
+                
+                if (count === 0) {
+                    charCountSpan.style.color = '#6c757d';
+                } else if (count < 500) {
+                    charCountSpan.style.color = '#28a745';
+                } else if (count < 1000) {
+                    charCountSpan.style.color = '#ffc107';
+                } else {
+                    charCountSpan.style.color = '#fd7e14';
+                }
+            }
+
+            // Manuel kaydetme
+            function saveNotes() {
+                var notes = notesTextarea.value.trim();
+                
+                localStorage.setItem('session_notes_' + sessionId, notes);
+                localStorage.setItem('session_notes_time_' + sessionId, new Date().toISOString());
+
+                saveStatusSpan.style.display = 'inline';
+                setTimeout(function() {
+                    saveStatusSpan.style.display = 'none';
+                }, 2000);
+
+                lastUpdatedSpan.textContent = new Date().toLocaleString('tr-TR');
+                
+                console.log('💾 Notlar kaydedildi');
+            }
+
+            // Mevcut notları yükle
+            function loadNotes() {
+                var savedNotes = localStorage.getItem('session_notes_' + sessionId);
+                
+                if (savedNotes && savedNotes.trim()) {
+                    notesTextarea.value = savedNotes;
+                    
+                    var savedTime = localStorage.getItem('session_notes_time_' + sessionId);
+                    if (savedTime) {
+                        lastUpdatedSpan.textContent = new Date(savedTime).toLocaleString('tr-TR');
+                    }
+                }
+                updateCharCount();
+            }
+
+            // Event listeners - sadece karakter sayacı için
+            notesTextarea.addEventListener('input', updateCharCount);
+            
+            // Manuel kaydet butonu
+            manualSaveBtn.addEventListener('click', saveNotes);
+            
+            // Temizle butonu
+            clearNotesBtn.addEventListener('click', function() {
+                if (confirm('Tüm notları silmek istediğinizden emin misiniz?')) {
+                    notesTextarea.value = '';
+                    
+                    localStorage.removeItem('session_notes_' + sessionId);
+                    localStorage.removeItem('session_notes_time_' + sessionId);
+                    
+                    updateCharCount();
+                    lastUpdatedSpan.textContent = 'Henüz not eklenmemiş';
+                    
+                    console.log('🗑️ Notlar temizlendi');
+                }
+            });
+
+            // Sayfa yüklendiğinde mevcut notları yükle
+            loadNotes();
+        }
+
+        console.log('✅ Manuel not sistemi hazır!');
+    });
+
+    // ========================================================
+    // VIDEO YÜKLEME SİSTEMİ
+    // ========================================================
+    
+    function showVideoUploadForm() {
+        document.getElementById('videoUploadFormDiv').style.display = 'block';
+    }
+    
+    function hideVideoUploadForm() {
+        document.getElementById('videoUploadFormDiv').style.display = 'none';
+        document.getElementById('videoUploadForm').reset();
+        document.getElementById('uploadProgress').style.display = 'none';
+    }
+    
+    // Video yükleme form submit
+    document.getElementById('videoUploadForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const fileInput = document.getElementById('videoFile');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            alert('Lütfen bir video dosyası seçin!');
+            return;
+        }
+        
+        // Dosya boyutu kontrolü (500MB = 500 * 1024 * 1024 bytes)
+        const maxSize = 500 * 1024 * 1024;
+        if (file.size > maxSize) {
+            alert('Video dosyası çok büyük! Maksimum 500MB yükleyebilirsiniz.');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('video', file);
+        
+        // Progress bar göster
+        document.getElementById('uploadProgress').style.display = 'block';
+        document.getElementById('uploadBtn').disabled = true;
+        
+        // XMLHttpRequest ile upload progress takibi
+        const xhr = new XMLHttpRequest();
+        
+        xhr.upload.addEventListener('progress', function(e) {
+            if (e.lengthComputable) {
+                const percentComplete = Math.round((e.loaded / e.total) * 100);
+                document.getElementById('uploadProgressBar').style.width = percentComplete + '%';
+                document.getElementById('uploadProgressText').textContent = percentComplete + '%';
+            }
+        });
+        
+        xhr.addEventListener('load', function() {
+            if (xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                if (response.status === 'success') {
+                    alert('Video başarıyla yüklendi!');
+                    location.reload();
+                } else {
+                    alert('Hata: ' + response.message);
+                    document.getElementById('uploadBtn').disabled = false;
+                }
+            } else {
+                alert('Video yükleme başarısız! Lütfen tekrar deneyin.');
+                document.getElementById('uploadBtn').disabled = false;
+            }
+            document.getElementById('uploadProgress').style.display = 'none';
+        });
+        
+        xhr.addEventListener('error', function() {
+            alert('Video yükleme sırasında bir hata oluştu!');
+            document.getElementById('uploadBtn').disabled = false;
+            document.getElementById('uploadProgress').style.display = 'none';
+        });
+        
+        xhr.open('POST', '/upload_session_video/' + sessionId, true);
+        xhr.send(formData);
+    });
+    
+    // Video silme
+    function deleteVideo() {
+        if (!confirm('Video dosyasını silmek istediğinizden emin misiniz?')) {
+            return;
+        }
+        
+        fetch('/delete_session_video/' + sessionId, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Video başarıyla silindi!');
+                location.reload();
+            } else {
+                alert('Hata: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Video silme sırasında bir hata oluştu!');
+        });
+    }
+
+    // ========================================================
+    // ASENKRON ANALİZ SİSTEMİ
+    // ========================================================
+    
+    // sessionId zaten yukarıda tanımlı (satır 364)
+    let analysisCheckInterval = null;
+    
+    // Analizi başlat
+    function startAsyncAnalysis() {
+        const button = event.target;
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Başlatılıyor...';
+        
+        fetch(`/start_async_analysis/${sessionId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Başarılı - sayfayı yenile
+                alert('✅ ' + data.message);
+                location.reload();
+            } else if (data.status === 'warning') {
+                alert('⚠️ ' + data.message);
+                location.reload();
+            } else {
+                alert('❌ ' + data.message);
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-play"></i> Analizi Başlat';
+            }
+        })
+        .catch(error => {
+            console.error('Hata:', error);
+            alert('Analiz başlatılırken bir hata oluştu: ' + error);
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-play"></i> Analizi Başlat';
+        });
+    }
+    
+    // Analiz durumunu kontrol et
+    function checkAnalysisStatus() {
+        fetch(`/check_analysis_status/${sessionId}`)
+            .then(response => response.json())
+            .then(data => {
+                updateProgressBar(data.progress);
+                
+                // Analiz tamamlandıysa sayfayı yenile
+                if (data.status === 'completed' && data.has_results) {
+                    clearInterval(analysisCheckInterval);
+                    location.reload();
+                } else if (data.status === 'failed') {
+                    clearInterval(analysisCheckInterval);
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Durum kontrolü hatası:', error);
+            });
+    }
+    
+    // İlerleme çubuğunu güncelle
+    function updateProgressBar(progress) {
+        const progressBar = document.getElementById('analysisProgressBar');
+        const progressText = document.getElementById('progressText');
+        
+        if (progressBar && progressText) {
+            progressBar.style.width = progress + '%';
+            progressText.textContent = progress + '%';
+        }
+    }
+    
+    // Eğer analiz devam ediyorsa, durum kontrolünü başlat
+    {% if session.analysis_status == 'processing' %}
+    document.addEventListener('DOMContentLoaded', function() {
+        // İlk kontrolü hemen yap
+        checkAnalysisStatus();
+        
+        // Her 5 saniyede bir kontrol et
+        analysisCheckInterval = setInterval(checkAnalysisStatus, 5000);
+    });
+    {% endif %}
+</script>
+{% endblock %} 

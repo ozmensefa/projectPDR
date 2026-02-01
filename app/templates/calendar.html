@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Takvim{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <!-- Takvim Başlığı ve Navigasyon -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-calendar-alt"></i> {{ calendar.month_name }} {{ calendar.year }}
+                    </h3>
+                </div>
+                <div class="btn-group" role="group">
+                    <a href="{{ url_for('main.calendar', year=calendar.prev_year, month=calendar.prev_month) }}" 
+                       class="btn btn-outline-primary">
+                        <i class="fas fa-chevron-left"></i> Önceki Ay
+                    </a>
+                    <a href="{{ url_for('main.calendar') }}" 
+                       class="btn btn-primary">
+                        <i class="fas fa-home"></i> Bugün
+                    </a>
+                    <a href="{{ url_for('main.calendar', year=calendar.next_year, month=calendar.next_month) }}" 
+                       class="btn btn-outline-primary">
+                        Sonraki Ay <i class="fas fa-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Takvim Görünümü -->
+            <div class="card-body p-0">
+                <div class="calendar-container">
+                    <table class="table table-bordered calendar-table mb-0">
+                        <thead class="table-primary">
+                            <tr>
+                                <th class="text-center">Pazartesi</th>
+                                <th class="text-center">Salı</th>
+                                <th class="text-center">Çarşamba</th>
+                                <th class="text-center">Perşembe</th>
+                                <th class="text-center">Cuma</th>
+                                <th class="text-center">Cumartesi</th>
+                                <th class="text-center">Pazar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for week in calendar.weeks %}
+                            <tr>
+                                {% for day in week %}
+                                <td class="calendar-day {% if day == 0 %}empty-day{% endif %}" 
+                                    {% if day != 0 %}data-date="{{ calendar.year }}-{{ '%02d'|format(calendar.month) }}-{{ '%02d'|format(day) }}"{% endif %}>
+                                    {% if day != 0 %}
+                                        <div class="day-header">
+                                            <span class="day-number {% if day == calendar.today.day and calendar.month == calendar.today.month and calendar.year == calendar.today.year %}today{% endif %}">
+                                                {{ day }}
+                                            </span>
+                                        </div>
+                                        
+                                        <!-- Bu tarihteki oturumlar -->
+                                        {% set current_date = calendar.year|string + '-' + '%02d'|format(calendar.month) + '-' + '%02d'|format(day) %}
+                                        {% for date_key, sessions in calendar.sessions_by_date.items() %}
+                                            {% if date_key.strftime('%Y-%m-%d') == current_date %}
+                                            <div class="sessions-list">
+                                                {% for session in sessions %}
+                                                {% set is_past = session.date < calendar.today %}
+                                                {% set is_completed = session.analysis_results %}
+                                                <a href="{{ url_for('client.view_session', session_id=session.id) }}" 
+                                                   class="session-item {% if is_past and is_completed %}completed{% elif is_past and not is_completed %}past-incomplete{% elif not is_past %}upcoming{% endif %}" 
+                                                   title="{{ session.title }} - {{ session.client.name }} ({{ session.date.strftime('%H:%M') }})">
+                                                    <div class="session-time">{{ session.date.strftime('%H:%M') }}</div>
+                                                    <div class="session-title">{{ session.title[:15] }}{% if session.title|length > 15 %}...{% endif %}</div>
+                                                    <div class="session-client">{{ session.client.name }}</div>
+                                                    <div class="session-status">
+                                                        {% if is_past and is_completed %}
+                                                            <i class="fas fa-check-circle" title="Tamamlandı"></i>
+                                                        {% elif is_past and not is_completed %}
+                                                            <i class="fas fa-exclamation-circle" title="Tamamlanmamış"></i>
+                                                        {% elif not is_past %}
+                                                            <i class="fas fa-clock" title="Yaklaşan"></i>
+                                                        {% endif %}
+                                                    </div>
+                                                </a>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+// Takvim sayfası - sadece görüntüleme amaçlı
+document.addEventListener('DOMContentLoaded', function() {
+    // Sayfa yüklendiğinde gerekli işlemler
+    console.log('Takvim sayfası yüklendi');
+});
+</script>
+{% endblock %} 

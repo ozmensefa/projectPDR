@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <!-- Arka plan dairesi -->
+  <circle cx="100" cy="100" r="100" fill="#e9ecef"/>
+  
+  <!-- Kişi ikonu -->
+  <g fill="#6c757d">
+    <!-- Baş -->
+    <circle cx="100" cy="70" r="25"/>
+    
+    <!-- Vücut -->
+    <path d="M100 110 
+             C85 110, 70 115, 60 125
+             C50 135, 50 150, 60 160
+             L140 160
+             C150 150, 150 135, 140 125
+             C130 115, 115 110, 100 110 Z"/>
+  </g>
+  
+  <!-- Çerçeve -->
+  <circle cx="100" cy="100" r="98" fill="none" stroke="#dee2e6" stroke-width="4"/>
+</svg> 

@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Kullanıcı Aktiviteleri (Admin){% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-shield-alt text-danger"></i> 
+            Kullanıcı Aktiviteleri 
+            <span class="badge bg-danger">Admin</span>
+        </h2>
+    </div>
+    
+    <!-- İstatistikler -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3>{{ stats.total_activities }}</h3>
+                    <p class="mb-0">Toplam Aktivite</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3>{{ stats.unique_users }}</h3>
+                    <p class="mb-0">Aktif Kullanıcı</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3>{{ stats.today_activities }}</h3>
+                    <p class="mb-0">Bugünkü Aktivite</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filtreler -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Tarih</label>
+                    <select name="date" class="form-select" onchange="this.form.submit()">
+                        <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Bugün</option>
+                        <option value="week" {% if date_filter == 'week' %}selected{% endif %}>Son 7 Gün</option>
+                        <option value="month" {% if date_filter == 'month' %}selected{% endif %}>Son 30 Gün</option>
+                        <option value="all" {% if date_filter == 'all' %}selected{% endif %}>Tümü</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Kullanıcı</label>
+                    <select name="user_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">Tüm Kullanıcılar</option>
+                        {% for user in all_users %}
+                        <option value="{{ user.id }}" {% if selected_user_id == user.id %}selected{% endif %}>
+                            {{ user.name }} {% if user.is_admin %}⭐{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Aksiyon</label>
+                    <input type="text" name="action" class="form-control" 
+                           placeholder="Ara..." value="{{ action_filter }}">
+                </div>
+                
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Filtrele
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Aktivite Listesi -->
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th width="180">Tarih/Saat</th>
+                        <th width="200">Kullanıcı</th>
+                        <th width="150">Aksiyon</th>
+                        <th>Açıklama</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if activities.items %}
+                        {% for activity in activities.items %}
+                        <tr>
+                            <td>
+                                <small class="text-muted">
+                                    {{ activity.created_at.strftime('%d.%m.%Y') }}<br>
+                                    {{ activity.created_at.strftime('%H:%M:%S') }}
+                                </small>
+                            </td>
+                            <td>
+                                <strong>{{ activity.counselor.name }}</strong>
+                                {% if activity.counselor.is_admin %}
+                                <span class="badge bg-danger" title="Admin">⭐</span>
+                                {% endif %}
+                                <br>
+                                <small class="text-muted">{{ activity.counselor.email }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">
+                                    {{ activity.action|replace('_', ' ')|title }}
+                                </span>
+                            </td>
+                            <td>{{ activity.description or '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">
+                                Kayıt bulunamadı
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+            
+            <!-- Pagination -->
+            {% if activities.has_prev or activities.has_next %}
+            <nav class="mt-3">
+                <ul class="pagination justify-content-center">
+                    {% if activities.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ activities.prev_num }}&date={{ date_filter }}&user_id={{ selected_user_id or '' }}&action={{ action_filter }}">
+                            Önceki
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">{{ activities.page }} / {{ activities.pages }}</span>
+                    </li>
+                    
+                    {% if activities.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ activities.next_num }}&date={{ date_filter }}&user_id={{ selected_user_id or '' }}&action={{ action_filter }}">
+                            Sonraki
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}İlerleyiş Analizi - {{ client.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>{{ client.name }} - İlerleyiş Analizi</h2>
+                <a href="{{ url_for('client.view_client', client_id=client.id) }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Danışana Dön
+                </a>
+            </div>
+
+            <!-- Yeni İlerleyiş Analizi -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-line text-primary"></i> Yeni İlerleyiş Analizi Oluştur</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Bilgi:</strong> İlerleyiş analizi için başlangıç ve bitiş oturumlarını seçin. 
+                        Seçilen aralıktaki tüm oturumların analizleri değerlendirilerek danışanın ilerleyişi hakkında kapsamlı bir rapor oluşturulacak.
+                    </div>
+
+                    <!-- İşlem Bildirimi -->
+                    <div id="processing-alert" class="alert alert-info" style="display: none;">
+                        <div class="d-flex align-items-center">
+                            <div class="spinner-border spinner-border-sm me-3" role="status">
+                                <span class="visually-hidden">Yükleniyor...</span>
+                            </div>
+                            <div>
+                                <strong>İlerleyiş analizi başlatılıyor...</strong>
+                                <p class="mb-0 mt-1 small">Analiz arka planda işlenecek. Tamamlandığında bildirim alacaksınız.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('main.generate_progress_report', client_id=client.id) }}" id="progress-form">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="start_session_id" class="form-label">
+                                        <i class="fas fa-play text-success"></i> Başlangıç Oturumu
+                                    </label>
+                                    <select class="form-select" id="start_session_id" name="start_session_id" required>
+                                        <option value="">Başlangıç oturumu seçin...</option>
+                                        {% for session in sessions %}
+                                        <option value="{{ session.id }}" data-date="{{ session.date.strftime('%Y-%m-%d') }}">
+                                            {{ session.title }} - {{ session.date.strftime('%d.%m.%Y') }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="end_session_id" class="form-label">
+                                        <i class="fas fa-stop text-danger"></i> Bitiş Oturumu
+                                    </label>
+                                    <select class="form-select" id="end_session_id" name="end_session_id" required>
+                                        <option value="">Bitiş oturumu seçin...</option>
+                                        {% for session in sessions %}
+                                        <option value="{{ session.id }}" data-date="{{ session.date.strftime('%Y-%m-%d') }}">
+                                            {{ session.title }} - {{ session.date.strftime('%d.%m.%Y') }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Seçilen Aralık Bilgisi -->
+                        <div id="range-info" class="alert alert-secondary" style="display: none;">
+                            <h6><i class="fas fa-calendar-alt"></i> Seçilen Aralık:</h6>
+                            <div id="range-details"></div>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary btn-lg" id="generate-btn">
+                                <i class="fas fa-magic"></i> İlerleyiş Analizi Oluştur
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Önceki İlerleyiş Analizleri -->
+            {% if previous_analyses %}
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-history text-info"></i> Önceki İlerleyiş Analizleri</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Tarih Aralığı</th>
+                                    <th>Oturum Sayısı</th>
+                                    <th>Oluşturma Tarihi</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for analysis in previous_analyses %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ analysis.date_range }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ analysis.sessions_analyzed }} oturum</span>
+                                    </td>
+                                    <td>{{ analysis.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('main.view_progress_report', report_id=analysis.id) }}" 
+                                           class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> Görüntüle
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteModal{{ analysis.id }}">
+                                            <i class="fas fa-trash"></i> Sil
+                                        </button>
+                                    </td>
+                                </tr>
+
+                                <!-- Silme Modal -->
+                                <div class="modal fade" id="deleteModal{{ analysis.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">İlerleyiş Analizini Sil</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>{{ analysis.date_range }} tarih aralığındaki ilerleyiş analizini silmek istediğinizden emin misiniz?</p>
+                                                <div class="text-muted">
+                                                    <small>Bu işlem geri alınamaz.</small>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                                                <form method="POST" action="{{ url_for('main.delete_progress_report', report_id=analysis.id) }}" class="d-inline">
+                                                    <button type="submit" class="btn btn-danger">Sil</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Henüz İlerleyiş Analizi Yok</h5>
+                    <p class="text-muted">Yukarıdaki formdan ilk ilerleyiş analizinizi oluşturun.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const startSelect = document.getElementById('start_session_id');
+    const endSelect = document.getElementById('end_session_id');
+    const generateBtn = document.getElementById('generate-btn');
+    const rangeInfo = document.getElementById('range-info');
+    const rangeDetails = document.getElementById('range-details');
+    const progressForm = document.getElementById('progress-form');
+    const processingAlert = document.getElementById('processing-alert');
+
+    function updateFormState() {
+        const startValue = startSelect.value;
+        const endValue = endSelect.value;
+        
+        // Her zaman butonu aktif bırak, required attribute browser tarafından kontrol edilecek
+        generateBtn.disabled = false;
+        
+        if (startValue && endValue) {
+            // Tarih kontrolü
+            const startDate = new Date(startSelect.options[startSelect.selectedIndex].dataset.date);
+            const endDate = new Date(endSelect.options[endSelect.selectedIndex].dataset.date);
+            
+            if (startDate >= endDate) {
+                generateBtn.disabled = true;
+                rangeInfo.style.display = 'block';
+                rangeDetails.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Başlangıç tarihi bitiş tarihinden önce olmalıdır!</span>';
+                return;
+            }
+            
+            if (startValue === endValue) {
+                generateBtn.disabled = true;
+                rangeInfo.style.display = 'block';
+                rangeDetails.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Başlangıç ve bitiş oturumları aynı olamaz!</span>';
+                return;
+            }
+            
+            // Geçerli seçim
+            rangeInfo.style.display = 'block';
+            
+            const startText = startSelect.options[startSelect.selectedIndex].text;
+            const endText = endSelect.options[endSelect.selectedIndex].text;
+            
+            // Aralıktaki oturum sayısını hesapla
+            let sessionCount = 0;
+            for (let option of startSelect.options) {
+                if (option.value) {
+                    const optionDate = new Date(option.dataset.date);
+                    if (optionDate >= startDate && optionDate <= endDate) {
+                        sessionCount++;
+                    }
+                }
+            }
+            
+            rangeDetails.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Başlangıç:</strong> ${startText}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Bitiş:</strong> ${endText}
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <span class="badge bg-success">${sessionCount} oturum analiz edilecek</span>
+                </div>
+            `;
+        } else {
+            rangeInfo.style.display = 'none';
+        }
+    }
+
+    // Form submit olduğunda kullanıcıya bildirim göster
+    progressForm.addEventListener('submit', function(e) {
+        // Debug: Form verilerini konsola yazdır
+        console.log('Form submit - Start ID:', startSelect.value);
+        console.log('Form submit - End ID:', endSelect.value);
+        console.log('Form action:', progressForm.action);
+        
+        // Değerler boşsa formu engelle
+        if (!startSelect.value || !endSelect.value) {
+            e.preventDefault();
+            alert('Lütfen başlangıç ve bitiş oturumlarını seçin!');
+            return false;
+        }
+        
+        // İşlem bildirimini göster
+        processingAlert.style.display = 'block';
+        
+        // Butonu devre dışı bırak ve metnini değiştir
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Başlatılıyor...';
+        
+        // Select'leri readonly yap (disabled yerine - böylece form verileri gönderilir)
+        startSelect.style.pointerEvents = 'none';
+        endSelect.style.pointerEvents = 'none';
+        startSelect.style.opacity = '0.6';
+        endSelect.style.opacity = '0.6';
+        
+        // Formu yumuşak bir şekilde scroll et
+        processingAlert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+
+    startSelect.addEventListener('change', updateFormState);
+    endSelect.addEventListener('change', updateFormState);
+    
+    // Sayfa yüklendiğinde butonu aktif et
+    updateFormState();
+});
+</script>
+{% endblock %} 
