@@ -73,10 +73,9 @@ def generate_client_suggestions(client):
             'type': 'warning',
             'icon': 'fas fa-brain',
             'title': 'Analiz Bekleyen Oturumlar',
-            'description': f'{len(unanalyzed_sessions)} oturum analiz bekliyor. Bu oturumları analiz ederek danışan ilerleyişini daha iyi takip edebilirsiniz.',
-            'action': 'Analiz Et',
-            'url': 'main.analysis',
-            'session_id': unanalyzed_sessions[0].id
+            'description': f'{len(unanalyzed_sessions)} oturum analiz bekliyor. Oturum sayfasından analiz başlatabilirsiniz.',
+            'action': 'Danışanlara Git',
+            'url': 'client.list_clients'
         })
     
     # Son oturum tarihi kontrolü
@@ -147,7 +146,7 @@ def add_client():
         
         db.session.commit()
         flash('Danışan başarıyla eklendi.')
-        return redirect(url_for('client.list_clients'))
+        return redirect(url_for('client.view_client', client_id=client.id))
     return render_template('client/add.html', form=form)
 
 @client_bp.route('/client/<int:client_id>')

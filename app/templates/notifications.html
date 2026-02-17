@@ -3,11 +3,20 @@
 {% block title %}Bildirimler - PDR Analiz{% endblock %}
 
 {% block content %}
-<div class="container my-4">
     <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2><i class="fas fa-bell"></i> Bildirimler</h2>
+            <!-- Sayfa Başlığı -->
+            <div class="page-header d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-bell me-2"></i>Bildirimler</h2>
+                    <p class="text-muted mb-0 mt-1">
+                        {% if unread_count > 0 %}
+                            {{ unread_count }} okunmamış bildiriminiz var
+                        {% else %}
+                            Tüm bildirimler okundu
+                        {% endif %}
+                    </p>
+                </div>
                 <div>
                     {% if unread_count > 0 %}
                     <button class="btn btn-outline-primary" onclick="markAllRead()">
@@ -17,14 +26,10 @@
                 </div>
             </div>
 
-            {% if unread_count > 0 %}
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i> {{ unread_count }} okunmamış bildiriminiz var.
-            </div>
-            {% endif %}
-
             {% if notifications %}
-            <div class="list-group">
+            <div class="card">
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
                 {% for notification in notifications %}
                 <div class="list-group-item {% if not notification.is_read %}list-group-item-light border-primary{% endif %}" 
                      id="notification-{{ notification.id }}">
@@ -55,7 +60,7 @@
                             <a href="{{ notification.link.replace('/client/view_session/', '/session/view/') }}" 
                                class="btn btn-sm btn-outline-primary" 
                                onclick="{% if not notification.is_read %}markAsReadAndNavigate(event, {{ notification.id }});{% endif %}">
-                                <i class="fas fa-eye"></i> Görüntüle
+                                <i class="fas fa-eye"></i> Detayı Görüntüle
                             </a>
                             {% endif %}
                             {% if not notification.is_read %}
@@ -66,25 +71,27 @@
                             {% endif %}
                             <form method="POST" action="{{ url_for('main.delete_notification', notification_id=notification.id) }}" 
                                   style="display: inline;" onsubmit="return confirm('Bu bildirimi silmek istediğinize emin misiniz?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-sm btn-outline-danger">
-                                    <i class="fas fa-trash"></i>
+                                    <i class="fas fa-trash"></i> Sil
                                 </button>
                             </form>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
+                    </div>
+                </div>
             </div>
             {% else %}
-            <div class="alert alert-info text-center">
-                <i class="fas fa-bell-slash fa-3x mb-3"></i>
+            <div class="content-block empty-state">
+                <i class="fas fa-bell-slash d-block"></i>
                 <h5>Henüz bildiriminiz yok</h5>
-                <p>Video analizleri tamamlandığında burada bildirim alacaksınız.</p>
+                <p class="text-muted">Video analizleri tamamlandığında burada bildirim alacaksınız.</p>
             </div>
             {% endif %}
         </div>
     </div>
-</div>
 
 <script>
 // Link tıklandığında okundu işaretle ve linke git

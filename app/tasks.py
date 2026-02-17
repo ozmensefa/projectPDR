@@ -3,7 +3,7 @@
 Celery Tasks - Asenkron Video Analiz İşlemleri
 """
 from app import create_app, db
-from app.models import Session, Notification, AIAnalysis, ProgressAnalysis
+from app.models import Session, Notification, AIAnalysis, ProgressAnalysis, Counselor
 from app.services.audio_service import AudioService
 from app.services.text_service import TextService
 from app.services.emotion_service import EmotionService
@@ -162,6 +162,20 @@ def analyze_video(self, session_id, counselor_id):
                 db.session.add(notification)
                 db.session.commit()
                 
+                # E-posta bildirimi gönder
+                try:
+                    from app.services.email_service import send_analysis_completed_email
+                    counselor = Counselor.query.get(counselor_id)
+                    if counselor:
+                        site_url = flask_app.config.get('SITE_URL', 'https://yakades.com.tr')
+                        view_url = f"{site_url}/session/view/{session_id}"
+                        send_analysis_completed_email(
+                            counselor.email, counselor.name,
+                            client_name, session.title, view_url
+                        )
+                except Exception as mail_err:
+                    print(f"⚠️ E-posta gönderilemedi: {mail_err}")
+                
                 return {
                     'status': 'success',
                     'session_id': session_id,
@@ -195,6 +209,20 @@ def analyze_video(self, session_id, counselor_id):
                 )
                 db.session.add(notification)
                 db.session.commit()
+                
+                # E-posta bildirimi gönder
+                try:
+                    from app.services.email_service import send_analysis_failed_email
+                    counselor = Counselor.query.get(counselor_id)
+                    if counselor and session:
+                        site_url = flask_app.config.get('SITE_URL', 'https://yakades.com.tr')
+                        view_url = f"{site_url}/session/view/{session_id}"
+                        send_analysis_failed_email(
+                            counselor.email, counselor.name,
+                            session.client.name, session.title, view_url
+                        )
+                except Exception as mail_err:
+                    print(f"⚠️ E-posta gönderilemedi: {mail_err}")
             except Exception as notify_error:
                 print(f"⚠️ Bildirim oluşturulurken hata: {notify_error}")
                 db.session.rollback()
@@ -334,6 +362,21 @@ def analyze_progress(self, progress_analysis_id, counselor_id):
             db.session.add(notification)
             db.session.commit()
             
+            # E-posta bildirimi gönder
+            try:
+                from app.services.email_service import send_progress_completed_email
+                counselor = Counselor.query.get(counselor_id)
+                if counselor:
+                    site_url = flask_app.config.get('SITE_URL', 'https://yakades.com.tr')
+                    view_url = f"{site_url}/view_progress_report/{progress_analysis_id}"
+                    send_progress_completed_email(
+                        counselor.email, counselor.name,
+                        progress_analysis.client.name,
+                        progress_analysis.date_range, view_url
+                    )
+            except Exception as mail_err:
+                print(f"⚠️ E-posta gönderilemedi: {mail_err}")
+            
             return {
                 'status': 'success',
                 'progress_analysis_id': progress_analysis_id,
@@ -365,6 +408,18 @@ def analyze_progress(self, progress_analysis_id, counselor_id):
                 )
                 db.session.add(notification)
                 db.session.commit()
+                
+                # E-posta bildirimi gönder
+                try:
+                    from app.services.email_service import send_progress_failed_email
+                    counselor = Counselor.query.get(counselor_id)
+                    if counselor and progress_analysis:
+                        send_progress_failed_email(
+                            counselor.email, counselor.name,
+                            progress_analysis.client.name, str(e)
+                        )
+                except Exception as mail_err:
+                    print(f"⚠️ E-posta gönderilemedi: {mail_err}")
             except Exception as notify_error:
                 print(f"⚠️ Bildirim oluşturulurken hata: {notify_error}")
                 db.session.rollback()

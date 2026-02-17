@@ -4,10 +4,20 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-md-10 col-lg-8">
+        <!-- Sayfa Başlığı -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2><i class="fas fa-user-edit me-2"></i>Danışan Düzenle</h2>
+                <p class="text-muted mb-0 mt-1">{{ client.name }} - bilgileri güncelle</p>
+            </div>
+            <a href="{{ url_for('client.view_client', client_id=client.id) }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Geri Dön
+            </a>
+        </div>
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Danışan Bilgilerini Düzenle</h3>
+                <h3 class="card-title mb-0">Danışan Bilgileri</h3>
             </div>
             <div class="card-body">
                 <form method="POST" action="" enctype="multipart/form-data">
@@ -75,8 +85,8 @@
                         {{ form.notes.label(class="form-label") }}
                         {{ form.notes(class="form-control", rows=4) }}
                     </div>
-                    {{ form.submit(class="btn btn-primary") }}
-                    <a href="{{ url_for('client.view_client', client_id=client.id) }}" class="btn btn-secondary">İptal</a>
+                    {{ form.submit(class="btn btn-success") }}
+                    <a href="{{ url_for('client.view_client', client_id=client.id) }}" class="btn btn-secondary"><i class="fas fa-times"></i> İptal</a>
                 </form>
             </div>
         </div>

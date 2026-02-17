@@ -3,24 +3,25 @@
 {% block title %}İlerleyiş Raporu - {{ report.client.name }}{% endblock %}
 
 {% block content %}
-<div class="container">
     <div class="row">
-        <div class="col-md-12">
-            <!-- Header -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="col-12">
+            <!-- Sayfa Başlığı -->
+            <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
                 <div>
-                    <h2>{{ report.client.name }} - İlerleyiş Raporu</h2>
-                    <p class="text-muted mb-0">
-                        <i class="fas fa-calendar-alt"></i> {{ report.date_range }} 
-                        <span class="mx-2">|</span>
-                        <i class="fas fa-list-ol"></i> {{ report.sessions_analyzed }} oturum analizi
-                        <span class="mx-2">|</span>
+                    <h2><i class="fas fa-file-medical-alt me-2"></i>İlerleyiş Raporu</h2>
+                    <p class="text-muted mb-0 mt-1">
+                        {{ report.client.name }} | 
+                        <i class="fas fa-calendar-alt"></i> {{ report.date_range }} | 
+                        <i class="fas fa-list-ol"></i> {{ report.sessions_analyzed }} oturum | 
                         <i class="fas fa-clock"></i> {{ report.created_at.strftime('%d.%m.%Y %H:%M') }}
                     </p>
                 </div>
-                <div>
+                <div class="d-flex flex-wrap gap-2">
                     <a href="{{ url_for('main.progress_analysis', client_id=report.client_id) }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> İlerleyiş Analizine Dön
+                        <i class="fas fa-arrow-left"></i> Analizlere Dön
+                    </a>
+                    <a href="{{ url_for('client.view_client', client_id=report.client_id) }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Danışana Dön
                     </a>
                     <button class="btn btn-info" onclick="printReport()">
                         <i class="fas fa-print"></i> Yazdır
@@ -196,7 +197,6 @@
             </div>
         </div>
     </div>
-</div>
 
 <!-- Silme Confirmation Modal -->
 <div class="modal fade" id="deleteReportModal" tabindex="-1">
@@ -221,8 +221,9 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times"></i> İptal</button>
                 <form method="POST" action="{{ url_for('main.delete_progress_report', report_id=report.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-danger">
                         <i class="fas fa-trash"></i> Evet, Sil
                     </button>

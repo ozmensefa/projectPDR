@@ -4,18 +4,25 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md-12">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>{{ client.name }}</h2>
+    <div class="col-12">
+        <!-- Sayfa Başlığı -->
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
-                <a href="{{ url_for('client.add_session', client_id=client.id) }}" class="btn btn-success me-2">
+                <h2><i class="fas fa-user me-2"></i>{{ client.name }}</h2>
+                <p class="text-muted mb-0 mt-1">Danışan Detayları ve Oturum Yönetimi</p>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ url_for('client.list_clients') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Danışanlarıma Dön
+                </a>
+                <a href="{{ url_for('client.add_session', client_id=client.id) }}" class="btn btn-success">
                     <i class="fas fa-plus"></i> Yeni Oturum
                 </a>
-                <a href="{{ url_for('main.progress_analysis', client_id=client.id) }}" class="btn btn-info me-2">
+                <a href="{{ url_for('main.progress_analysis', client_id=client.id) }}" class="btn btn-info">
                     <i class="fas fa-chart-line"></i> İlerleyiş Analizi
                 </a>
-                <a href="{{ url_for('client.edit_client', client_id=client.id) }}" class="btn btn-primary me-2">
-                    <i class="fas fa-edit"></i> Düzenle
+                <a href="{{ url_for('client.edit_client', client_id=client.id) }}" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Danışanı Düzenle
                 </a>
                 <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteClientModal">
                     <i class="fas fa-trash"></i> Danışanı Sil
@@ -88,13 +95,17 @@
 
             <div class="col-md-8">
                 <div class="card">
-                    <div class="card-header">
-                        <h4 class="card-title">Oturumlar</h4>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">Oturumlar</h4>
+                        <a href="{{ url_for('client.add_session', client_id=client.id) }}" 
+                           class="btn btn-sm btn-success">
+                            <i class="fas fa-plus"></i> Yeni Oturum
+                        </a>
                     </div>
                     <div class="card-body">
                         {% if client.sessions %}
                             <div class="table-responsive">
-                                <table class="table table-hover">
+                                <table id="sessionsTable" class="table table-hover" style="width:100%">
                                     <thead>
                                         <tr>
                                             <th>Tarih</th>
@@ -104,7 +115,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for session in client.sessions|sort(attribute='date', reverse=true) %}
+                                        {% for session in client.sessions %}
                                         <tr>
                                             <td>
                                                 <span class="fw-bold">{{ session.date|friendly_date }}</span>
@@ -119,18 +130,18 @@
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                <a href="{{ url_for('client.view_session', session_id=session.id) }}" 
-                                                   class="btn btn-sm btn-info">Görüntüle</a>
-                                                {% if not session.analysis_results %}
-                                                    <a href="{{ url_for('main.analysis', session_id=session.id) }}" 
-                                                       class="btn btn-sm btn-primary">Analiz Et</a>
-                                                {% endif %}
-                                                <button type="button" 
-                                                        class="btn btn-sm btn-danger" 
-                                                        data-bs-toggle="modal" 
-                                                        data-bs-target="#deleteModal{{ session.id }}">
-                                                    Sil
-                                                </button>
+                                                <div class="btn-action-group">
+                                                    <a href="{{ url_for('client.view_session', session_id=session.id) }}" 
+                                                       class="btn btn-sm btn-info">
+                                                        <i class="fas fa-eye"></i> Oturumu Görüntüle
+                                                    </a>
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-danger" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#deleteModal{{ session.id }}">
+                                                        <i class="fas fa-trash"></i> Oturumu Sil
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                         {% endfor %}
@@ -179,8 +190,8 @@
                                             </td>
                                             <td>
                                                 <a href="{{ url_for('main.view_progress_report', report_id=analysis.id) }}" 
-                                                   class="btn btn-sm btn-info" title="Raporu Görüntüle">
-                                                    <i class="fas fa-eye"></i> Görüntüle
+                                                   class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i> Raporu Görüntüle
                                                 </a>
                                             </td>
                                         </tr>
@@ -291,8 +302,9 @@
                 <p class="text-danger"><strong>Bu işlem geri alınamaz!</strong></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times"></i> İptal</button>
                 <form action="{{ url_for('client.delete_client', client_id=client.id) }}" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-danger">
                         <i class="fas fa-trash"></i> Danışanı Sil
                     </button>
@@ -316,13 +328,40 @@
                 <p class="text-danger">Bu işlem geri alınamaz!</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times"></i> İptal</button>
                 <form action="{{ url_for('client.delete_session', session_id=session.id) }}" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-danger">Oturumu Sil</button>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Oturumu Sil</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 {% endfor %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    if ($('#sessionsTable').length) {
+        var lang = $.extend({}, dtLanguageTR, {searchPlaceholder: 'Oturum ara...'});
+        $('#sessionsTable').DataTable({
+            language: lang,
+            autoWidth: false,
+            pageLength: 10,
+            lengthMenu: [[5, 10, 25, -1], [5, 10, 25, 'Tümü']],
+            order: [[0, 'desc']],
+            columnDefs: [
+                { orderable: false, targets: [3] },
+                { searchable: false, targets: [3] },
+                { width: '18%', targets: [0] },
+                { width: '35%', targets: [1] },
+                { width: '17%', targets: [2] }
+            ],
+            dom: '<"dt-header"<"row align-items-center"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>>t<"dt-footer"<"row align-items-center"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>>'
+        });
+    }
+});
+</script>
 {% endblock %} 

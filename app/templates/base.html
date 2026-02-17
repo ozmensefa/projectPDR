@@ -8,51 +8,62 @@
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    {% block head %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">YAKADES</a>
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.index') }}">
+                <i class="fas fa-brain me-2"></i>
+                <span>YAKADES</span>
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     {% if current_user.is_authenticated %}
+                        {% set active_route = request.endpoint %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.index') }}">
-                                <i class="fas fa-home"></i> Ana Sayfa
+                            <a class="nav-link {% if active_route == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}">
+                                <i class="fas fa-home"></i> <span>Ana Sayfa</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.calendar') }}">
-                                <i class="fas fa-calendar-alt"></i> Takvim
+                            <a class="nav-link {% if active_route and 'client' in active_route %}active{% endif %}" href="{{ url_for('client.list_clients') }}">
+                                <i class="fas fa-users"></i> <span>Danışanlarım</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('client.add_client') }}">
-                                <i class="fas fa-user-plus"></i> Danışan Ekle
+                            <a class="nav-link {% if active_route == 'main.calendar' %}active{% endif %}" href="{{ url_for('main.calendar') }}">
+                                <i class="fas fa-calendar-alt"></i> <span>Takvim</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-add" href="{{ url_for('client.add_client') }}">
+                                <i class="fas fa-plus-circle"></i> <span>Danışan Ekle</span>
                             </a>
                         </li>
                         
                         <!-- Admin Menüsü -->
                         {% if current_user.is_admin %}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-warning" href="#" role="button" 
+                            <a class="nav-link dropdown-toggle nav-link-admin {% if active_route and 'admin' in active_route %}active{% endif %}" href="#" role="button" 
                                data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-shield-alt"></i> Admin
+                                <i class="fas fa-shield-alt"></i> <span>Admin</span>
                             </a>
                             <ul class="dropdown-menu">
                                 <li>
                                     <a class="dropdown-item" href="{{ url_for('main.admin_user_activities') }}">
-                                        <i class="fas fa-history"></i> Kullanıcı Aktiviteleri
+                                        <i class="fas fa-history me-2"></i> Kullanıcı Aktiviteleri
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item" href="{{ url_for('main.manage_users') }}">
-                                        <i class="fas fa-users-cog"></i> Kullanıcı Yönetimi
+                                        <i class="fas fa-users-cog me-2"></i> Kullanıcı Yönetimi
                                     </a>
                                 </li>
                             </ul>
@@ -63,10 +74,10 @@
                 <ul class="navbar-nav">
                     {% if current_user.is_authenticated %}
                         <!-- Bildirim İkonu -->
-                        <li class="nav-item dropdown me-3">
-                            <a class="nav-link position-relative" href="#" role="button" 
+                        <li class="nav-item dropdown me-2">
+                            <a class="nav-link position-relative d-flex align-items-center" href="#" role="button" 
                                data-bs-toggle="dropdown" aria-expanded="false" id="notificationDropdown">
-                                <i class="fas fa-bell fa-lg"></i>
+                                <i class="fas fa-bell"></i>
                                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
                                       id="notificationBadge" style="display: none;">
                                     0
@@ -135,23 +146,32 @@
         </div>
     </nav>
 
-    <div class="container mt-4">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category if category != 'message' else 'info' }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+    <div class="page-wrapper">
+        <div class="container mt-4">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category if category != 'message' else 'info' }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
 
-        {% block content %}{% endblock %}
+            {% block content %}{% endblock %}
+        </div>
     </div>
+
+    <!-- Yukarı Çık Butonu -->
+    <button id="scrollToTopBtn" title="Yukarı Çık" aria-label="Sayfanın başına dön">
+        <i class="fas fa-chevron-up"></i>
+    </button>
 
     <!-- Bootstrap JS ve diğer scriptler -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     
     <!-- Global CSRF Token Desteği -->
@@ -309,6 +329,57 @@
     </script>
     {% endif %}
     
+    <!-- Yukarı Çık Butonu Script -->
+    <script>
+    (function() {
+        var btn = document.getElementById('scrollToTopBtn');
+        if (!btn) return;
+        
+        var ticking = false;
+        window.addEventListener('scroll', function() {
+            if (!ticking) {
+                window.requestAnimationFrame(function() {
+                    if (window.scrollY > 300) {
+                        btn.classList.add('visible');
+                    } else {
+                        btn.classList.remove('visible');
+                    }
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        });
+        
+        btn.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    })();
+    </script>
+
+    <script>
+    var dtLanguageTR = {
+        emptyTable: "Tabloda veri bulunmuyor",
+        info: "_TOTAL_ kayıttan _START_ - _END_ arasındaki kayıtlar gösteriliyor",
+        infoEmpty: "Kayıt bulunamadı",
+        infoFiltered: "(_MAX_ kayıt içerisinden)",
+        lengthMenu: "_MENU_ kayıt göster",
+        loadingRecords: "Yükleniyor...",
+        processing: "İşleniyor...",
+        search: "_INPUT_",
+        zeroRecords: "Eşleşen kayıt bulunamadı",
+        paginate: {
+            first: "İlk",
+            last: "Son",
+            next: "Sonraki",
+            previous: "Önceki"
+        },
+        aria: {
+            sortAscending: ": artan sıralama",
+            sortDescending: ": azalan sıralama"
+        }
+    };
+    </script>
+
     {% block scripts %}{% endblock %}
 </body>
 </html> 

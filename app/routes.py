@@ -251,16 +251,58 @@ def calendar():
     
     return render_template('calendar.html', calendar=calendar_data)
 
-@main_bp.route('/analysis')
+@main_bp.route('/api/calendar-events')
 @login_required
-def analysis():
-    session_id = request.args.get('session_id')
-    session = None
-    if session_id:
-        session = Session.query.get_or_404(session_id)
-        if session.client.counselor_id != current_user.id:
-            abort(403)
-    return render_template('analysis.html', session=session, session_id=session_id)
+def calendar_events():
+    """FullCalendar için JSON event verileri"""
+    from datetime import datetime
+    
+    start = request.args.get('start', '')
+    end = request.args.get('end', '')
+    
+    try:
+        start_date = datetime.fromisoformat(start.replace('Z', '+00:00').split('T')[0])
+        end_date = datetime.fromisoformat(end.replace('Z', '+00:00').split('T')[0])
+    except (ValueError, IndexError):
+        start_date = datetime.now().replace(day=1)
+        end_date = datetime.now()
+    
+    sessions = Session.query.join(Client).filter(
+        Client.counselor_id == current_user.id,
+        Session.date >= start_date,
+        Session.date <= end_date
+    ).order_by(Session.date.asc()).all()
+    
+    now = datetime.now()
+    events = []
+    for s in sessions:
+        is_past = s.date < now
+        is_completed = s.analysis_results is not None
+        
+        if is_past and is_completed:
+            color = '#4caf50'
+            status = 'Tamamlandı'
+        elif is_past and not is_completed:
+            color = '#f44336'
+            status = 'Tamamlanmamış'
+        else:
+            color = '#2196f3'
+            status = 'Yaklaşan'
+        
+        events.append({
+            'id': s.id,
+            'title': s.title,
+            'start': s.date.isoformat(),
+            'url': url_for('client.view_session', session_id=s.id),
+            'color': color,
+            'extendedProps': {
+                'clientName': s.client.name,
+                'status': status,
+                'time': s.date.strftime('%H:%M')
+            }
+        })
+    
+    return jsonify(events)
 
 @main_bp.route('/save_analysis/<int:session_id>', methods=['POST'])
 @login_required
@@ -476,7 +518,7 @@ def save_ai_analysis(session_id):
         
         if not analysis_text:
             flash('Analiz metni boş olamaz.', 'error')
-            return redirect(url_for('main.analysis', session_id=session_id))
+            return redirect(url_for('client.view_session', session_id=session_id))
         
         # Eğer analiz zaten kaydedilmişse, tekrar kaydetme
         existing_analysis = AIAnalysis.query.filter_by(
@@ -506,17 +548,7 @@ def save_ai_analysis(session_id):
         print(f"Hata: {str(e)}")
         print(traceback.format_exc())
         flash(f'Analiz kaydedilirken bir hata oluştu: {str(e)}', 'error')
-        return redirect(url_for('main.analysis', session_id=session_id))
-
-@main_bp.route('/analyze_session/<int:session_id>')
-@login_required
-def analyze_session(session_id):
-    session = Session.query.get_or_404(session_id)
-    # Kullanıcının bu oturuma erişim yetkisi var mı kontrol et
-    if session.client.counselor_id != current_user.id:
-        abort(403)
-    
-    return render_template('analysis.html', session=session, session_id=session_id, ai_analysis="")
+        return redirect(url_for('client.view_session', session_id=session_id))
 
 @main_bp.route('/delete_ai_analysis/<int:session_id>', methods=['POST'])
 @login_required

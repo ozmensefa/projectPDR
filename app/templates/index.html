@@ -4,21 +4,25 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-12">
         {% if current_user.is_authenticated %}
-            <h2>Hoş Geldiniz, {{ current_user.name }}</h2>
+            <!-- Hoş Geldiniz Başlığı -->
+            <div class="page-header">
+                <h2><i class="fas fa-tachometer-alt me-2"></i>Hoş Geldiniz, {{ current_user.name }}</h2>
+                <p class="text-muted mb-0 mt-1">Danışan ve oturum yönetim paneliniz</p>
+            </div>
             
-            <div class="card mt-4">
+            <!-- Danışanlarım Kartı -->
+            <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Danışanlarım</h3>
                 </div>
                 <div class="card-body">
                     {% if clients %}
                         <div class="table-responsive">
-                            <table class="table table-hover">
+                            <table id="dashboardClientsTable" class="table table-hover" style="width:100%">
                                 <thead>
                                     <tr>
-                                        <th width="60">Fotoğraf</th>
                                         <th>Ad Soyad</th>
                                         <th>Yaş</th>
                                         <th>Cinsiyet</th>
@@ -31,44 +35,48 @@
                                     {% for client in clients %}
                                     <tr>
                                         <td>
-                                            {% if client.photo_filename %}
-                                                <img src="{{ url_for('static', filename='uploads/client_photos/' + client.photo_filename) }}" 
-                                                     alt="{{ client.name }}" class="img-thumbnail" 
-                                                     style="width: 50px; height: 50px; object-fit: cover;">
-                                            {% else %}
-                                                <img src="{{ url_for('static', filename='images/default-avatar.png') }}" 
-                                                     alt="{{ client.name }}" class="img-thumbnail" 
-                                                     style="width: 50px; height: 50px; object-fit: cover;">
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <strong>{{ client.name }}</strong>
+                                            <div class="d-flex align-items-center">
+                                                {% if client.photo_filename %}
+                                                    <img src="{{ url_for('static', filename='uploads/client_photos/' + client.photo_filename) }}" 
+                                                         alt="{{ client.name }}" class="rounded-circle me-2" 
+                                                         style="width: 36px; height: 36px; object-fit: cover;">
+                                                {% else %}
+                                                    <img src="{{ url_for('static', filename='images/default-avatar.png') }}" 
+                                                         alt="{{ client.name }}" class="rounded-circle me-2" 
+                                                         style="width: 36px; height: 36px; object-fit: cover;">
+                                                {% endif %}
+                                                <strong>{{ client.name }}</strong>
+                                            </div>
                                         </td>
                                         <td>{{ client.age or '-' }}</td>
                                         <td>{{ client.gender or '-' }}</td>
                                         <td>
                                             {% if client.last_completed_session %}
-                                                <span class="fw-bold text-success">{{ client.last_completed_session.date|friendly_date }}</span>
-                                                <br><small class="text-muted">{{ client.last_completed_session.date.strftime('%d.%m.%Y') }}</small>
-                                                <br><small class="badge bg-success">Analiz Tamamlandı</small>
+                                                <span class="fw-bold text-success">{{ client.last_completed_session.date.strftime('%d.%m.%Y') }}</span>
+                                                <br><small class="badge bg-success">Tamamlandı</small>
                                             {% else %}
                                                 <span class="text-muted">-</span>
                                             {% endif %}
                                         </td>
                                         <td>
                                             {% if client.next_session %}
-                                                <span class="fw-bold text-primary">{{ client.next_session.date|friendly_date }}</span>
-                                                <br><small class="text-muted">{{ client.next_session.date.strftime('%d.%m.%Y') }}</small>
+                                                <span class="fw-bold text-primary">{{ client.next_session.date.strftime('%d.%m.%Y') }}</span>
                                                 <br><small class="badge bg-info">Planlandı</small>
                                             {% else %}
                                                 <span class="text-muted">-</span>
                                             {% endif %}
                                         </td>
                                         <td>
-                                            <a href="{{ url_for('client.view_client', client_id=client.id) }}" 
-                                               class="btn btn-sm btn-info">Görüntüle</a>
-                                            <a href="{{ url_for('client.add_session', client_id=client.id) }}" 
-                                               class="btn btn-sm btn-success">Oturum Ekle</a>
+                                            <div class="btn-action-group">
+                                                <a href="{{ url_for('client.view_client', client_id=client.id) }}" 
+                                                   class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i> Danışana Git
+                                                </a>
+                                                <a href="{{ url_for('client.add_session', client_id=client.id) }}" 
+                                                   class="btn btn-sm btn-success">
+                                                    <i class="fas fa-plus"></i> Oturum Ekle
+                                                </a>
+                                            </div>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -83,42 +91,44 @@
             
             <!-- Yaklaşan Oturumlar Kartı -->
             <div class="card mt-4">
-                <div class="card-header">
-                    <h3 class="card-title">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">
                         <i class="fas fa-calendar-check"></i> Yaklaşan Oturumlar
                     </h3>
+                    {% if upcoming_sessions %}
+                    <span class="badge bg-primary rounded-pill">{{ upcoming_sessions|length }} oturum</span>
+                    {% endif %}
                 </div>
                 {% if upcoming_sessions %}
                 <div class="card-body">
                     <div class="row upcoming-sessions-container">
                         {% for session in upcoming_sessions %}
                         <div class="col-md-6 col-lg-4 mb-3">
-                            <div class="card border-left-info upcoming-session-card h-100">
-                                <div class="card-body p-3">
+                            <div class="upcoming-session-card h-100">
+                                <div class="upcoming-session-accent"></div>
+                                <div class="upcoming-session-body">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h6 class="card-title mb-1 text-truncate">{{ session.title }}</h6>
-                                        <span class="badge upcoming-session-badge ms-2">{{ session.date|friendly_date }}</span>
+                                        <span class="upcoming-session-date">
+                                            <i class="fas fa-clock me-1"></i>{{ session.date.strftime('%d.%m.%Y %H:%M') }}
+                                        </span>
+                                        <span class="badge upcoming-session-badge">{{ session.date|friendly_date }}</span>
                                     </div>
-                                    <p class="card-text mb-2">
-                                        <strong>
-                                            <i class="fas fa-user"></i> {{ session.client.name }}
-                                        </strong>
-                                    </p>
-                                    <p class="card-text text-muted small mb-2">
-                                        <i class="fas fa-clock"></i> {{ session.date.strftime('%d.%m.%Y %H:%M') }}
-                                    </p>
+                                    <h6 class="upcoming-session-title">{{ session.title }}</h6>
+                                    <div class="upcoming-session-client">
+                                        <i class="fas fa-user-circle me-1"></i> {{ session.client.name }}
+                                    </div>
                                     {% if session.notes %}
-                                    <p class="card-text small text-muted mb-2">
-                                        <i class="fas fa-sticky-note"></i> {{ session.notes[:50] }}{% if session.notes|length > 50 %}...{% endif %}
+                                    <p class="upcoming-session-notes">
+                                        {{ session.notes[:60] }}{% if session.notes|length > 60 %}...{% endif %}
                                     </p>
                                     {% endif %}
-                                    <div class="btn-group btn-group-sm w-100" role="group">
+                                    <div class="upcoming-session-actions">
                                         <a href="{{ url_for('client.view_session', session_id=session.id) }}" 
-                                           class="btn btn-outline-info btn-sm">
-                                            <i class="fas fa-eye"></i> Görüntüle
+                                           class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> Oturumu Görüntüle
                                         </a>
                                         <a href="{{ url_for('client.edit_session', session_id=session.id) }}" 
-                                           class="btn btn-outline-secondary btn-sm">
+                                           class="btn btn-sm btn-warning">
                                             <i class="fas fa-edit"></i> Düzenle
                                         </a>
                                     </div>
@@ -132,19 +142,16 @@
                     <div class="text-center mt-3">
                         <small class="text-muted">
                             <i class="fas fa-info-circle"></i> 
-                            En yakın 10 oturum gösteriliyor. Tüm oturumları görmek için danışan sayfalarını ziyaret edin.
+                            En yakın 10 oturum gösteriliyor.
                         </small>
                     </div>
                     {% endif %}
                 </div>
                 {% else %}
-                <div class="card-body text-center py-4">
-                    <i class="fas fa-calendar-plus fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">Yaklaşan Oturum Bulunmuyor</h5>
-                    <p class="text-muted mb-3">
-                        Henüz gelecek tarihli oturumunuz bulunmuyor. 
-                        Danışanlarınız için yeni oturumlar planlayabilirsiniz.
-                    </p>
+                <div class="card-body empty-state-box">
+                    <i class="fas fa-calendar-plus"></i>
+                    <h5>Yaklaşan Oturum Bulunmuyor</h5>
+                    <p>Danışanlarınız için yeni oturumlar planlayabilirsiniz.</p>
                     <a href="{{ url_for('client.list_clients') }}" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Oturum Planla
                     </a>
@@ -154,82 +161,54 @@
             
             <!-- Geçmiş Oturumlar Kartı -->
             <div class="card mt-4">
-                <div class="card-header">
-                    <h3 class="card-title">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0">
                         <i class="fas fa-history"></i> Geçmiş Oturumlar
                     </h3>
+                    {% if recent_sessions %}
+                    <span class="badge bg-secondary rounded-pill">{{ recent_sessions|length }} oturum</span>
+                    {% endif %}
                 </div>
                 {% if recent_sessions %}
-                <div class="card-body recent-sessions">
-                    <div class="list-group list-group-flush">
+                <div class="card-body p-0">
+                    <div class="recent-sessions-list">
                         {% for session in recent_sessions %}
-                        <div class="list-group-item d-flex justify-content-between align-items-start border-0 px-0">
-                            <div class="ms-2 me-auto">
-                                <div class="d-flex align-items-center mb-1">
-                                    <h6 class="mb-0 me-2">{{ session.title }}</h6>
-                                    <span class="badge bg-secondary">{{ session.date|friendly_date }}</span>
-                                </div>
-                                <p class="mb-1 text-muted">
-                                    <i class="fas fa-user me-1"></i>{{ session.client.name }}
-                                    <span class="ms-3">
-                                        <i class="fas fa-clock me-1"></i>{{ session.date.strftime('%d.%m.%Y %H:%M') }}
-                                    </span>
-                                </p>
-                                {% if session.notes %}
-                                <p class="mb-1 small text-muted">
-                                    <i class="fas fa-sticky-note me-1"></i>{{ session.notes[:80] }}{% if session.notes|length > 80 %}...{% endif %}
-                                </p>
-                                {% endif %}
-                                <div class="mt-2">
-                                    {% if session.analysis_results %}
-                                        <span class="badge bg-success me-2">
-                                            <i class="fas fa-check-circle"></i> Analiz Tamamlandı
-                                        </span>
-                                    {% else %}
-                                        <span class="badge bg-warning me-2">
-                                            <i class="fas fa-clock"></i> Analiz Bekliyor
-                                        </span>
-                                    {% endif %}
-                                    {% if session.ai_analyses %}
-                                        <span class="badge bg-info">
-                                            <i class="fas fa-robot"></i> AI Raporu Mevcut
-                                        </span>
-                                    {% endif %}
+                        <a href="{{ url_for('client.view_session', session_id=session.id) }}" class="recent-session-item">
+                            <div class="recent-session-left">
+                                <div class="recent-session-indicator {% if session.analysis_results %}completed{% else %}pending{% endif %}"></div>
+                                <div class="recent-session-info">
+                                    <div class="recent-session-title">{{ session.title }}</div>
+                                    <div class="recent-session-meta">
+                                        <span><i class="fas fa-user me-1"></i>{{ session.client.name }}</span>
+                                        <span><i class="fas fa-clock me-1"></i>{{ session.date.strftime('%d.%m.%Y %H:%M') }}</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="btn-group-vertical btn-group-sm" role="group">
-                                <a href="{{ url_for('client.view_session', session_id=session.id) }}" 
-                                   class="btn btn-outline-primary btn-sm mb-1">
-                                    <i class="fas fa-eye"></i> Görüntüle
-                                </a>
-                                {% if not session.analysis_results %}
-                                <a href="{{ url_for('main.analysis', session_id=session.id) }}" 
-                                   class="btn btn-outline-success btn-sm">
-                                    <i class="fas fa-play"></i> Analiz Et
-                                </a>
+                            <div class="recent-session-right">
+                                {% if session.analysis_results %}
+                                    <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Analiz Tamam</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Bekliyor</span>
                                 {% endif %}
+                                {% if session.ai_analyses %}
+                                    <span class="badge bg-info"><i class="fas fa-robot me-1"></i>AI Raporu</span>
+                                {% endif %}
+                                <i class="fas fa-chevron-right recent-session-arrow"></i>
                             </div>
-                        </div>
-                        {% if not loop.last %}
-                        <hr class="my-2">
-                        {% endif %}
+                        </a>
                         {% endfor %}
                     </div>
-                    
-                    <div class="text-center mt-3 pt-3 border-top">
+                    <div class="text-center p-3 border-top">
                         <a href="{{ url_for('client.list_clients') }}" class="btn btn-outline-primary">
-                            <i class="fas fa-list"></i> Tüm Oturumları Görüntüle
+                            <i class="fas fa-list"></i> Tüm Danışanları Görüntüle
                         </a>
                     </div>
                 </div>
                 {% else %}
-                <div class="card-body text-center py-4">
-                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">Geçmiş Oturum Bulunmuyor</h5>
-                    <p class="text-muted mb-3">
-                        Henüz tamamlanmış oturumunuz bulunmuyor. 
-                        İlk oturumunuzu gerçekleştirdikten sonra burada görünecek.
-                    </p>
+                <div class="card-body empty-state-box">
+                    <i class="fas fa-calendar-times"></i>
+                    <h5>Geçmiş Oturum Bulunmuyor</h5>
+                    <p>İlk oturumunuzu gerçekleştirdikten sonra burada görünecek.</p>
                 </div>
                 {% endif %}
             </div>
@@ -238,61 +217,77 @@
             {% if suggestions %}
             <div class="card mt-4">
                 <div class="card-header">
-                    <h3 class="card-title">
+                    <h3 class="card-title mb-0">
                         <i class="fas fa-lightbulb"></i> Öneriler
                     </h3>
                 </div>
-                <div class="card-body suggestions-container">
-                    <div class="row">
+                <div class="card-body">
+                    <div class="row suggestions-grid">
                         {% for suggestion in suggestions %}
                         <div class="col-md-6 mb-3">
-                            <div class="alert alert-{{ suggestion.type if suggestion.type in ['primary', 'success', 'warning', 'danger', 'tip'] else ('primary' if suggestion.type == 'info' else suggestion.type) }} suggestion-item border-0 h-100">
-                                <div class="d-flex align-items-start">
-                                    <div class="suggestion-icon me-3">
-                                        <i class="{{ suggestion.icon }} fa-2x"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="alert-heading mb-2">{{ suggestion.title }}</h6>
-                                        <p class="mb-3">{{ suggestion.description }}</p>
-                                        {% set button_type = 'primary' if suggestion.type == 'info' else ('info' if suggestion.type == 'tip' else ('dark' if suggestion.type == 'warning' else ('light' if suggestion.type == 'success' else suggestion.type))) %}
-                                        <a href="{{ url_for(suggestion.url) }}" 
-                                           class="btn btn-sm btn-{{ button_type }}">
-                                            {{ suggestion.action }}
-                                            <i class="fas fa-arrow-right ms-1"></i>
-                                        </a>
-                                    </div>
+                            <div class="suggestion-card suggestion-{{ suggestion.type if suggestion.type in ['primary', 'success', 'warning', 'danger'] else 'primary' }}">
+                                <div class="suggestion-card-icon">
+                                    <i class="{{ suggestion.icon }}"></i>
+                                </div>
+                                <div class="suggestion-card-content">
+                                    <h6 class="suggestion-card-title">{{ suggestion.title }}</h6>
+                                    <p class="suggestion-card-desc">{{ suggestion.description }}</p>
+                                    <a href="{{ url_for(suggestion.url) }}" class="suggestion-card-btn">
+                                        {{ suggestion.action }} <i class="fas fa-arrow-right ms-1"></i>
+                                    </a>
                                 </div>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
-                    
-                    {% if suggestions|length == 4 %}
-                    <div class="text-center mt-2">
-                        <small class="text-muted">
-                            <i class="fas fa-info-circle"></i> 
-                            Öneriler danışan ve oturum durumlarınıza göre otomatik olarak güncellenir.
-                        </small>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
             {% endif %}
         {% else %}
-            <div class="text-center py-5">
-                <h1 style="color: rgb(13, 110, 253);">YAKADES</h1>
-                <h5>(Kaygı Problemlerine Yöneliz Yapay Zeka Tabanlı Karar Destek Sistemi)</h5><br>
+            <div class="content-block text-center py-5">
+                <h1 style="color: rgb(13, 110, 253); font-weight: 700; font-size: 2.5rem;">YAKADES</h1>
+                <h5 class="text-muted mt-2">(Kaygı Problemlerine Yönelik Yapay Zeka Tabanlı Karar Destek Sistemi)</h5>
+                <hr class="mx-auto my-4" style="width: 80px; border-top: 3px solid #0d6efd;">
                 <h3>Hoş Geldiniz</h3>
-                <p class="lead">
+                <p class="lead text-muted mt-3" style="max-width: 600px; margin: 0 auto;">
                     Psikolojik danışma oturumlarınızı analiz etmek ve yönetmek için 
                     lütfen giriş yapın veya kayıt olun.
                 </p>
                 <div class="mt-4">
-                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary me-2">Giriş Yap</a>
-                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary">Kayıt Ol</a>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg me-2 px-4">
+                        <i class="fas fa-sign-in-alt me-1"></i> Giriş Yap
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-lg px-4">
+                        <i class="fas fa-user-plus me-1"></i> Kayıt Ol
+                    </a>
                 </div>
             </div>
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{% if current_user.is_authenticated and clients %}
+<script>
+$(document).ready(function() {
+    var lang = $.extend({}, dtLanguageTR, {searchPlaceholder: 'Danışan ara...'});
+    $('#dashboardClientsTable').DataTable({
+        language: lang,
+        autoWidth: false,
+        pageLength: 10,
+        lengthMenu: [[5, 10, 25, -1], [5, 10, 25, 'Tümü']],
+        order: [[0, 'asc']],
+        columnDefs: [
+            { orderable: false, targets: [5] },
+            { searchable: false, targets: [5] },
+            { width: '20%', targets: [0] },
+            { width: '8%', targets: [1, 2] },
+            { width: '18%', targets: [3, 4] }
+        ],
+        dom: '<"dt-header"<"row align-items-center"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>>t<"dt-footer"<"row align-items-center"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>>'
+    });
+});
+</script>
+{% endif %}
 {% endblock %} 

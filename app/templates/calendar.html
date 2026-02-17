@@ -2,109 +2,168 @@
 
 {% block title %}Takvim{% endblock %}
 
+{% block head %}
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css' rel='stylesheet' />
+{% endblock %}
+
 {% block content %}
 <div class="row">
-    <div class="col-md-12">
-        <!-- Takvim Başlığı ve Navigasyon -->
+    <div class="col-12">
+        <!-- Sayfa Başlığı -->
+        <div class="page-header mb-4">
+            <h2><i class="fas fa-calendar-alt me-2"></i>Oturum Takvimi</h2>
+            <p class="text-muted mb-0 mt-1">Danışan oturumlarınızı takvim üzerinde görüntüleyin</p>
+        </div>
+
+        <!-- Takvim Kartı -->
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <div>
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-calendar-alt"></i> {{ calendar.month_name }} {{ calendar.year }}
-                    </h3>
-                </div>
-                <div class="btn-group" role="group">
-                    <a href="{{ url_for('main.calendar', year=calendar.prev_year, month=calendar.prev_month) }}" 
-                       class="btn btn-outline-primary">
-                        <i class="fas fa-chevron-left"></i> Önceki Ay
-                    </a>
-                    <a href="{{ url_for('main.calendar') }}" 
-                       class="btn btn-primary">
-                        <i class="fas fa-home"></i> Bugün
-                    </a>
-                    <a href="{{ url_for('main.calendar', year=calendar.next_year, month=calendar.next_month) }}" 
-                       class="btn btn-outline-primary">
-                        Sonraki Ay <i class="fas fa-chevron-right"></i>
-                    </a>
-                </div>
-            </div>
-            
-            <!-- Takvim Görünümü -->
-            <div class="card-body p-0">
-                <div class="calendar-container">
-                    <table class="table table-bordered calendar-table mb-0">
-                        <thead class="table-primary">
-                            <tr>
-                                <th class="text-center">Pazartesi</th>
-                                <th class="text-center">Salı</th>
-                                <th class="text-center">Çarşamba</th>
-                                <th class="text-center">Perşembe</th>
-                                <th class="text-center">Cuma</th>
-                                <th class="text-center">Cumartesi</th>
-                                <th class="text-center">Pazar</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for week in calendar.weeks %}
-                            <tr>
-                                {% for day in week %}
-                                <td class="calendar-day {% if day == 0 %}empty-day{% endif %}" 
-                                    {% if day != 0 %}data-date="{{ calendar.year }}-{{ '%02d'|format(calendar.month) }}-{{ '%02d'|format(day) }}"{% endif %}>
-                                    {% if day != 0 %}
-                                        <div class="day-header">
-                                            <span class="day-number {% if day == calendar.today.day and calendar.month == calendar.today.month and calendar.year == calendar.today.year %}today{% endif %}">
-                                                {{ day }}
-                                            </span>
-                                        </div>
-                                        
-                                        <!-- Bu tarihteki oturumlar -->
-                                        {% set current_date = calendar.year|string + '-' + '%02d'|format(calendar.month) + '-' + '%02d'|format(day) %}
-                                        {% for date_key, sessions in calendar.sessions_by_date.items() %}
-                                            {% if date_key.strftime('%Y-%m-%d') == current_date %}
-                                            <div class="sessions-list">
-                                                {% for session in sessions %}
-                                                {% set is_past = session.date < calendar.today %}
-                                                {% set is_completed = session.analysis_results %}
-                                                <a href="{{ url_for('client.view_session', session_id=session.id) }}" 
-                                                   class="session-item {% if is_past and is_completed %}completed{% elif is_past and not is_completed %}past-incomplete{% elif not is_past %}upcoming{% endif %}" 
-                                                   title="{{ session.title }} - {{ session.client.name }} ({{ session.date.strftime('%H:%M') }})">
-                                                    <div class="session-time">{{ session.date.strftime('%H:%M') }}</div>
-                                                    <div class="session-title">{{ session.title[:15] }}{% if session.title|length > 15 %}...{% endif %}</div>
-                                                    <div class="session-client">{{ session.client.name }}</div>
-                                                    <div class="session-status">
-                                                        {% if is_past and is_completed %}
-                                                            <i class="fas fa-check-circle" title="Tamamlandı"></i>
-                                                        {% elif is_past and not is_completed %}
-                                                            <i class="fas fa-exclamation-circle" title="Tamamlanmamış"></i>
-                                                        {% elif not is_past %}
-                                                            <i class="fas fa-clock" title="Yaklaşan"></i>
-                                                        {% endif %}
-                                                    </div>
-                                                </a>
-                                                {% endfor %}
-                                            </div>
-                                            {% endif %}
-                                        {% endfor %}
-                                    {% endif %}
-                                </td>
-                                {% endfor %}
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+            <div class="card-body p-3">
+                <div id="fullCalendar"></div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Oturum Detay Modal -->
+<div class="modal fade" id="eventDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-calendar-check me-2"></i>Oturum Detayı</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="badge rounded-pill me-2" id="modalStatusBadge"></span>
+                    <span id="modalStatus" class="fw-bold"></span>
+                </div>
+                <table class="table table-borderless mb-0">
+                    <tr>
+                        <td class="text-muted" style="width:120px;"><i class="fas fa-heading me-2"></i>Başlık</td>
+                        <td class="fw-bold" id="modalTitle"></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted"><i class="fas fa-user me-2"></i>Danışan</td>
+                        <td class="fw-bold" id="modalClient"></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted"><i class="fas fa-clock me-2"></i>Tarih / Saat</td>
+                        <td class="fw-bold" id="modalDate"></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Kapat
+                </button>
+                <a href="#" class="btn btn-info" id="modalViewBtn">
+                    <i class="fas fa-eye"></i> Oturumu Görüntüle
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-
+{% block scripts %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js'></script>
 <script>
-// Takvim sayfası - sadece görüntüleme amaçlı
 document.addEventListener('DOMContentLoaded', function() {
-    // Sayfa yüklendiğinde gerekli işlemler
-    console.log('Takvim sayfası yüklendi');
+    var calendarEl = document.getElementById('fullCalendar');
+    
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        locale: 'tr',
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,today,next',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,listMonth'
+        },
+        buttonText: {
+            today: 'Bugün',
+            month: 'Ay',
+            week: 'Hafta',
+            list: 'Liste'
+        },
+        height: 'auto',
+        navLinks: true,
+        editable: false,
+        dayMaxEvents: 3,
+        dayMaxEventRows: 3,
+        moreLinkText: function(num) {
+            return '+' + num + ' oturum daha';
+        },
+        eventDisplay: 'block',
+        events: {
+            url: '{{ url_for("main.calendar_events") }}',
+            failure: function() {
+                console.error('Oturum verileri yüklenemedi.');
+            }
+        },
+        eventContent: function(arg) {
+            var props = arg.event.extendedProps;
+            var statusIcon = '';
+            if (props.status === 'Tamamlandı') {
+                statusIcon = '<i class="fas fa-check-circle"></i>';
+            } else if (props.status === 'Tamamlanmamış') {
+                statusIcon = '<i class="fas fa-exclamation-circle"></i>';
+            } else {
+                statusIcon = '<i class="fas fa-clock"></i>';
+            }
+
+            var html = '<div class="fc-event-custom">' +
+                '<div class="fc-event-time-row">' +
+                    '<span class="fc-event-clock"><i class="fas fa-clock"></i> ' + props.time + '</span>' +
+                    '<span class="fc-event-status">' + statusIcon + '</span>' +
+                '</div>' +
+                '<div class="fc-event-title-row">' + arg.event.title + '</div>' +
+                '<div class="fc-event-client-row"><i class="fas fa-user"></i> ' + props.clientName + '</div>' +
+            '</div>';
+
+            return { html: html };
+        },
+        eventClick: function(info) {
+            info.jsEvent.preventDefault();
+            
+            var event = info.event;
+            var props = event.extendedProps;
+            
+            document.getElementById('modalTitle').textContent = event.title;
+            document.getElementById('modalClient').textContent = props.clientName;
+            
+            var dateObj = event.start;
+            var dateStr = dateObj.toLocaleDateString('tr-TR', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+            document.getElementById('modalDate').textContent = dateStr + ' - ' + props.time;
+            
+            var badge = document.getElementById('modalStatusBadge');
+            var statusEl = document.getElementById('modalStatus');
+            statusEl.textContent = props.status;
+            
+            if (props.status === 'Tamamlandı') {
+                badge.className = 'badge rounded-pill bg-success';
+                badge.innerHTML = '<i class="fas fa-check-circle"></i>';
+            } else if (props.status === 'Tamamlanmamış') {
+                badge.className = 'badge rounded-pill bg-danger';
+                badge.innerHTML = '<i class="fas fa-exclamation-circle"></i>';
+            } else {
+                badge.className = 'badge rounded-pill bg-primary';
+                badge.innerHTML = '<i class="fas fa-clock"></i>';
+            }
+            
+            document.getElementById('modalViewBtn').href = event.url;
+            
+            var modal = new bootstrap.Modal(document.getElementById('eventDetailModal'));
+            modal.show();
+        },
+        eventDidMount: function(info) {
+            var props = info.event.extendedProps;
+            info.el.setAttribute('title', info.event.title + ' - ' + props.clientName + ' (' + props.time + ')');
+        }
+    });
+    
+    calendar.render();
 });
 </script>
-{% endblock %} 
+{% endblock %}

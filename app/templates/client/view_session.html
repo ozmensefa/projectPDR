@@ -3,12 +3,27 @@
 {% block title %}{{ session.title }}{% endblock %}
 
 {% block content %}
-<div class="container">
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-12">
+            <!-- Sayfa Başlığı -->
+            <div class="page-header d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-video me-2"></i>{{ session.title }}</h2>
+                    <p class="text-muted mb-0 mt-1">
+                        <i class="fas fa-user me-1"></i> {{ session.client.name }} | 
+                        <i class="fas fa-calendar me-1"></i> {{ session.date.strftime('%d.%m.%Y %H:%M') }}
+                    </p>
+                </div>
+                <div>
+                    <a href="{{ url_for('client.view_client', client_id=session.client_id) }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Danışana Dön
+                    </a>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-header">
-                    <h3>{{ session.title }}</h3>
+                    <h3 class="mb-0">Oturum Detayları</h3>
                 </div>
                 <div class="card-body">
                     <!-- Video Yükleme Bölümü -->
@@ -240,16 +255,15 @@
                 </div>
                 <div class="card-footer">
                     <a href="{{ url_for('client.view_client', client_id=session.client_id) }}" class="btn btn-secondary me-2">
-                        <i class="fas fa-arrow-left"></i> Danışana Geri Dön
+                        <i class="fas fa-arrow-left"></i> Danışana Dön
                     </a>
-                    <a href="{{ url_for('client.edit_session', session_id=session.id) }}" class="btn btn-primary">
+                    <a href="{{ url_for('client.edit_session', session_id=session.id) }}" class="btn btn-warning">
                         <i class="fas fa-edit"></i> Oturumu Düzenle
                     </a>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
 
 
@@ -281,6 +295,7 @@
                     <i class="fas fa-times"></i> İptal
                 </button>
                 <form action="{{ url_for('main.delete_complete_analysis', session_id=session.id) }}" method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-danger">
                         <i class="fas fa-trash"></i> Evet, Sil
                     </button>

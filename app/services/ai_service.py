@@ -28,79 +28,94 @@ class AIService:
             print(f"Finetuning verisi yüklenirken hata: {str(e)}")
             self.training_data = []
 
+    def _get_generation_config(self, temperature=0.7):
+        """Ortak generation config"""
+        return {
+            "temperature": temperature,
+            "top_p": 0.9,
+            "top_k": 40,
+            "max_output_tokens": 65536,
+        }
+
+    def _get_safety_settings(self):
+        """Ortak safety settings — psikolojik raporlar için gevşetilmiş"""
+        return [
+            {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_ONLY_HIGH"},
+            {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_ONLY_HIGH"},
+            {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_ONLY_HIGH"},
+            {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_ONLY_HIGH"},
+        ]
+
+    def _generate_with_continuation(self, prompt, temperature=0.7, max_continuations=2):
+        """
+        AI yanıtı oluşturur, kesilirse devam isteği gönderir.
+        Birden fazla parçayı birleştirerek tam rapor döndürür.
+        """
+        full_response = ""
+        current_prompt = prompt
+
+        for attempt in range(1 + max_continuations):
+            response = self.model.generate_content(
+                current_prompt,
+                generation_config=self._get_generation_config(temperature),
+                safety_settings=self._get_safety_settings()
+            )
+
+            if not response.text:
+                if attempt == 0:
+                    return None, "Yanıt boş geldi"
+                break
+
+            full_response += response.text
+
+            finish_reason = None
+            if hasattr(response, 'candidates') and len(response.candidates) > 0:
+                finish_reason = response.candidates[0].finish_reason
+
+            print(f"  Parça {attempt + 1}: {len(response.text)} karakter, finish_reason: {finish_reason}")
+
+            if finish_reason == 1 or finish_reason is None:
+                break
+
+            if finish_reason == 2:
+                print(f"  ⚠️ Token limiti aşıldı, devam isteği gönderiliyor ({attempt + 1}/{max_continuations})...")
+                current_prompt = (
+                    f"Önceki yanıtın token limiti nedeniyle kesildi. "
+                    f"Kaldığın yerden devam et. Son yazdığın metin şuydu:\n\n"
+                    f"...{response.text[-500:]}\n\n"
+                    f"Lütfen kaldığın yerden devam ederek raporu tamamla."
+                )
+            else:
+                print(f"  ⚠️ Beklenmeyen finish_reason: {finish_reason}, devam edilmiyor.")
+                break
+
+        return full_response, None
+
     def analyze(self, data):
         try:
-            # Danışan adını al
             client_name = data.get('client_name', 'Tanımsız')
             
             print("\n=== AI ANALİZ BAŞLADI ===")
             prompt = self._create_prompt(data)
-            print("Prompt hazırlandı, uzunluk:", len(prompt))
+            print(f"Prompt hazırlandı, uzunluk: {len(prompt)} karakter")
             
-            # Finetuning verilerini kullanarak analiz yap
-            response = self.model.generate_content(
-                prompt,
-                generation_config={
-                    "temperature": 0.7,
-                    "top_p": 0.8,
-                    "top_k": 40,
-                    "max_output_tokens": 8192,  # Gemini 2.5 Flash maksimum çıkış token'ı
-                },
-                safety_settings=[
-                    {
-                        "category": "HARM_CATEGORY_HARASSMENT",
-                        "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-                    },
-                    {
-                        "category": "HARM_CATEGORY_HATE_SPEECH",
-                        "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-                    },
-                    {
-                        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                        "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-                    },
-                    {
-                        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-                        "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-                    }
-                ]
-            )
+            full_response, error = self._generate_with_continuation(prompt, temperature=0.7)
+
+            if error:
+                print(f"Yanıt hatası: {error}")
+                return {'analysis': f'AI analizi yapılamadı. {error}', 'status': 'error'}
             
-            print("Gemini yanıtı alındı")
-            
-            if response.text:
-                # Yanıtın kesilip kesilmediğini kontrol et
-                full_response = response.text
-                
-                # Eğer yanıt tam cümle ile bitmiyorsa veya finish_reason STOP değilse, yanıt kesik olabilir
-                if hasattr(response, 'candidates') and len(response.candidates) > 0:
-                    finish_reason = response.candidates[0].finish_reason
-                    print(f"Finish reason: {finish_reason}")
-                    
-                    # STOP dışındaki durumlar için uyarı
-                    if finish_reason != 1:  # 1 = STOP (normal sonlanma)
-                        print(f"⚠️ Yanıt normal sonlanmadı. Finish reason: {finish_reason}")
-                        if finish_reason == 2:  # MAX_TOKENS
-                            print("⚠️ Token limiti aşıldı, yanıt kesilmiş olabilir")
-                
-                result = {
-                    'analysis': full_response,
-                    'status': 'success'
-                }
-                print(f"✅ Başarılı sonuç oluşturuldu (uzunluk: {len(full_response)} karakter)")
-                return result
-            else:
-                print("Yanıt boş!")
-                return {
-                    'analysis': 'AI analizi yapılamadı. Yanıt boş geldi.',
-                    'status': 'error'
-                }
+            result = {
+                'analysis': full_response,
+                'status': 'success'
+            }
+            print(f"✅ Başarılı sonuç oluşturuldu (uzunluk: {len(full_response)} karakter)")
+            return result
                 
         except Exception as e:
             error_msg = str(e)
             print(f"AI analiz hatası: {error_msg}")
             
-            # Özel hata mesajları
             if "API_KEY_INVALID" in error_msg:
                 error_msg = "Geçersiz API key. Lütfen sistem yöneticisiyle iletişime geçin."
             elif "QUOTA_EXCEEDED" in error_msg:
@@ -247,67 +262,22 @@ Ses Analizi Sonuçları:
             print(f"Tarih Aralığı: {date_range}")
             print(f"Analiz Edilen Oturum Sayısı: {len(session_analyses)}")
             
-            # İlerleyiş analizi için özel prompt oluştur
             prompt = self._create_progress_prompt(client_name, session_analyses, date_range)
-            print("İlerleyiş prompt hazırlandı, uzunluk:", len(prompt))
+            print(f"İlerleyiş prompt hazırlandı, uzunluk: {len(prompt)} karakter")
             
-            # AI analizi yap
-            response = self.model.generate_content(
-                prompt,
-                generation_config={
-                    "temperature": 0.8,  # İlerleyiş analizi için biraz daha yaratıcı
-                    "top_p": 0.9,
-                    "top_k": 40,
-                    "max_output_tokens": 8192,  # Gemini 2.5 Flash maksimum çıkış token'ı
-                },
-                safety_settings=[
-                    {
-                        "category": "HARM_CATEGORY_HARASSMENT",
-                        "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-                    },
-                    {
-                        "category": "HARM_CATEGORY_HATE_SPEECH",
-                        "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-                    },
-                    {
-                        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                        "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-                    },
-                    {
-                        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-                        "threshold": "BLOCK_MEDIUM_AND_ABOVE"
-                    }
-                ]
-            )
-            
-            print("İlerleyiş analizi yanıtı alındı")
-            
-            if response.text:
-                # Yanıtın kesilip kesilmediğini kontrol et
-                full_response = response.text
-                
-                if hasattr(response, 'candidates') and len(response.candidates) > 0:
-                    finish_reason = response.candidates[0].finish_reason
-                    print(f"İlerleyiş analizi finish reason: {finish_reason}")
-                    
-                    if finish_reason != 1:  # 1 = STOP (normal sonlanma)
-                        print(f"⚠️ İlerleyiş analizi yanıtı normal sonlanmadı. Finish reason: {finish_reason}")
-                        if finish_reason == 2:  # MAX_TOKENS
-                            print("⚠️ Token limiti aşıldı, yanıt kesilmiş olabilir")
-                
-                result = {
-                    'analysis': full_response,
-                    'status': 'success',
-                    'sessions_count': len(session_analyses)
-                }
-                print(f"✅ İlerleyiş analizi başarılı (uzunluk: {len(full_response)} karakter)")
-                return result
-            else:
-                print("İlerleyiş analizi yanıtı boş!")
-                return {
-                    'analysis': 'İlerleyiş analizi yapılamadı. AI yanıtı boş geldi.',
-                    'status': 'error'
-                }
+            full_response, error = self._generate_with_continuation(prompt, temperature=0.8)
+
+            if error:
+                print(f"İlerleyiş analizi yanıt hatası: {error}")
+                return {'analysis': f'İlerleyiş analizi yapılamadı. {error}', 'status': 'error'}
+
+            result = {
+                'analysis': full_response,
+                'status': 'success',
+                'sessions_count': len(session_analyses)
+            }
+            print(f"✅ İlerleyiş analizi başarılı (uzunluk: {len(full_response)} karakter)")
+            return result
                 
         except Exception as e:
             print(f"İlerleyiş analizi hatası: {str(e)}")

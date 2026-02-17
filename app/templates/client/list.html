@@ -4,76 +4,104 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md-12">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Danışanlarım</h2>
+    <div class="col-12">
+        <!-- Sayfa Başlığı -->
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-users me-2"></i>Danışanlarım</h2>
+                <p class="text-muted mb-0 mt-1">Toplam {{ clients|length }} danışan</p>
+            </div>
             <a href="{{ url_for('client.add_client') }}" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Yeni Danışan Ekle
             </a>
         </div>
 
         {% if clients %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Ad Soyad</th>
-                            <th>Yaş</th>
-                            <th>Cinsiyet</th>
-                            <th>İletişim</th>
-                            <th>Son Oturum</th>
-                            <th>İşlemler</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for client in clients %}
-                        <tr>
-                            <td>{{ client.name }}</td>
-                            <td>{{ client.age or '-' }}</td>
-                            <td>{{ client.gender or '-' }}</td>
-                            <td>{{ client.contact or '-' }}</td>
-                            <td>
-                                {% if client.sessions %}
-                                    <span class="fw-bold">{{ client.sessions[-1].date|friendly_date }}</span>
-                                    <br><small class="text-muted">{{ client.sessions[-1].date.strftime('%d.%m.%Y') }}</small>
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="btn-group" role="group" aria-label="Danışan İşlemleri">
-                                    <a href="{{ url_for('client.view_client', client_id=client.id) }}" 
-                                       class="btn btn-sm btn-info" title="Danışanı Görüntüle">
-                                        <i class="fas fa-eye"></i> Görüntüle
-                                    </a>
-                                    <a href="{{ url_for('client.add_session', client_id=client.id) }}" 
-                                       class="btn btn-sm btn-success" title="Yeni Oturum Ekle">
-                                        <i class="fas fa-plus"></i> Oturum Ekle
-                                    </a>
-                                    <form method="POST" action="{{ url_for('client.delete_client', client_id=client.id) }}" 
-                                          style="display: inline-block;" 
-                                          onsubmit="return confirmDelete('{{ client.name }}', {{ client.sessions|length }})">
-                                        <button type="submit" class="btn btn-sm btn-danger" 
-                                                title="Danışanı Sil">
-                                            <i class="fas fa-trash"></i> Sil
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="clientsListTable" class="table table-hover" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Ad Soyad</th>
+                                    <th>Yaş</th>
+                                    <th>Cinsiyet</th>
+                                    <th>İletişim</th>
+                                    <th>Son Oturum</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for client in clients %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if client.photo_filename %}
+                                                <img src="{{ url_for('static', filename='uploads/client_photos/' + client.photo_filename) }}" 
+                                                     alt="{{ client.name }}" class="rounded-circle me-2" 
+                                                     style="width: 36px; height: 36px; object-fit: cover;">
+                                            {% else %}
+                                                <img src="{{ url_for('static', filename='images/default-avatar.png') }}" 
+                                                     alt="{{ client.name }}" class="rounded-circle me-2" 
+                                                     style="width: 36px; height: 36px; object-fit: cover;">
+                                            {% endif %}
+                                            <strong>{{ client.name }}</strong>
+                                        </div>
+                                    </td>
+                                    <td>{{ client.age or '-' }}</td>
+                                    <td>{{ client.gender or '-' }}</td>
+                                    <td>{{ client.contact or '-' }}</td>
+                                    <td>
+                                        {% if client.sessions %}
+                                            <span class="fw-bold">{{ client.sessions[-1].date|friendly_date }}</span>
+                                            <br><small class="text-muted">{{ client.sessions[-1].date.strftime('%d.%m.%Y') }}</small>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-action-group">
+                                            <a href="{{ url_for('client.view_client', client_id=client.id) }}" 
+                                               class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye"></i> Danışana Git
+                                            </a>
+                                            <a href="{{ url_for('client.add_session', client_id=client.id) }}" 
+                                               class="btn btn-sm btn-success">
+                                                <i class="fas fa-plus"></i> Oturum Ekle
+                                            </a>
+                                            <form method="POST" action="{{ url_for('client.delete_client', client_id=client.id) }}" 
+                                                  style="display: inline-block;" 
+                                                  onsubmit="return confirmDelete('{{ client.name }}', {{ client.sessions|length }})">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-trash"></i> Danışanı Sil
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         {% else %}
-            <div class="alert alert-info">
-                Henüz danışanınız bulunmuyor. 
-                <a href="{{ url_for('client.add_client') }}" class="alert-link">Yeni danışan ekleyin</a>
+            <div class="content-block empty-state">
+                <i class="fas fa-user-friends d-block"></i>
+                <h5>Henüz danışanınız bulunmuyor</h5>
+                <p class="text-muted mb-3">İlk danışanınızı ekleyerek sistemi kullanmaya başlayabilirsiniz.</p>
+                <a href="{{ url_for('client.add_client') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Yeni Danışan Ekle
+                </a>
             </div>
         {% endif %}
     </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
 <script>
 function confirmDelete(clientName, sessionCount) {
     let message = `"${clientName}" adlı danışanı silmek istediğinizden emin misiniz?`;
@@ -86,6 +114,26 @@ function confirmDelete(clientName, sessionCount) {
     
     return confirm(message);
 }
-</script>
 
+$(document).ready(function() {
+    if ($('#clientsListTable').length) {
+        var lang = $.extend({}, dtLanguageTR, {searchPlaceholder: 'Danışan ara...'});
+        $('#clientsListTable').DataTable({
+            language: lang,
+            autoWidth: false,
+            pageLength: 10,
+            lengthMenu: [[5, 10, 25, -1], [5, 10, 25, 'Tümü']],
+            order: [[0, 'asc']],
+            columnDefs: [
+                { orderable: false, targets: [5] },
+                { searchable: false, targets: [5] },
+                { width: '22%', targets: [0] },
+                { width: '8%', targets: [1, 2] },
+                { width: '18%', targets: [3, 4] }
+            ],
+            dom: '<"dt-header"<"row align-items-center"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>>t<"dt-footer"<"row align-items-center"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>>'
+        });
+    }
+});
+</script>
 {% endblock %} 
