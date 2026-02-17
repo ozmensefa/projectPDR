@@ -24,6 +24,11 @@ class Config:
         }
     }
     
+    # Resend E-posta Ayarları
+    RESEND_API_KEY = 're_GebSDxQS_Fie8zBj565x7WTPd5V7gTFsi'
+    RESEND_FROM_EMAIL = 'PDR Video Analiz <noreply@yakades.com.tr>'
+    SITE_URL = 'https://yakades.com.tr'
+    
     # Dosya yükleme ayarları
     MAX_CONTENT_LENGTH = 1 * 1024 * 1024 * 1024  # 1GB max-size
     ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'wmv'}

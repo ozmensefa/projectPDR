@@ -9,7 +9,7 @@ from app.config import Config
 def make_celery(app=None):
     """Celery instance oluştur"""
     # Redis URL'ini al
-    redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+    redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6380/0')
     
     celery = Celery(
         'pdr_tasks',

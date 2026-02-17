@@ -362,6 +362,9 @@ def analyze_text():
         return jsonify(result)
 
     except Exception as e:
+        import traceback
+        print(f"❌ Metin analizi hatası: {str(e)}")
+        print(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
 
 @main_bp.route('/analyze_emotion', methods=['POST'])
@@ -406,6 +409,9 @@ def analyze_body_language():
         return jsonify(result)
 
     except Exception as e:
+        import traceback
+        print(f"❌ Beden dili analizi hatası: {str(e)}")
+        print(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
 
 @main_bp.route('/analyze_ai', methods=['POST'])

@@ -141,25 +141,23 @@ document.addEventListener('DOMContentLoaded', function() {
     // Bu oturum için devam eden task var mı kontrol et
     async function checkSessionTasks() {
         try {
-            const response = await fetch('/my_tasks');
+            const response = await fetch(`/check_analysis_status/${sessionId}`);
+            if (!response.ok) return;
             const result = await response.json();
             
-            if (result.tasks && result.tasks.length > 0) {
-                // Bu session için devam eden task bul
-                const sessionTask = result.tasks.find(task => 
-                    task.session_id === sessionId && 
-                    (task.status === 'running' || task.status === 'pending')
-                );
+            if (result.status === 'processing' && window.asyncAnalysis) {
+                // Widget'ı göster ve polling başlat
+                window.asyncAnalysis.currentTaskId = result.task_id;
+                window.asyncAnalysis.showTaskInProgress();
+                window.asyncAnalysis.updateTaskDisplay({
+                    id: result.task_id,
+                    session_id: sessionId,
+                    status: result.status,
+                    progress: result.progress
+                });
+                window.asyncAnalysis.startPolling();
                 
-                if (sessionTask && window.asyncAnalysis) {
-                    // Widget'ı göster ve polling başlat
-                    window.asyncAnalysis.currentTaskId = sessionTask.id;
-                    window.asyncAnalysis.showTaskInProgress();
-                    window.asyncAnalysis.updateTaskDisplay(sessionTask);
-                    window.asyncAnalysis.startPolling();
-                    
-                    console.log('📋 Bu oturum için devam eden analiz bulundu:', sessionTask.id);
-                }
+                console.log('📋 Bu oturum için devam eden analiz bulundu:', result.task_id);
             }
         } catch (error) {
             console.error('Session task kontrolü hatası:', error);

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}E-posta Doğrulama{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-envelope-open-text text-primary" style="font-size: 4rem;"></i>
+                </div>
+                <h3 class="card-title mb-3">E-posta Adresinizi Doğrulayın</h3>
+                <p class="text-muted mb-2">
+                    <strong>{{ email }}</strong> adresine bir doğrulama e-postası gönderdik.
+                </p>
+                <p class="text-muted mb-4">
+                    Lütfen gelen kutunuzu kontrol edin ve e-postadaki butona tıklayarak hesabınızı aktifleştirin.
+                </p>
+                
+                {% if expired is defined and expired %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Doğrulama linkinin süresi dolmuş. Lütfen yeni bir doğrulama e-postası isteyin.
+                </div>
+                {% endif %}
+                
+                <hr class="my-4">
+                
+                <p class="text-muted small mb-3">E-posta gelmedi mi? Spam/gereksiz klasörünü de kontrol edin.</p>
+                
+                <form method="POST" action="{{ url_for('auth.resend_verification') }}" class="d-inline">
+                    <input type="hidden" name="email" value="{{ email }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="fas fa-redo"></i> Doğrulama E-postasını Tekrar Gönder
+                    </button>
+                </form>
+                
+                <div class="mt-3">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-link text-muted">
+                        <i class="fas fa-arrow-left"></i> Giriş sayfasına dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

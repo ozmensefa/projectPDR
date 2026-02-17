@@ -8,7 +8,7 @@ echo "╚═══════════════════════�
 echo ""
 
 # Proje dizinine git
-cd /home/sefa4/projectPDR
+cd /var/www/projectPDR
 
 # Sanal ortamı aktif et
 source venv/bin/activate

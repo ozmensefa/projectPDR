@@ -4,9 +4,11 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.models import Counselor
 from app.forms import LoginForm, RegistrationForm, ProfileForm, PasswordChangeForm
+from app.services.email_service import send_verification_email
 from app import db
 import os
 import uuid
+from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 
 auth_bp = Blueprint('auth', __name__)
@@ -44,6 +46,11 @@ def login():
     if form.validate_on_submit():
         counselor = Counselor.query.filter_by(email=form.email.data).first()
         if counselor and check_password_hash(counselor.password_hash, form.password.data):
+            # E-posta doğrulama kontrolü
+            if not counselor.email_verified:
+                flash('Lütfen önce e-posta adresinizi doğrulayın. Gelen kutunuzu kontrol edin.', 'warning')
+                return render_template('auth/login.html', form=form, unverified_email=counselor.email)
+            
             login_user(counselor)
             
             # Aktivite logu
@@ -74,23 +81,116 @@ def register():
     form = RegistrationForm()
     if form.validate_on_submit():
         # E-posta adresi kullanılıyor mu kontrol et
-        if Counselor.query.filter_by(email=form.email.data).first():
+        existing = Counselor.query.filter_by(email=form.email.data).first()
+        if existing:
             flash('Bu e-posta adresi zaten kullanılıyor.')
             return render_template('auth/register.html', form=form)
+        
+        # Doğrulama token'ı oluştur
+        verification_token = uuid.uuid4().hex
         
         counselor = Counselor(
             email=form.email.data,
             password_hash=generate_password_hash(form.password.data),
             name=form.name.data,
-            title=form.title.data
+            title=form.title.data,
+            email_verified=False,
+            email_verification_token=verification_token,
+            token_created_at=datetime.utcnow()
         )
         db.session.add(counselor)
         db.session.commit()
         
-        flash('Kayıt başarılı! Şimdi giriş yapabilirsiniz.')
-        return redirect(url_for('auth.login'))
+        # Doğrulama e-postası gönder
+        verification_url = f"{current_app.config['SITE_URL']}/verify-email/{verification_token}"
+        email_sent = send_verification_email(
+            to_email=counselor.email,
+            name=counselor.name,
+            verification_url=verification_url
+        )
+        
+        if email_sent:
+            return render_template('auth/verification_sent.html', email=counselor.email)
+        else:
+            # E-posta gönderilemese bile hesap oluşturuldu
+            flash('Kayıt başarılı ancak doğrulama e-postası gönderilemedi. Lütfen daha sonra tekrar deneyin.', 'warning')
+            return render_template('auth/verification_sent.html', email=counselor.email)
     
     return render_template('auth/register.html', form=form)
+
+@auth_bp.route('/verify-email/<token>')
+def verify_email(token):
+    """E-posta doğrulama linki ile hesabı aktifleştir"""
+    counselor = Counselor.query.filter_by(email_verification_token=token).first()
+    
+    if not counselor:
+        flash('Geçersiz veya süresi dolmuş doğrulama linki.', 'danger')
+        return redirect(url_for('auth.login'))
+    
+    # Token süresini kontrol et (24 saat)
+    if counselor.token_created_at:
+        token_age = datetime.utcnow() - counselor.token_created_at
+        if token_age > timedelta(hours=24):
+            flash('Doğrulama linkinin süresi dolmuş. Lütfen yeni bir doğrulama e-postası isteyin.', 'warning')
+            return render_template('auth/verification_sent.html', email=counselor.email, expired=True)
+    
+    # E-postayı doğrula
+    counselor.email_verified = True
+    counselor.email_verification_token = None
+    counselor.token_created_at = None
+    db.session.commit()
+    
+    flash('E-posta adresiniz başarıyla doğrulandı! Şimdi giriş yapabilirsiniz.', 'success')
+    return redirect(url_for('auth.login'))
+
+@auth_bp.route('/resend-verification', methods=['POST'])
+def resend_verification():
+    """Doğrulama e-postasını tekrar gönder"""
+    email = request.form.get('email')
+    
+    if not email:
+        flash('E-posta adresi belirtilmedi.', 'danger')
+        return redirect(url_for('auth.login'))
+    
+    counselor = Counselor.query.filter_by(email=email).first()
+    
+    if not counselor:
+        # Güvenlik: Kullanıcı var mı yok mu belli etme
+        flash('Eğer bu e-posta adresine kayıtlı bir hesap varsa, doğrulama e-postası gönderildi.', 'info')
+        return render_template('auth/verification_sent.html', email=email)
+    
+    if counselor.email_verified:
+        flash('Bu e-posta adresi zaten doğrulanmış. Giriş yapabilirsiniz.', 'info')
+        return redirect(url_for('auth.login'))
+    
+    # Rate limiting: Son gönderimden en az 60 saniye geçmiş olmalı
+    if counselor.token_created_at:
+        time_since_last = datetime.utcnow() - counselor.token_created_at
+        if time_since_last < timedelta(seconds=60):
+            remaining = 60 - int(time_since_last.total_seconds())
+            flash(f'Lütfen {remaining} saniye bekleyip tekrar deneyin.', 'warning')
+            return render_template('auth/verification_sent.html', email=email)
+    
+    # Yeni token oluştur
+    new_token = uuid.uuid4().hex
+    counselor.email_verification_token = new_token
+    counselor.token_created_at = datetime.utcnow()
+    db.session.commit()
+    
+    # E-postayı gönder
+    verification_url = f"{current_app.config['SITE_URL']}/verify-email/{new_token}"
+    email_sent = send_verification_email(
+        to_email=counselor.email,
+        name=counselor.name,
+        verification_url=verification_url
+    )
+    
+    if email_sent:
+        flash('Doğrulama e-postası tekrar gönderildi. Lütfen gelen kutunuzu kontrol edin.', 'success')
+    else:
+        flash('E-posta gönderilemedi. Lütfen daha sonra tekrar deneyin.', 'danger')
+    
+    return render_template('auth/verification_sent.html', email=email)
 
 @auth_bp.route('/profile')
 @login_required

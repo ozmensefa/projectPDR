@@ -27,6 +27,7 @@ Flask-WTF
 email-validator
 markdown
 numpy
+resend
 
 # Asenkron Task Queue - Arka Plan İşlemleri
 celery>=5.3.0

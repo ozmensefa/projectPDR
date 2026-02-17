@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import librosa
 import librosa.display
+import matplotlib
+matplotlib.use('Agg')  # Thread-safe, GUI gerektirmeyen backend
 import matplotlib.pyplot as plt
 import numpy as np
 import io

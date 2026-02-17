@@ -15,6 +15,9 @@ class Counselor(UserMixin, db.Model):
     title = db.Column(db.String(100))
     photo_filename = db.Column(db.String(100), nullable=True)  # Profil fotoğrafı
     is_admin = db.Column(db.Boolean, default=False)  # Admin yetkisi
+    email_verified = db.Column(db.Boolean, default=False)  # E-posta doğrulandı mı?
+    email_verification_token = db.Column(db.String(100), nullable=True)  # Doğrulama token'ı
+    token_created_at = db.Column(db.DateTime, nullable=True)  # Token oluşturulma zamanı
     created_at = db.Column(db.DateTime, default=get_turkey_time)
     clients = db.relationship('Client', backref='counselor', lazy=True)
 

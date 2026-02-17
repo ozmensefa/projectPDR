@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from deepface import DeepFace
 import cv2
+import matplotlib
+matplotlib.use('Agg')  # Thread-safe, GUI gerektirmeyen backend
 import matplotlib.pyplot as plt
 import numpy as np
 import io

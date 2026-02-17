@@ -11,143 +11,52 @@ class TextService:
         self.device = self._detect_device()
         print(f"TextService cihaz: {self.device}")
         
-        # Model dosyasının yolu
+        # Özel fine-tune model dosyasının yolu (opsiyonel)
         self.model_file = pathlib.Path(__file__).parent.parent / "models" / "whisper" / "medium" / "model.pt"
+        self.has_custom_model = self.model_file.exists()
         
-        if not self.model_file.exists():
-            raise Exception("Model dosyası bulunamadı! Lütfen model.pt dosyasının doğru konumda olduğunu kontrol edin.")
+        if self.has_custom_model:
+            print("Özel fine-tune Whisper modeli bulundu, yükleniyor...")
+        else:
+            print("Özel model bulunamadı, standart Whisper 'medium' modeli kullanılacak...")
+            print("(İlk çalıştırmada model otomatik indirilecek)")
         
         print("Whisper modeli yükleniyor...")
         
         try:
-            # Cihaza göre model yükleme - CUDA ÖNCELİKLİ
+            device_str = "cuda" if self.device == "cuda" else "cpu"
+            
             if self.device == "cuda":
-                print("🚀 NVIDIA CUDA ile model yükleniyor - EN İYİ PERFORMANS!")
-                print("CUDA özellikleri kontrol ediliyor...")
-                
-                # CUDA özellikleri
-                gpu_props = torch.cuda.get_device_properties(0)
-                print(f"  • Compute Capability: {gpu_props.major}.{gpu_props.minor}")
-                print(f"  • Multiprocessor Sayısı: {gpu_props.multi_processor_count}")
-                print(f"  • Bellek Bant Genişliği: ~{gpu_props.memory_clock_rate * gpu_props.memory_bus_width / 8 / 1000:.0f} GB/s")
-                
-                # Bellek temizliği
+                print("🚀 NVIDIA CUDA ile model yükleniyor!")
                 torch.cuda.empty_cache()
-                print("  • CUDA cache temizlendi")
-                
-                # Model yükleme
-                checkpoint = torch.load(str(self.model_file), map_location="cuda")
-                self.model = whisper.load_model("medium", device="cuda")
-                
-                if 'model_state_dict' in checkpoint:
-                    self.model.load_state_dict(checkpoint['model_state_dict'])
-                else:
-                    self.model.load_state_dict(checkpoint)
-                
-                # CUDA bellek kullanımı
-                memory_allocated = torch.cuda.memory_allocated(0) / 1024**3
-                memory_reserved = torch.cuda.memory_reserved(0) / 1024**3
-                print(f"  • Kullanılan VRAM: {memory_allocated:.2f} GB")
-                print(f"  • Ayrılan VRAM: {memory_reserved:.2f} GB")
-                print("🎯 CUDA model yükleme tamamlandı - Maksimum hız!")
-                    
-            elif self.device == "hip":
-                print("🔴 AMD ROCm ile model yükleniyor...")
-                checkpoint = torch.load(str(self.model_file), map_location="cpu")
-                self.model = whisper.load_model("medium", device="cpu")  # ROCm için CPU fallback
-                if 'model_state_dict' in checkpoint:
-                    self.model.load_state_dict(checkpoint['model_state_dict'])
-                else:
-                    self.model.load_state_dict(checkpoint)
-                    
-            elif self.device == "directml":
-                print("DirectML ile model yükleniyor...")
-                
+            else:
+                print("💻 CPU ile model yükleniyor...")
+            
+            # Önce standart modeli yükle
+            self.model = whisper.load_model("medium", device=device_str)
+            
+            # Özel checkpoint varsa üzerine yükle
+            if self.has_custom_model:
                 try:
-                    import torch_directml # type: ignore
-                    # DirectML cihazını ayarla
-                    dml_device = torch_directml.device()
-                    print(f"DirectML cihazı: {dml_device}")
-                    
-                    # Whisper modelini doğrudan DirectML cihazında yükle
-                    self.model = whisper.load_model("medium", device=dml_device)
-                    
-                    # Model checkpoint'i varsa yükle
-                    if self.model_file.exists():
-                        try:
-                            checkpoint = torch.load(str(self.model_file), map_location=dml_device)
-                            if 'model_state_dict' in checkpoint:
-                                self.model.load_state_dict(checkpoint['model_state_dict'])
-                            else:
-                                self.model.load_state_dict(checkpoint)
-                            print("Model checkpoint DirectML'de yüklendi")
-                        except Exception as checkpoint_err:
-                            print(f"Checkpoint yükleme hatası (varsayılan model kullanılacak): {checkpoint_err}")
-                    
-                    # Model cihazını doğrula
-                    if hasattr(self.model, 'encoder') and hasattr(self.model.encoder, 'parameters'):
-                        first_param = next(self.model.encoder.parameters())
-                        print(f"Model parametreleri cihazı: {first_param.device}")
-                        
-                        if str(first_param.device).startswith('privateuseone'):
-                            print("✅ Model başarıyla DirectML'de yüklendi!")
-                        else:
-                            print("⚠️ Model DirectML'de değil, CPU'ya geçiliyor")
-                            self.device = "cpu"
-                    
-                except Exception as e:
-                    print(f"DirectML yükleme hatası, CPU'ya geçiliyor: {e}")
-                    self.device = "cpu"
-                    # CPU fallback
-                    checkpoint = torch.load(str(self.model_file), map_location="cpu")
-                    self.model = whisper.load_model("medium", device="cpu")
+                    checkpoint = torch.load(str(self.model_file), map_location=device_str)
                     if 'model_state_dict' in checkpoint:
                         self.model.load_state_dict(checkpoint['model_state_dict'])
                     else:
                         self.model.load_state_dict(checkpoint)
-                    
-            elif self.device == "opencl":
-                print("🔵 OpenCL GPU ile model yükleniyor...")
-                # OpenCL için şimdilik CPU fallback
-                checkpoint = torch.load(str(self.model_file), map_location="cpu")
-                self.model = whisper.load_model("medium", device="cpu")
-                if 'model_state_dict' in checkpoint:
-                    self.model.load_state_dict(checkpoint['model_state_dict'])
-                else:
-                    self.model.load_state_dict(checkpoint)
-                    
-            else:
-                print("💻 CPU ile model yükleniyor...")
-                print("⚠️ CUDA bulunamadı - daha yavaş işlem bekleniyor")
-                checkpoint = torch.load(str(self.model_file), map_location="cpu")
-                self.model = whisper.load_model("medium", device="cpu")
-                if 'model_state_dict' in checkpoint:
-                    self.model.load_state_dict(checkpoint['model_state_dict'])
-                else:
-                    self.model.load_state_dict(checkpoint)
+                    print("✅ Özel fine-tune model yüklendi!")
+                except Exception as e:
+                    print(f"⚠️ Özel model yüklenemedi, standart model kullanılacak: {e}")
+            
+            print(f"✅ Whisper model yükleme tamamlandı ({device_str})")
                     
         except Exception as e:
-            # Eğer yukarıdaki yöntem çalışmazsa, alternatif yöntem
-            print(f"İlk yöntem başarısız oldu, alternatif yöntem deneniyor: {e}")
+            print(f"Model yükleme hatası, CPU fallback deneniyor: {e}")
             try:
-                if self.device == "cuda":
-                    self.model = whisper.load_model("medium", device="cuda")
-                elif self.device == "directml":
-                    try:
-                        import torch_directml # type: ignore
-                        dml_device = torch_directml.device()
-                        self.model = whisper.load_model("medium", device=dml_device)
-                        print(f"Alternatif yöntemle DirectML'de yüklendi: {dml_device}")
-                    except Exception as e:
-                        print(f"Alternatif DirectML yükleme hatası: {e}")
-                        self.device = "cpu"
-                        self.model = whisper.load_model("medium", device="cpu")
-                else:
-                    self.model = whisper.load_model("medium", device="cpu")
-            except Exception as e2:
-                print(f"GPU yükleme başarısız, CPU'ya geçiliyor: {e2}")
                 self.device = "cpu"
                 self.model = whisper.load_model("medium", device="cpu")
+                print("✅ CPU fallback ile model yüklendi")
+            except Exception as e2:
+                raise Exception(f"Whisper modeli yüklenemedi: {e2}")
     
     def _detect_device(self):
         """En uygun cihazı algıla - CUDA öncelikli"""

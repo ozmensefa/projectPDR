@@ -33,6 +33,20 @@
                     {{ form.submit(class="btn btn-primary") }}
                     <a href="{{ url_for('auth.register') }}" class="btn btn-link">Hesabınız yok mu? Kayıt olun</a>
                 </form>
+                
+                {% if unverified_email is defined and unverified_email %}
+                <hr class="my-3">
+                <div class="text-center">
+                    <p class="text-muted small mb-2">E-posta doğrulama linkini almadınız mı?</p>
+                    <form method="POST" action="{{ url_for('auth.resend_verification') }}" class="d-inline">
+                        <input type="hidden" name="email" value="{{ unverified_email }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-redo"></i> Doğrulama E-postasını Tekrar Gönder
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
