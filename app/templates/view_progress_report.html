@@ -85,11 +85,11 @@
                     <div class="progress-bar progress-bar-striped progress-bar-animated" 
                          role="progressbar" 
                          id="progress-bar"
-                         style="width: {{ report.analysis_progress }}%"
-                         aria-valuenow="{{ report.analysis_progress }}" 
+                         style="width: 0%"
+                         aria-valuenow="0" 
                          aria-valuemin="0" 
                          aria-valuemax="100">
-                        <span id="progress-text">{{ report.analysis_progress }}%</span>
+                        <span id="progress-text">0%</span>
                     </div>
                 </div>
                 <small class="text-muted mt-2 d-block">
@@ -99,11 +99,11 @@
             {% endif %}
 
             <!-- Ana Rapor İçeriği -->
-            <div class="card" id="main-report">
-                <div class="card-header bg-primary text-white">
+            <div class="card session-card-report" id="main-report">
+                <div class="card-header session-card-header-report">
                     <div class="row align-items-center">
                         <div class="col">
-                            <h3 class="mb-0">
+                            <h3 class="mb-0 text-white">
                                 <i class="fas fa-chart-line"></i> İlerleyiş Analizi Raporu
                             </h3>
                         </div>
@@ -184,9 +184,9 @@
             </div>
 
             <!-- Danger Zone -->
-            <div class="card border-danger mt-4">
-                <div class="card-header bg-danger text-white">
-                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Tehlikeli İşlemler</h5>
+            <div class="card session-card-danger mt-4">
+                <div class="card-header session-card-header-danger">
+                    <h5 class="mb-0 text-white"><i class="fas fa-exclamation-triangle"></i> Tehlikeli İşlemler</h5>
                 </div>
                 <div class="card-body">
                     <p class="text-muted">Bu raporu kalıcı olarak silmek istiyorsanız aşağıdaki butonu kullanabilirsiniz. Bu işlem geri alınamaz.</p>
@@ -309,9 +309,43 @@
 .border-left-info {
     border-left: 4px solid #0dcaf0 !important;
 }
+
+/* Kart renk düzeltmeleri */
+.session-card-report {
+    border: 2px solid #1565c0 !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+}
+.session-card-header-report {
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
+    border-bottom: none !important;
+}
+.session-card-danger {
+    border: 2px solid #c62828 !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+}
+.session-card-header-danger {
+    background: linear-gradient(135deg, #e53935 0%, #c62828 100%) !important;
+    border-bottom: none !important;
+}
 </style>
 
+<!-- Template verilerini data attribute'ları ile aktar -->
+<div id="report-data"
+     data-report-id="{{ report.id }}"
+     data-analysis-status="{{ report.analysis_status }}"
+     data-analysis-progress="{{ report.analysis_progress }}"
+     data-client-name="{{ report.client.name }}"
+     data-counselor-name="{{ report.counselor.name }}"
+     data-date-range="{{ report.date_range }}"
+     data-sessions-analyzed="{{ report.sessions_analyzed }}"
+     data-report-date="{{ report.created_at.strftime('%d.%m.%Y %H:%M') }}"
+     style="display: none;"></div>
+
 <script>
+var reportDataEl = document.getElementById('report-data');
+
 function printReport() {
     // Yazdırma içeriğini hazırla - markdown formatını HTML'e çevir
     const analysisText = document.getElementById('analysis-text').innerHTML;
@@ -322,42 +356,42 @@ function printReport() {
 }
 
 function downloadReport() {
-    // Rapor içeriğini hazırla
-    const reportTitle = `{{ report.client.name }} - İlerleyiş Raporu ({{ report.date_range }})`;
-    const reportContent = document.getElementById('analysis-text').innerText;
+    // Rapor bilgilerini data attribute'lardan al
+    var clientName = reportDataEl.getAttribute('data-client-name');
+    var counselorName = reportDataEl.getAttribute('data-counselor-name');
+    var dateRange = reportDataEl.getAttribute('data-date-range');
+    var sessionsAnalyzed = reportDataEl.getAttribute('data-sessions-analyzed');
+    var reportDate = reportDataEl.getAttribute('data-report-date');
+
+    var reportTitle = clientName + ' - İlerleyiş Raporu (' + dateRange + ')';
+    var reportContent = document.getElementById('analysis-text').innerText;
     
-    const fullContent = `
-PDR ANALİZ SİSTEMİ
-İlerleyiş Analizi Raporu
-
-Danışan: {{ report.client.name }}
-Danışman: {{ report.counselor.name }}
-Tarih Aralığı: {{ report.date_range }}
-Analiz Edilen Oturum Sayısı: {{ report.sessions_analyzed }}
-Rapor Tarihi: {{ report.created_at.strftime('%d.%m.%Y %H:%M') }}
-
-================================================================================
-
-${reportContent}
-
-================================================================================
-Bu rapor PDR Analiz Sistemi tarafından otomatik olarak oluşturulmuştur.
-    `;
+    var fullContent = 'PDR ANALİZ SİSTEMİ\n' +
+        'İlerleyiş Analizi Raporu\n\n' +
+        'Danışan: ' + clientName + '\n' +
+        'Danışman: ' + counselorName + '\n' +
+        'Tarih Aralığı: ' + dateRange + '\n' +
+        'Analiz Edilen Oturum Sayısı: ' + sessionsAnalyzed + '\n' +
+        'Rapor Tarihi: ' + reportDate + '\n\n' +
+        '================================================================================\n\n' +
+        reportContent + '\n\n' +
+        '================================================================================\n' +
+        'Bu rapor PDR Analiz Sistemi tarafından otomatik olarak oluşturulmuştur.\n';
     
     // Dosya oluştur ve indir
-    const blob = new Blob([fullContent], { type: 'text/plain;charset=utf-8' });
-    const link = document.createElement('a');
+    var blob = new Blob([fullContent], { type: 'text/plain;charset=utf-8' });
+    var link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `${reportTitle}.txt`;
+    link.download = reportTitle + '.txt';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 }
 
 // İlerleyiş analizi durumunu kontrol et
-let progressCheckInterval = null;
-const PROGRESS_ANALYSIS_ID = {{ report.id }};
-const PROGRESS_STATUS = '{{ report.analysis_status }}';
+var progressCheckInterval = null;
+var PROGRESS_ANALYSIS_ID = parseInt(reportDataEl.getAttribute('data-report-id'));
+var PROGRESS_STATUS = reportDataEl.getAttribute('data-analysis-status');
 
 function checkProgressAnalysisStatus() {
     fetch(`/check_progress_analysis_status/${PROGRESS_ANALYSIS_ID}`)
@@ -433,18 +467,28 @@ function checkProgressAnalysisStatus() {
         });
 }
 
-// Sayfa yüklendikende markdown'ı HTML'e çevir
+// Sayfa yüklendiğinde markdown'ı HTML'e çevir
 document.addEventListener('DOMContentLoaded', function() {
+    // İlerleme barını data attribute'dan al ve başlangıç değerini ayarla
+    var initialProgress = parseInt(reportDataEl.getAttribute('data-analysis-progress')) || 0;
+    var progressBar = document.getElementById('progress-bar');
+    var progressText = document.getElementById('progress-text');
+    if (progressBar && progressText) {
+        progressBar.style.width = initialProgress + '%';
+        progressBar.setAttribute('aria-valuenow', initialProgress);
+        progressText.textContent = initialProgress + '%';
+    }
+
     // Eğer marked.js yüklü ise, markdown formatını HTML'e çevir
-    const analysisElement = document.getElementById('analysis-text');
+    var analysisElement = document.getElementById('analysis-text');
     if (analysisElement && typeof marked !== 'undefined') {
-        const markdownText = analysisElement.textContent;
+        var markdownText = analysisElement.textContent;
         analysisElement.innerHTML = marked.parse(markdownText);
     }
     
     // Eğer analiz devam ediyorsa, durumu periyodik olarak kontrol et
     if (PROGRESS_STATUS === 'processing' || PROGRESS_STATUS === 'pending') {
-        console.log('🔄 İlerleyiş analizi polling başlatıldı...');
+        console.log('İlerleyiş analizi polling başlatıldı...');
         
         // İlk kontrolü hemen yap
         checkProgressAnalysisStatus();
@@ -453,7 +497,7 @@ document.addEventListener('DOMContentLoaded', function() {
         progressCheckInterval = setInterval(checkProgressAnalysisStatus, 3000);
         
         // Sayfa kapatılırken interval'i temizle
-        window.addEventListener('beforeunload', () => {
+        window.addEventListener('beforeunload', function() {
             if (progressCheckInterval) {
                 clearInterval(progressCheckInterval);
             }

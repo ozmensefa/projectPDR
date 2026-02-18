@@ -3,6 +3,7 @@ import google.generativeai as genai
 from app.config import Config
 import json
 import os
+import time
 
 class AIService:
     def __init__(self):
@@ -29,12 +30,13 @@ class AIService:
             self.training_data = []
 
     def _get_generation_config(self, temperature=0.7):
-        """Ortak generation config"""
+        """Ortak generation config — output token limiti config'den okunur."""
+        max_tokens = getattr(Config, 'GEMINI_MAX_OUTPUT_TOKENS', 8192)
         return {
             "temperature": temperature,
             "top_p": 0.9,
             "top_k": 40,
-            "max_output_tokens": 65536,
+            "max_output_tokens": max_tokens,
         }
 
     def _get_safety_settings(self):
@@ -46,6 +48,30 @@ class AIService:
             {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_ONLY_HIGH"},
         ]
 
+    def _generate_content_with_retry(self, prompt, temperature=0.7, max_retries=3):
+        """429 (quota/rate limit) hatasında bekleyip tekrar dener."""
+        last_error = None
+        for attempt in range(max_retries):
+            try:
+                return self.model.generate_content(
+                    prompt,
+                    generation_config=self._get_generation_config(temperature),
+                    safety_settings=self._get_safety_settings()
+                ), None
+            except Exception as e:
+                last_error = e
+                err_str = str(e)
+                if "429" in err_str or "quota" in err_str.lower() or "rate" in err_str.lower():
+                    wait_sec = [10, 25, 60][attempt] if attempt < 3 else 60
+                    if attempt < max_retries - 1:
+                        print(f"  ⚠️ API 429/rate limit, {wait_sec}s sonra tekrar denenecek (deneme {attempt + 1}/{max_retries})...")
+                        time.sleep(wait_sec)
+                    else:
+                        raise
+                else:
+                    raise
+        return None, last_error
+
     def _generate_with_continuation(self, prompt, temperature=0.7, max_continuations=2):
         """
         AI yanıtı oluşturur, kesilirse devam isteği gönderir.
@@ -55,11 +81,11 @@ class AIService:
         current_prompt = prompt
 
         for attempt in range(1 + max_continuations):
-            response = self.model.generate_content(
-                current_prompt,
-                generation_config=self._get_generation_config(temperature),
-                safety_settings=self._get_safety_settings()
-            )
+            response, gen_error = self._generate_content_with_retry(current_prompt, temperature)
+            if gen_error is not None:
+                return None, str(gen_error)
+            if response is None:
+                return None, "Yanıt alınamadı"
 
             if not response.text:
                 if attempt == 0:
@@ -118,10 +144,10 @@ class AIService:
             
             if "API_KEY_INVALID" in error_msg:
                 error_msg = "Geçersiz API key. Lütfen sistem yöneticisiyle iletişime geçin."
-            elif "QUOTA_EXCEEDED" in error_msg:
-                error_msg = "API kullanım kotası aşıldı. Lütfen daha sonra tekrar deneyin."
-            elif "RATE_LIMIT_EXCEEDED" in error_msg:
-                error_msg = "Çok fazla istek gönderildi. Lütfen bir süre bekleyin."
+            elif "429" in error_msg or "quota" in error_msg.lower():
+                error_msg = "Google Gemini API kotası aşıldı. Lütfen plan/faturalandırma ayarlarınızı kontrol edin veya daha sonra tekrar deneyin."
+            elif "QUOTA_EXCEEDED" in error_msg or "RATE_LIMIT_EXCEEDED" in error_msg:
+                error_msg = "API kullanım kotası aşıldı. Lütfen bir süre bekleyip tekrar deneyin."
             elif "timeout" in error_msg.lower():
                 error_msg = "İstek zaman aşımına uğradı. Lütfen tekrar deneyin."
             

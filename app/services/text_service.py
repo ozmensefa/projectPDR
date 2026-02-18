@@ -148,13 +148,11 @@ class TextService:
                 "verbose": True,
                 "condition_on_previous_text": True,
                 "initial_prompt": "Bu bir video konuşma transkripsiyonudur.",
-                "no_speech_threshold": 0.3,
                 "compression_ratio_threshold": 2.4,
                 "temperature": 0,
                 "best_of": 1,
-                # Güven skoru hesaplama için gerekli
-                "logprob_threshold": -1.0,  # Log probability threshold
-                "no_speech_threshold": 0.6  # Sessizlik threshold
+                "logprob_threshold": -1.0,
+                "no_speech_threshold": 0.6
             }
             
             # CUDA için özel optimizasyonlar - EN İYİ AYARLAR

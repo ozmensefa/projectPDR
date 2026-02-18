@@ -28,9 +28,9 @@
                 <div class="card-body">
                     <!-- Video Yükleme Bölümü -->
                     <div class="video-upload-section mb-4">
-                        <div class="card border-info">
-                            <div class="card-header bg-info text-white">
-                                <h5 class="mb-0">
+                        <div class="card session-card-video">
+                            <div class="card-header session-card-header-video">
+                                <h5 class="mb-0 text-white">
                                     <i class="fas fa-video"></i> Video Yükleme
                                 </h5>
                             </div>
@@ -99,9 +99,9 @@
                     {% if saved_analysis %}
                         <!-- AI Analiz Raporu (Ana Rapor) -->
                         <div class="analysis-section mb-4">
-                            <div class="card border-primary">
-                                <div class="card-header bg-primary text-white">
-                                    <h4 class="mb-0">
+                            <div class="card session-card-report">
+                                <div class="card-header session-card-header-report">
+                                    <h4 class="mb-0 text-white">
                                         <i class="fas fa-brain"></i> Oturum Analiz Raporu
                                         <small class="float-end">{{ saved_analysis.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
                                     </h4>
@@ -135,8 +135,8 @@
                                     <div class="progress-bar progress-bar-striped progress-bar-animated" 
                                          role="progressbar" 
                                          id="analysisProgressBar"
-                                         style="width: {{ session.analysis_progress }}%">
-                                        <span id="progressText">{{ session.analysis_progress }}%</span>
+                                         style="width: 0%">
+                                        <span id="progressText">0%</span>
                                     </div>
                                 </div>
                                 
@@ -150,6 +150,7 @@
                                 <i class="fas fa-times-circle fa-2x mb-3"></i>
                                 <h5>Analiz Başarısız</h5>
                                 <p>Video analizi sırasında bir hata oluştu. Lütfen tekrar deneyin.</p>
+                                <p class="small text-muted mb-0">Sık neden: Google Gemini API kotası aşılmış olabilir. Bildirimlerde hata detayını görebilirsiniz.</p>
                                 
                                 {% if session.video_path %}
                                     <button onclick="startAsyncAnalysis()" class="btn btn-danger btn-lg">
@@ -308,6 +309,28 @@
 
 {% block head %}
 <style>
+/* Video Yükleme kartı */
+.session-card-video {
+    border: 2px solid #0288d1 !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+}
+.session-card-header-video {
+    background: linear-gradient(135deg, #29b6f6 0%, #0288d1 100%) !important;
+    border-bottom: none !important;
+}
+
+/* Oturum Analiz Raporu kartı */
+.session-card-report {
+    border: 2px solid #1565c0 !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+}
+.session-card-header-report {
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
+    border-bottom: none !important;
+}
+
 /* Analiz içeriği için markdown stilleri */
 .ai-analysis-container, .ai-analysis-content {
     line-height: 1.8;
@@ -459,6 +482,8 @@
      data-session-id="{{ session.id }}" 
      data-client-name="{{ session.client.name }}" 
      data-session-date="{{ session.date.strftime('%d-%m-%Y') }}" 
+     data-analysis-status="{{ session.analysis_status }}"
+     data-analysis-progress="{{ session.analysis_progress }}"
      style="display: none;"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -770,14 +795,18 @@
     }
     
     // Eğer analiz devam ediyorsa, durum kontrolünü başlat
-    {% if session.analysis_status == 'processing' %}
     document.addEventListener('DOMContentLoaded', function() {
-        // İlk kontrolü hemen yap
-        checkAnalysisStatus();
+        var analysisStatus = sessionDataEl.getAttribute('data-analysis-status');
+        var initialProgress = parseInt(sessionDataEl.getAttribute('data-analysis-progress')) || 0;
         
-        // Her 5 saniyede bir kontrol et
-        analysisCheckInterval = setInterval(checkAnalysisStatus, 5000);
+        // Başlangıç ilerleme değerini ayarla
+        if (analysisStatus === 'processing') {
+            updateProgressBar(initialProgress);
+            // İlk kontrolü hemen yap
+            checkAnalysisStatus();
+            // Her 5 saniyede bir kontrol et
+            analysisCheckInterval = setInterval(checkAnalysisStatus, 5000);
+        }
     });
-    {% endif %}
 </script>
 {% endblock %} 

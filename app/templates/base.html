@@ -13,7 +13,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     {% block head %}{% endblock %}
 </head>
-<body>
+<body data-notifications-url="{{ url_for('main.notifications') }}">
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.index') }}">
@@ -291,11 +291,9 @@
             list.appendChild(li);
             
             const viewAll = document.createElement('li');
-            viewAll.innerHTML = `
-                <a class="dropdown-item text-center text-primary" href="{{ url_for('main.notifications') }}">
-                    <small><strong>Tüm bildirimleri görüntüle</strong></small>
-                </a>
-            `;
+            var notificationsUrl = document.body.getAttribute('data-notifications-url') || '/notifications';
+            viewAll.innerHTML = '<a class="dropdown-item text-center text-primary" href="' + notificationsUrl + '">' +
+                '<small><strong>Tüm bildirimleri görüntüle</strong></small></a>';
             list.appendChild(viewAll);
         }
 

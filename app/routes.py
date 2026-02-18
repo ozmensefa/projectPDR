@@ -1092,6 +1092,13 @@ def upload_session_video(session_id):
         if video_file.filename == '':
             return jsonify({'status': 'error', 'message': 'Dosya seçilmedi'}), 400
         
+        # Analiz devam ediyorsa yüklemeyi engelle
+        if session.analysis_status == 'processing':
+            return jsonify({
+                'status': 'error',
+                'message': 'Analiz devam ederken yeni video yüklenemez. Lütfen analizin bitmesini bekleyin.'
+            }), 400
+        
         # Dosya uzantısını kontrol et
         allowed_extensions = {'mp4', 'avi', 'mov', 'mkv', 'webm', 'flv', 'wmv'}
         file_ext = video_file.filename.rsplit('.', 1)[1].lower() if '.' in video_file.filename else ''
@@ -1155,6 +1162,13 @@ def delete_session_video(session_id):
         # Yetki kontrolü
         if session.client.counselor_id != current_user.id:
             abort(403)
+        
+        # Analiz devam ediyorsa silmeyi engelle
+        if session.analysis_status == 'processing':
+            return jsonify({
+                'status': 'error',
+                'message': 'Analiz devam ederken video silinemez. Lütfen analizin bitmesini bekleyin.'
+            }), 400
         
         # Video yoksa
         if not session.video_path:

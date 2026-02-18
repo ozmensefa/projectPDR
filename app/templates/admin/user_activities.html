@@ -2,6 +2,23 @@
 
 {% block title %}Kullanıcı Aktiviteleri (Admin){% endblock %}
 
+{% block head %}
+<style>
+.stat-card-primary {
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
+    border: none !important;
+}
+.stat-card-success {
+    background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%) !important;
+    border: none !important;
+}
+.stat-card-info {
+    background: linear-gradient(135deg, #29b6f6 0%, #0288d1 100%) !important;
+    border: none !important;
+}
+</style>
+{% endblock %}
+
 {% block content %}
     <!-- Sayfa Başlığı -->
     <div class="page-header mb-4">
@@ -15,7 +32,7 @@
     <!-- İstatistikler -->
     <div class="row mb-4">
         <div class="col-md-4">
-            <div class="card bg-primary text-white">
+            <div class="card stat-card-primary text-white">
                 <div class="card-body text-center">
                     <h3>{{ stats.total_activities }}</h3>
                     <p class="mb-0">Toplam Aktivite</p>
@@ -23,7 +40,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card bg-success text-white">
+            <div class="card stat-card-success text-white">
                 <div class="card-body text-center">
                     <h3>{{ stats.unique_users }}</h3>
                     <p class="mb-0">Aktif Kullanıcı</p>
@@ -31,7 +48,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card bg-info text-white">
+            <div class="card stat-card-info text-white">
                 <div class="card-body text-center">
                     <h3>{{ stats.today_activities }}</h3>
                     <p class="mb-0">Bugünkü Aktivite</p>

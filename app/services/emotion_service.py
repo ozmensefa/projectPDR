@@ -160,8 +160,10 @@ class EmotionService:
                 
             elif self.device == "pytorch_cpu":
                 print("💻 PyTorch CPU yapılandırması...")
-                # CPU için PyTorch optimizasyonları
-                torch.set_num_threads(0)  # Tüm CPU çekirdekleri
+                # CPU için PyTorch optimizasyonları — tüm çekirdekleri kullan
+                import os as _os
+                cpu_count = _os.cpu_count() or 4
+                torch.set_num_threads(cpu_count)
                 print(f"  • CPU thread sayısı: {torch.get_num_threads()}")
                 print("⚠️ PyTorch CUDA ile 5-10x daha hızlı olurdu!")
                 

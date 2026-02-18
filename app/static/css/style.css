@@ -1852,11 +1852,11 @@ body {
 }
 
 .fc .fc-today-button {
-    background: linear-gradient(135deg, #43a047 0%, #388e3c 100%) !important;
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
 }
 
 .fc .fc-today-button:hover {
-    background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%) !important;
+    background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%) !important;
 }
 
 .fc .fc-today-button:disabled {

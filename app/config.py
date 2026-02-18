@@ -6,8 +6,10 @@ class Config:
     UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
     TEMP_FOLDER = os.path.join(os.getcwd(), 'temp_files')
     
-    # Gemini API Key - Sabit olarak tanımlandı
-    GEMINI_API_KEY = 'AIzaSyD8IjMxkJqWIdJZrRjz_AirKOhcvfEBkFs'
+    # Gemini API Key - ortam değişkeni veya varsayılan
+    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY') or 'AIzaSyB0SWI0_y414DBSLu1UYYgFN3CLfL7dPWQ'
+    # Gemini çıktı token limiti (model: gemini-2.5-flash; yüksek değer kotayı daha çok tüketir)
+    GEMINI_MAX_OUTPUT_TOKENS = int(os.environ.get('GEMINI_MAX_OUTPUT_TOKENS', '8192'))
     
     # SQLAlchemy ayarları - Geliştirilmiş SQLite konfigürasyonu
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \

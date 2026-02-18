@@ -198,11 +198,17 @@ def analyze_video(self, session_id, counselor_id):
                     session.analysis_progress = 0
                     db.session.commit()
                 
+                # Hata mesajını kullanıcı dostu hale getir (429 = API kotası)
+                err_msg = str(e)
+                if '429' in err_msg or 'quota' in err_msg.lower():
+                    display_msg = "Google Gemini API kotası aşıldı. Lütfen plan ve faturalandırma ayarlarınızı kontrol edin veya daha sonra tekrar deneyin."
+                else:
+                    display_msg = err_msg[:200] + ("..." if len(err_msg) > 200 else "")
                 # Hata bildirimi oluştur
                 notification = Notification(
                     counselor_id=counselor_id,
                     title="Analiz Başarısız! ❌",
-                    message=f"'{session.client.name}' adlı danışanınızın '{session.title}' oturum analizi sırasında bir hata oluştu. Detaylar için tıklayın.",
+                    message=f"'{session.client.name}' — '{session.title}': {display_msg}",
                     notification_type='error',
                     link=f"/session/view/{session_id}",
                     related_session_id=session_id
