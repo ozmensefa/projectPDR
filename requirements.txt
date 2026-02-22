@@ -28,6 +28,7 @@ email-validator
 markdown
 numpy
 resend
+python-dotenv
 
 # Asenkron Task Queue - Arka Plan İşlemleri
 celery>=5.3.0

@@ -140,9 +140,25 @@
                                     </div>
                                 </div>
                                 
-                                <small class="text-muted">
-                                    Analiz süreci birkaç dakika sürebilir. Bu sayfayı kapatabilirsiniz.
-                                </small>
+                                <p class="text-muted mb-2">
+                                    <i class="fas fa-clock me-1"></i>
+                                    <strong>Tahmini süre:</strong> Video analizi yaklaşık 10-15 dakika sürebilir. Bu sayfayı kapatabilirsiniz.
+                                </p>
+                                <button type="button" class="btn btn-outline-danger btn-sm mt-1" id="cancelAnalysisBtn">
+                                    <i class="fas fa-stop-circle"></i> Analizi İptal Et
+                                </button>
+                            </div>
+                        {% elif session.analysis_status == 'cancelled' %}
+                            <!-- Analiz iptal edildi -->
+                            <div class="alert alert-secondary text-center">
+                                <i class="fas fa-ban fa-2x mb-3"></i>
+                                <h5>Analiz İptal Edildi</h5>
+                                <p>Video analizi iptal edildi. İsterseniz tekrar başlatabilirsiniz.</p>
+                                {% if session.video_path %}
+                                    <button onclick="startAsyncAnalysis()" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-play"></i> Analizi Tekrar Başlat
+                                    </button>
+                                {% endif %}
                             </div>
                         {% elif session.analysis_status == 'failed' %}
                             <!-- Analiz başarısız -->
@@ -171,6 +187,10 @@
                                 
                                 {% if session.video_path %}
                                     <p class="mb-3">Analiz arka planda başlatılacak ve tamamlandığında bildirim alacaksınız.</p>
+                                    <p class="text-muted mb-2">
+                                        <i class="fas fa-clock me-1"></i>
+                                        <small>Tahmini süre: Yaklaşık 10-15 dakika</small>
+                                    </p>
                                     <button onclick="startAsyncAnalysis()" class="btn btn-primary btn-lg">
                                         <i class="fas fa-play"></i> Analizi Başlat
                                     </button>
@@ -769,11 +789,11 @@
             .then(data => {
                 updateProgressBar(data.progress);
                 
-                // Analiz tamamlandıysa sayfayı yenile
+                // Analiz tamamlandıysa veya iptal edildiyse sayfayı yenile
                 if (data.status === 'completed' && data.has_results) {
                     clearInterval(analysisCheckInterval);
                     location.reload();
-                } else if (data.status === 'failed') {
+                } else if (data.status === 'failed' || data.status === 'cancelled') {
                     clearInterval(analysisCheckInterval);
                     location.reload();
                 }
@@ -794,10 +814,45 @@
         }
     }
     
+    // Analizi iptal et
+    function cancelAnalysis() {
+        var btn = document.getElementById('cancelAnalysisBtn');
+        if (btn) btn.disabled = true;
+        if (!confirm('Analizi iptal etmek istediğinize emin misiniz? İşlem geri alınamaz.')) {
+            if (btn) btn.disabled = false;
+            return;
+        }
+        fetch('/cancel_analysis/' + sessionId, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.status === 'success') {
+                window.location.reload();
+            } else {
+                alert(data.message || 'İptal işlemi başarısız.');
+                if (btn) btn.disabled = false;
+            }
+        })
+        .catch(function(err) {
+            console.error(err);
+            alert('İptal işlemi sırasında hata oluştu.');
+            if (btn) btn.disabled = false;
+        });
+    }
+
     // Eğer analiz devam ediyorsa, durum kontrolünü başlat
     document.addEventListener('DOMContentLoaded', function() {
         var analysisStatus = sessionDataEl.getAttribute('data-analysis-status');
         var initialProgress = parseInt(sessionDataEl.getAttribute('data-analysis-progress')) || 0;
+        
+        // İptal butonu
+        var cancelBtn = document.getElementById('cancelAnalysisBtn');
+        if (cancelBtn) cancelBtn.addEventListener('click', cancelAnalysis);
         
         // Başlangıç ilerleme değerini ayarla
         if (analysisStatus === 'processing') {

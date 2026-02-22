@@ -92,9 +92,16 @@
                         <span id="progress-text">0%</span>
                     </div>
                 </div>
-                <small class="text-muted mt-2 d-block">
-                    <i class="fas fa-info-circle"></i> Analiz tamamlandığında otomatik olarak bildirim alacaksınız ve sayfa güncellenecektir.
+                <p class="text-muted mt-2 mb-1">
+                    <i class="fas fa-clock me-1"></i>
+                    <strong>Tahmini süre:</strong> {{ report.sessions_analyzed }} oturum için yaklaşık {{ (5 + report.sessions_analyzed * 2) }}-{{ (10 + report.sessions_analyzed * 4) }} dakika sürebilir.
+                </p>
+                <small class="text-muted d-block mb-2">
+                    <i class="fas fa-info-circle"></i> Analiz tamamlandığında otomatik olarak bildirim alacaksınız.
                 </small>
+                <button type="button" class="btn btn-outline-danger btn-sm" id="cancelProgressAnalysisBtn">
+                    <i class="fas fa-stop-circle"></i> Analizi İptal Et
+                </button>
             </div>
             {% endif %}
 
@@ -158,6 +165,15 @@
                             <pre class="mt-2">{{ report.analysis_text }}</pre>
                         </details>
                         {% endif %}
+                    </div>
+                    {% elif report.analysis_status == 'cancelled' %}
+                    <div class="alert alert-secondary text-center">
+                        <i class="fas fa-ban fa-3x mb-3"></i>
+                        <h5>Analiz İptal Edildi</h5>
+                        <p>İlerleyiş analizi iptal edildi. Yeni bir analiz oluşturmak için danışan sayfasındaki "İlerleyiş Analizi" bölümünü kullanabilirsiniz.</p>
+                        <a href="{{ url_for('main.progress_analysis', client_id=report.client_id) }}" class="btn btn-primary">
+                            <i class="fas fa-chart-line"></i> Yeni İlerleyiş Analizi Oluştur
+                        </a>
                     </div>
                     {% else %}
                     <div class="alert alert-secondary text-center">
@@ -442,24 +458,17 @@ function checkProgressAnalysisStatus() {
                 }, 2000);
             } else if (data.status === 'failed') {
                 // Analiz başarısız
-                console.error('❌ İlerleyiş analizi başarısız');
+                console.error('İlerleyiş analizi başarısız');
                 clearInterval(progressCheckInterval);
-                
                 const progressAlert = document.getElementById('progress-alert');
                 if (progressAlert) {
                     progressAlert.className = 'alert alert-danger';
-                    progressAlert.innerHTML = `
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>İlerleyiş analizi başarısız oldu. Lütfen tekrar deneyin.</strong>
-                        </div>
-                    `;
+                    progressAlert.innerHTML = '<div class="d-flex align-items-center"><i class="fas fa-exclamation-triangle me-2"></i><strong>İlerleyiş analizi başarısız oldu. Lütfen tekrar deneyin.</strong></div>';
                 }
-                
-                // Sayfayı yenile
-                setTimeout(() => {
-                    window.location.reload();
-                }, 3000);
+                setTimeout(function() { window.location.reload(); }, 3000);
+            } else if (data.status === 'cancelled') {
+                clearInterval(progressCheckInterval);
+                window.location.reload();
             }
         })
         .catch(error => {
@@ -486,6 +495,28 @@ document.addEventListener('DOMContentLoaded', function() {
         analysisElement.innerHTML = marked.parse(markdownText);
     }
     
+    // İptal butonu
+    var cancelBtn = document.getElementById('cancelProgressAnalysisBtn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            if (!confirm('İlerleyiş analizini iptal etmek istediğinize emin misiniz? İşlem geri alınamaz.')) return;
+            cancelBtn.disabled = true;
+            fetch('/cancel_progress_analysis/' + PROGRESS_ANALYSIS_ID, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').content : ''
+                }
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.status === 'success') window.location.reload();
+                else { alert(data.message || 'İptal başarısız.'); cancelBtn.disabled = false; }
+            })
+            .catch(function() { alert('İptal sırasında hata oluştu.'); cancelBtn.disabled = false; });
+        });
+    }
+
     // Eğer analiz devam ediyorsa, durumu periyodik olarak kontrol et
     if (PROGRESS_STATUS === 'processing' || PROGRESS_STATUS === 'pending') {
         console.log('İlerleyiş analizi polling başlatıldı...');

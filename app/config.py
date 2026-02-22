@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'gizli-anahtar-buraya'
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'gizli-anahtar-buraya')
     UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
     TEMP_FOLDER = os.path.join(os.getcwd(), 'temp_files')
     
-    # Gemini API Key - ortam değişkeni veya varsayılan
-    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY') or ''
-    # Gemini çıktı token limiti (model: gemini-2.5-flash; yüksek değer kotayı daha çok tüketir)
+    # Gemini API
+    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
     GEMINI_MAX_OUTPUT_TOKENS = int(os.environ.get('GEMINI_MAX_OUTPUT_TOKENS', '8192'))
     
-    # SQLAlchemy ayarları - Geliştirilmiş SQLite konfigürasyonu
+    # SQLAlchemy ayarları
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(os.getcwd(), 'instance', 'app.db') + '?timeout=20'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -26,8 +28,8 @@ class Config:
         }
     }
     
-    # Resend E-posta Ayarları
-    RESEND_API_KEY = 're_GebSDxQS_Fie8zBj565x7WTPd5V7gTFsi'
+    # Resend E-posta
+    RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
     RESEND_FROM_EMAIL = 'PDR Video Analiz <noreply@yakades.com.tr>'
     SITE_URL = 'https://yakades.com.tr'
     

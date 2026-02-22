@@ -87,7 +87,6 @@ pip install gunicorn
 ```bash
 cat > .env << 'EOF'
 SECRET_KEY=[GÜÇLÜ BİR GİZLİ ANAHTAR]
-GEMINI_API_KEY=AIzaSyA3q5xTnvs6FesMKvPR2sJ03J4FJ4_Deh0
 REDIS_URL=redis://localhost:6379/0
 DATABASE_URL=sqlite:////var/www/pdr-app/instance/app.db
 FLASK_ENV=production

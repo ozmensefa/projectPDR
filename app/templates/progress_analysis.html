@@ -26,6 +26,7 @@
                         <i class="fas fa-info-circle"></i>
                         <strong>Bilgi:</strong> İlerleyiş analizi için başlangıç ve bitiş oturumlarını seçin. 
                         Seçilen aralıktaki tüm oturumların analizleri değerlendirilerek danışanın ilerleyişi hakkında kapsamlı bir rapor oluşturulacak.
+                        <p class="mb-0 mt-2"><i class="fas fa-clock me-1"></i><strong>Tahmini süre:</strong> Oturum sayısına göre yaklaşık 10-40 dakika sürebilir.</p>
                     </div>
 
                     <!-- İşlem Bildirimi -->
@@ -226,19 +227,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            rangeDetails.innerHTML = `
-                <div class="row">
-                    <div class="col-md-6">
-                        <strong>Başlangıç:</strong> ${startText}
-                    </div>
-                    <div class="col-md-6">
-                        <strong>Bitiş:</strong> ${endText}
-                    </div>
-                </div>
-                <div class="mt-2">
-                    <span class="badge bg-success">${sessionCount} oturum analiz edilecek</span>
-                </div>
-            `;
+            var estMin = 5 + sessionCount * 2;
+            var estMax = 10 + sessionCount * 4;
+            rangeDetails.innerHTML = '<div class="row">' +
+                '<div class="col-md-6"><strong>Başlangıç:</strong> ' + startText + '</div>' +
+                '<div class="col-md-6"><strong>Bitiş:</strong> ' + endText + '</div></div>' +
+                '<div class="mt-2"><span class="badge bg-success">' + sessionCount + ' oturum analiz edilecek</span></div>' +
+                '<div class="mt-2 text-muted"><i class="fas fa-clock me-1"></i>' +
+                '<strong>Tahmini süre:</strong> Yaklaşık ' + estMin + '-' + estMax + ' dakika</div>';
         } else {
             rangeInfo.style.display = 'none';
         }

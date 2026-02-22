@@ -928,6 +928,62 @@ def check_progress_analysis_status(progress_analysis_id):
         }), 500
 
 
+@main_bp.route('/cancel_analysis/<int:session_id>', methods=['POST'])
+@login_required
+def cancel_analysis(session_id):
+    """Video analizini iptal et"""
+    try:
+        session = Session.query.get_or_404(session_id)
+        if session.client.counselor_id != current_user.id:
+            abort(403)
+        if session.analysis_status != 'processing':
+            return jsonify({
+                'status': 'error',
+                'message': 'İptal edilebilecek aktif bir analiz bulunmuyor.'
+            }), 400
+        task_id = session.task_id
+        if not task_id:
+            session.analysis_status = 'cancelled'
+            session.task_id = None
+            db.session.commit()
+            return jsonify({'status': 'success', 'message': 'Analiz iptal edildi.'})
+        from app.celery_config import celery
+        celery.control.revoke(task_id, terminate=True, signal='SIGTERM')
+        session.analysis_status = 'cancelled'
+        session.task_id = None
+        session.analysis_progress = 0
+        db.session.commit()
+        return jsonify({'status': 'success', 'message': 'Analiz iptal edildi.'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@main_bp.route('/cancel_progress_analysis/<int:progress_analysis_id>', methods=['POST'])
+@login_required
+def cancel_progress_analysis(progress_analysis_id):
+    """İlerleyiş analizini iptal et"""
+    try:
+        progress_analysis = ProgressAnalysis.query.get_or_404(progress_analysis_id)
+        if progress_analysis.counselor_id != current_user.id:
+            abort(403)
+        if progress_analysis.analysis_status not in ('processing', 'pending'):
+            return jsonify({
+                'status': 'error',
+                'message': 'İptal edilebilecek aktif bir analiz bulunmuyor.'
+            }), 400
+        task_id = progress_analysis.task_id
+        if task_id:
+            from app.celery_config import celery
+            celery.control.revoke(task_id, terminate=True, signal='SIGTERM')
+        progress_analysis.analysis_status = 'cancelled'
+        progress_analysis.task_id = None
+        progress_analysis.analysis_progress = 0
+        db.session.commit()
+        return jsonify({'status': 'success', 'message': 'İlerleyiş analizi iptal edildi.'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
 @main_bp.route('/notifications')
 @login_required
 def notifications():
