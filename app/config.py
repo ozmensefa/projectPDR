@@ -7,7 +7,7 @@ class Config:
     TEMP_FOLDER = os.path.join(os.getcwd(), 'temp_files')
     
     # Gemini API Key - ortam değişkeni veya varsayılan
-    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY') or 'AIzaSyB0SWI0_y414DBSLu1UYYgFN3CLfL7dPWQ'
+    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY') or ''
     # Gemini çıktı token limiti (model: gemini-2.5-flash; yüksek değer kotayı daha çok tüketir)
     GEMINI_MAX_OUTPUT_TOKENS = int(os.environ.get('GEMINI_MAX_OUTPUT_TOKENS', '8192'))
     
@@ -34,6 +34,14 @@ class Config:
     # Dosya yükleme ayarları
     MAX_CONTENT_LENGTH = 1 * 1024 * 1024 * 1024  # 1GB max-size
     ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'wmv'}
+
+    # Analiz süre tahminleri (dakika)
+    VIDEO_ANALYSIS_ESTIMATE_MIN = 10
+    VIDEO_ANALYSIS_ESTIMATE_MAX = 15
+    PROGRESS_ANALYSIS_BASE_MIN = 5
+    PROGRESS_ANALYSIS_BASE_MAX = 10
+    PROGRESS_ANALYSIS_PER_SESSION_MIN = 2
+    PROGRESS_ANALYSIS_PER_SESSION_MAX = 4
 
     # Klasörleri oluştur
     for folder in [UPLOAD_FOLDER, TEMP_FOLDER]:
