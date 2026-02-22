@@ -7,7 +7,7 @@ class Config:
     TEMP_FOLDER = os.path.join(os.getcwd(), 'temp_files')
     
     # Gemini API Key - Sabit olarak tanımlandı
-    GEMINI_API_KEY = 'AIzaSyD8IjMxkJqWIdJZrRjz_AirKOhcvfEBkFs'
+    GEMINI_API_KEY = ''
     
     # SQLAlchemy ayarları - Geliştirilmiş SQLite konfigürasyonu
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
@@ -50,4 +50,5 @@ class Config:
         if not cls.GEMINI_API_KEY.startswith('AIzaSy'):
             return False, "API key formatı yanlış (AIzaSy ile başlamalı)"
         
+
         return True, "Geçerli" 
