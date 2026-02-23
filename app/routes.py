@@ -798,6 +798,356 @@ def delete_complete_analysis(session_id):
 
 
 # ============================================================================
+# RAPOR İNDİRME ENDPOINT'LERİ (PDF, DOCX, TXT)
+# ============================================================================
+
+def strip_html_tags(html_text):
+    """HTML etiketlerini temizleyip düz metin döndürür"""
+    import re
+    if not html_text:
+        return ''
+    # <br> ve <br/> → newline
+    text = re.sub(r'<br\s*/?>', '\n', html_text)
+    # <p>, </p>, <div>, </div> → newline
+    text = re.sub(r'</(p|div|li|tr|h[1-6])>', '\n', text)
+    text = re.sub(r'<(p|div|li|tr|h[1-6])[^>]*>', '', text)
+    # Diğer tüm HTML etiketlerini sil
+    text = re.sub(r'<[^>]+>', '', text)
+    # HTML entities
+    text = text.replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>').replace('&nbsp;', ' ').replace('&#39;', "'").replace('&quot;', '"')
+    # Fazladan boş satırları temizle
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    return text.strip()
+
+@main_bp.route('/download_session_report/<int:session_id>/<format_type>')
+@login_required
+def download_session_report(session_id, format_type):
+    """Oturum analiz raporunu belirtilen formatta indir"""
+    try:
+        session_obj = Session.query.get_or_404(session_id)
+        if session_obj.client.counselor_id != current_user.id:
+            abort(403)
+        
+        # AI analizini al
+        saved_analysis = AIAnalysis.query.filter_by(session_id=session_id).first()
+        if not saved_analysis:
+            flash('İndirilecek analiz raporu bulunamadı.', 'warning')
+            return redirect(url_for('client.view_session', session_id=session_id))
+        
+        analysis_text = strip_html_tags(saved_analysis.analysis_text)
+        client_name = session_obj.client.name
+        session_date = session_obj.date.strftime('%d-%m-%Y')
+        counselor_name = current_user.name
+        notes = session_obj.notes or ''
+        
+        file_name = f"{client_name}_oturum_analizi_{session_date}"
+        
+        if format_type == 'txt':
+            return _generate_txt(analysis_text, notes, file_name,
+                                 report_type='Oturum Analiz Raporu',
+                                 client_name=client_name, counselor_name=counselor_name,
+                                 extra_info=f"Tarih: {session_date}")
+        elif format_type == 'pdf':
+            return _generate_pdf(analysis_text, notes, file_name,
+                                 report_type='Oturum Analiz Raporu',
+                                 client_name=client_name, counselor_name=counselor_name,
+                                 extra_info=f"Tarih: {session_date}")
+        elif format_type == 'docx':
+            return _generate_docx(analysis_text, notes, file_name,
+                                  report_type='Oturum Analiz Raporu',
+                                  client_name=client_name, counselor_name=counselor_name,
+                                  extra_info=f"Tarih: {session_date}")
+        else:
+            abort(400)
+    except Exception as e:
+        import traceback
+        print(f"Rapor indirme hatası: {traceback.format_exc()}")
+        flash(f'Rapor indirilirken hata oluştu: {str(e)}', 'error')
+        return redirect(url_for('client.view_session', session_id=session_id))
+
+@main_bp.route('/download_progress_report/<int:report_id>/<format_type>')
+@login_required
+def download_progress_report_file(report_id, format_type):
+    """İlerleyiş raporunu belirtilen formatta indir"""
+    try:
+        report = ProgressAnalysis.query.get_or_404(report_id)
+        if report.counselor_id != current_user.id:
+            abort(403)
+        
+        if not report.analysis_text:
+            flash('İndirilecek analiz raporu bulunamadı.', 'warning')
+            return redirect(url_for('main.view_progress_report', report_id=report_id))
+        
+        analysis_text = strip_html_tags(report.analysis_text)
+        client_name = report.client.name
+        counselor_name = report.counselor.name
+        date_range = report.date_range
+        file_name = f"{client_name}_ilerleme_raporu_{date_range.replace(' ', '_')}"
+        
+        extra_info = (f"Tarih Aralığı: {date_range}\n"
+                      f"Analiz Edilen Oturum Sayısı: {report.sessions_analyzed}\n"
+                      f"Rapor Tarihi: {report.created_at.strftime('%d.%m.%Y %H:%M')}")
+        
+        notes = ''  # İlerleme raporlarında not yok
+        
+        if format_type == 'txt':
+            return _generate_txt(analysis_text, notes, file_name,
+                                 report_type='İlerleyiş Analizi Raporu',
+                                 client_name=client_name, counselor_name=counselor_name,
+                                 extra_info=extra_info)
+        elif format_type == 'pdf':
+            return _generate_pdf(analysis_text, notes, file_name,
+                                 report_type='İlerleyiş Analizi Raporu',
+                                 client_name=client_name, counselor_name=counselor_name,
+                                 extra_info=extra_info)
+        elif format_type == 'docx':
+            return _generate_docx(analysis_text, notes, file_name,
+                                  report_type='İlerleyiş Analizi Raporu',
+                                  client_name=client_name, counselor_name=counselor_name,
+                                  extra_info=extra_info)
+        else:
+            abort(400)
+    except Exception as e:
+        import traceback
+        print(f"İlerleme raporu indirme hatası: {traceback.format_exc()}")
+        flash(f'Rapor indirilirken hata oluştu: {str(e)}', 'error')
+        return redirect(url_for('main.view_progress_report', report_id=report_id))
+
+
+def _generate_txt(analysis_text, notes, file_name, report_type, client_name, counselor_name, extra_info):
+    """TXT formatında rapor oluştur"""
+    import io
+    content = f"PDR ANALİZ SİSTEMİ\n{report_type}\n\n"
+    content += f"Danışan: {client_name}\n"
+    content += f"Danışman: {counselor_name}\n"
+    content += f"{extra_info}\n\n"
+    content += "=" * 80 + "\n\n"
+    content += analysis_text
+    if notes:
+        content += "\n\n" + "=" * 80 + "\n"
+        content += "DANIŞMAN NOTLARI\n"
+        content += "=" * 80 + "\n\n"
+        content += notes
+    content += "\n\n" + "=" * 80 + "\n"
+    content += "Bu rapor PDR Analiz Sistemi tarafından otomatik olarak oluşturulmuştur.\n"
+    
+    buffer = io.BytesIO()
+    buffer.write(content.encode('utf-8'))
+    buffer.seek(0)
+    return send_file(buffer, mimetype='text/plain; charset=utf-8',
+                     as_attachment=True, download_name=f"{file_name}.txt")
+
+
+def _generate_pdf(analysis_text, notes, file_name, report_type, client_name, counselor_name, extra_info):
+    """PDF formatında rapor oluştur (fpdf2 ile)"""
+    import io
+    from fpdf import FPDF
+    
+    class PDFReport(FPDF):
+        def header(self):
+            self.set_font('Helvetica', 'B', 10)
+            self.set_text_color(100, 100, 100)
+            self.cell(0, 8, 'PDR Analiz Sistemi', align='R', new_x='LMARGIN', new_y='NEXT')
+            self.line(10, self.get_y(), 200, self.get_y())
+            self.ln(3)
+        
+        def footer(self):
+            self.set_y(-15)
+            self.set_font('Helvetica', 'I', 8)
+            self.set_text_color(150, 150, 150)
+            self.cell(0, 10, f'Sayfa {self.page_no()}/{{nb}}', align='C')
+    
+    pdf = PDFReport()
+    pdf.alias_nb_pages()
+    pdf.set_auto_page_break(auto=True, margin=20)
+    pdf.add_page()
+    
+    # Başlık
+    pdf.set_font('Helvetica', 'B', 18)
+    pdf.set_text_color(21, 101, 192)
+    pdf.cell(0, 12, 'PDR ANALIZ SISTEMI', align='C', new_x='LMARGIN', new_y='NEXT')
+    pdf.set_font('Helvetica', 'B', 14)
+    pdf.set_text_color(80, 80, 80)
+    pdf.cell(0, 10, report_type, align='C', new_x='LMARGIN', new_y='NEXT')
+    pdf.ln(5)
+    
+    # Bilgiler
+    pdf.set_font('Helvetica', '', 10)
+    pdf.set_text_color(120, 120, 120)
+    pdf.cell(0, 6, f'Danisan: {client_name}  |  Danisman: {counselor_name}', align='C', new_x='LMARGIN', new_y='NEXT')
+    for line in extra_info.split('\n'):
+        pdf.cell(0, 6, line.strip(), align='C', new_x='LMARGIN', new_y='NEXT')
+    pdf.ln(3)
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+    pdf.ln(5)
+    
+    # Ana İçerik
+    pdf.set_text_color(50, 50, 50)
+    for line in analysis_text.split('\n'):
+        stripped = line.strip()
+        if not stripped:
+            pdf.ln(3)
+            continue
+        # Başlık tespiti
+        if stripped.startswith('## ') or stripped.startswith('# '):
+            pdf.ln(3)
+            pdf.set_font('Helvetica', 'B', 13)
+            pdf.set_text_color(13, 110, 253)
+            pdf.multi_cell(0, 7, stripped.lstrip('#').strip())
+            pdf.set_text_color(50, 50, 50)
+            pdf.ln(1)
+        elif stripped.startswith('### '):
+            pdf.ln(2)
+            pdf.set_font('Helvetica', 'B', 11)
+            pdf.set_text_color(73, 80, 87)
+            pdf.multi_cell(0, 6, stripped.lstrip('#').strip())
+            pdf.set_text_color(50, 50, 50)
+            pdf.ln(1)
+        elif stripped.startswith('- ') or stripped.startswith('* '):
+            pdf.set_font('Helvetica', '', 10)
+            pdf.cell(8, 6, chr(8226))  # bullet
+            pdf.multi_cell(0, 6, stripped[2:])
+        elif stripped.startswith('**') and stripped.endswith('**'):
+            pdf.set_font('Helvetica', 'B', 10)
+            pdf.multi_cell(0, 6, stripped.strip('*'))
+            pdf.set_font('Helvetica', '', 10)
+        else:
+            pdf.set_font('Helvetica', '', 10)
+            pdf.multi_cell(0, 6, stripped)
+    
+    # Danışman Notları
+    if notes:
+        pdf.ln(8)
+        pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+        pdf.ln(5)
+        pdf.set_font('Helvetica', 'B', 13)
+        pdf.set_text_color(21, 101, 192)
+        pdf.cell(0, 8, 'Danisman Notlari', new_x='LMARGIN', new_y='NEXT')
+        pdf.set_font('Helvetica', '', 10)
+        pdf.set_text_color(50, 50, 50)
+        pdf.ln(2)
+        for line in notes.split('\n'):
+            pdf.multi_cell(0, 6, line)
+    
+    # Alt Bilgi
+    pdf.ln(10)
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+    pdf.ln(3)
+    pdf.set_font('Helvetica', 'I', 8)
+    pdf.set_text_color(150, 150, 150)
+    pdf.cell(0, 6, 'Bu rapor PDR Analiz Sistemi tarafindan otomatik olarak olusturulmustur.', align='C')
+    
+    buffer = io.BytesIO()
+    pdf.output(buffer)
+    buffer.seek(0)
+    return send_file(buffer, mimetype='application/pdf',
+                     as_attachment=True, download_name=f"{file_name}.pdf")
+
+
+def _generate_docx(analysis_text, notes, file_name, report_type, client_name, counselor_name, extra_info):
+    """DOCX formatında rapor oluştur (python-docx ile)"""
+    import io
+    from docx import Document as DocxDocument
+    from docx.shared import Pt, Inches, RGBColor
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    
+    doc = DocxDocument()
+    
+    # Varsayılan stil
+    style = doc.styles['Normal']
+    font = style.font
+    font.name = 'Calibri'
+    font.size = Pt(11)
+    
+    # Başlık
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = p.add_run('PDR ANALİZ SİSTEMİ')
+    run.bold = True
+    run.font.size = Pt(18)
+    run.font.color.rgb = RGBColor(21, 101, 192)
+    
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = p.add_run(report_type)
+    run.bold = True
+    run.font.size = Pt(14)
+    run.font.color.rgb = RGBColor(80, 80, 80)
+    
+    # Bilgi satırları
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = p.add_run(f'Danışan: {client_name}  |  Danışman: {counselor_name}')
+    run.font.size = Pt(10)
+    run.font.color.rgb = RGBColor(120, 120, 120)
+    
+    for line in extra_info.split('\n'):
+        p = doc.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run = p.add_run(line.strip())
+        run.font.size = Pt(10)
+        run.font.color.rgb = RGBColor(120, 120, 120)
+    
+    doc.add_paragraph('_' * 80)
+    
+    # Ana İçerik
+    for line in analysis_text.split('\n'):
+        stripped = line.strip()
+        if not stripped:
+            doc.add_paragraph()
+            continue
+        
+        if stripped.startswith('## ') or stripped.startswith('# '):
+            p = doc.add_paragraph()
+            run = p.add_run(stripped.lstrip('#').strip())
+            run.bold = True
+            run.font.size = Pt(14)
+            run.font.color.rgb = RGBColor(13, 110, 253)
+        elif stripped.startswith('### '):
+            p = doc.add_paragraph()
+            run = p.add_run(stripped.lstrip('#').strip())
+            run.bold = True
+            run.font.size = Pt(12)
+            run.font.color.rgb = RGBColor(73, 80, 87)
+        elif stripped.startswith('- ') or stripped.startswith('* ') or stripped.startswith('• '):
+            doc.add_paragraph(stripped[2:], style='List Bullet')
+        elif stripped.startswith('**') and stripped.endswith('**'):
+            p = doc.add_paragraph()
+            run = p.add_run(stripped.strip('*'))
+            run.bold = True
+        else:
+            doc.add_paragraph(stripped)
+    
+    # Danışman Notları
+    if notes:
+        doc.add_paragraph('_' * 80)
+        p = doc.add_paragraph()
+        run = p.add_run('Danışman Notları')
+        run.bold = True
+        run.font.size = Pt(14)
+        run.font.color.rgb = RGBColor(21, 101, 192)
+        
+        for line in notes.split('\n'):
+            doc.add_paragraph(line)
+    
+    # Alt bilgi
+    doc.add_paragraph('_' * 80)
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = p.add_run('Bu rapor PDR Analiz Sistemi tarafından otomatik olarak oluşturulmuştur.')
+    run.italic = True
+    run.font.size = Pt(9)
+    run.font.color.rgb = RGBColor(150, 150, 150)
+    
+    buffer = io.BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+    return send_file(buffer, 
+                     mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                     as_attachment=True, download_name=f"{file_name}.docx")
+
+
+# ============================================================================
 # ASENKRON ANALİZ - YENİ ENDPOINT'LER
 # ============================================================================
 

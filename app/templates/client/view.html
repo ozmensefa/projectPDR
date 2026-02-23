@@ -117,7 +117,7 @@
                                     <tbody>
                                         {% for session in client.sessions %}
                                         <tr>
-                                            <td>
+                                            <td data-order="{{ session.date.strftime('%Y-%m-%d %H:%M:%S') }}">
                                                 <span class="fw-bold">{{ session.date|friendly_date }}</span>
                                                 <br><small class="text-muted">{{ session.date.strftime('%d.%m.%Y') }}</small>
                                             </td>

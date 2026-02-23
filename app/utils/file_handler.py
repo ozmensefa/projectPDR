@@ -154,6 +154,49 @@ class FileHandler:
             if os.path.exists(path):
                 os.remove(path)
 
+    @staticmethod
+    def get_video_duration_minutes(video_path):
+        """Video süresini dakika cinsinden döndürür"""
+        try:
+            if not video_path or not os.path.exists(video_path):
+                return None
+            cap = cv2.VideoCapture(video_path)
+            if not cap.isOpened():
+                return None
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            cap.release()
+            if fps > 0 and frame_count > 0:
+                return round(frame_count / fps / 60, 1)
+            return None
+        except Exception:
+            return None
+
+    @staticmethod
+    def estimate_analysis_time(video_duration_minutes):
+        """
+        Video süresine göre tahmini analiz süresini (min, max) dakika olarak döndürür.
+        video_duration_minutes: Videonun süresi (dakika)
+        Returns: (min_dakika, max_dakika) tuple
+        """
+        if video_duration_minutes is None or video_duration_minutes <= 0:
+            return (10, 15)  # Varsayılan tahmin
+
+        dur = video_duration_minutes
+
+        # Temel süre: sabit başlangıç maliyeti + video süresine orantılı maliyet
+        # Sabit maliyet: ~5 dakika (model yükleme, başlatma, AI rapor oluşturma vb.)
+        # Değişken maliyet: video süresinin ~0.5x - 0.8x kadarı
+        base = 5
+        min_estimate = base + dur * 0.4
+        max_estimate = base + dur * 0.7
+
+        # Alt ve üst sınırlar
+        min_estimate = max(5, round(min_estimate))
+        max_estimate = max(min_estimate + 2, round(max_estimate))
+
+        return (min_estimate, max_estimate)
+
     def save_video_file(self, video_file):
         """Sadece video dosyasını kaydeder"""
         temp_video = os.path.join(Config.TEMP_FOLDER, "temp_video.mp4")

@@ -26,7 +26,7 @@
                     <button class="btn btn-info" onclick="printReport()">
                         <i class="fas fa-print"></i> Yazdır
                     </button>
-                    <button class="btn btn-success" onclick="downloadReport()">
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#downloadFormatModal">
                         <i class="fas fa-download"></i> İndir
                     </button>
                 </div>
@@ -107,15 +107,24 @@
 
             <!-- Ana Rapor İçeriği -->
             <div class="card session-card-report" id="main-report">
-                <div class="card-header session-card-header-report">
-                    <div class="row align-items-center">
-                        <div class="col">
-                            <h3 class="mb-0 text-white">
-                                <i class="fas fa-chart-line"></i> İlerleyiş Analizi Raporu
-                            </h3>
-                        </div>
-                        <div class="col-auto">
-                            <span class="badge bg-light text-dark">{{ report.sessions_analyzed }} Oturum</span>
+                <div class="card-header session-card-header-report d-flex justify-content-between align-items-center flex-wrap">
+                    <div class="d-flex align-items-center">
+                        <h3 class="mb-0 text-white">
+                            <i class="fas fa-chart-line"></i> İlerleyiş Analizi Raporu
+                        </h3>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-light text-dark">{{ report.sessions_analyzed }} Oturum</span>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Font boyutu">
+                            <button type="button" class="btn btn-outline-light btn-sm" onclick="changeFontSize(-1)" title="Küçült">
+                                <i class="fas fa-search-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-light btn-sm" onclick="resetFontSize()" title="Sıfırla">
+                                <i class="fas fa-font"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-light btn-sm" onclick="changeFontSize(1)" title="Büyüt">
+                                <i class="fas fa-search-plus"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -151,7 +160,7 @@
                     <!-- Analiz İçeriği -->
                     {% if report.analysis_status == 'completed' and report.analysis_text %}
                     <div class="analysis-content">
-                        <div id="analysis-text">
+                        <div id="analysis-text" class="report-text-content">
                             {{ report.analysis_text|safe }}
                         </div>
                     </div>
@@ -280,24 +289,36 @@
     }
 }
 
-/* Analiz içeriği stilleri */
+/* Analiz içeriği stilleri — ortak rapor stili */
 .analysis-content {
     line-height: 1.8;
-    font-size: 1.1em;
+    font-size: 16px;
 }
 
 .analysis-content h2 {
     color: #0d6efd;
-    border-bottom: 2px solid #0d6efd;
+    border-bottom: 2px solid #e0e0e0;
     padding-bottom: 10px;
     margin-top: 30px;
     margin-bottom: 20px;
+    font-size: 20px;
+    font-weight: 600;
 }
 
 .analysis-content h3 {
-    color: #6c757d;
+    color: #495057;
     margin-top: 25px;
     margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.analysis-content h4 {
+    color: #6c757d;
+    margin-top: 20px;
+    margin-bottom: 12px;
+    font-size: 17px;
+    font-weight: 600;
 }
 
 .analysis-content ul, .analysis-content ol {
@@ -348,6 +369,37 @@
 </style>
 
 <!-- Template verilerini data attribute'ları ile aktar -->
+<!-- İndirme Format Seçim Modalı -->
+<div class="modal fade" id="downloadFormatModal" tabindex="-1" aria-labelledby="downloadFormatModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="downloadFormatModalLabel">
+                    <i class="fas fa-download"></i> Rapor İndirme Formatı
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Raporu hangi formatta indirmek istiyorsunuz?</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary d-flex align-items-center justify-content-between" onclick="downloadReportAs('pdf')">
+                        <span><i class="fas fa-file-pdf me-2 text-danger"></i> PDF Formatı</span>
+                        <small class="text-muted">.pdf</small>
+                    </button>
+                    <button class="btn btn-outline-primary d-flex align-items-center justify-content-between" onclick="downloadReportAs('docx')">
+                        <span><i class="fas fa-file-word me-2 text-primary"></i> Word Formatı</span>
+                        <small class="text-muted">.docx</small>
+                    </button>
+                    <button class="btn btn-outline-primary d-flex align-items-center justify-content-between" onclick="downloadReportAs('txt')">
+                        <span><i class="fas fa-file-alt me-2 text-secondary"></i> Metin Formatı</span>
+                        <small class="text-muted">.txt</small>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="report-data"
      data-report-id="{{ report.id }}"
      data-analysis-status="{{ report.analysis_status }}"
@@ -371,37 +423,158 @@ function printReport() {
     window.print();
 }
 
-function downloadReport() {
-    // Rapor bilgilerini data attribute'lardan al
+// ========================================================
+// FONT BOYUTU KONTROLÜ
+// ========================================================
+var currentFontStep = 0;
+var baseFontSizes = { body: 16, h2: 20, h3: 18, h4: 17 };
+
+function changeFontSize(direction) {
+    currentFontStep = Math.max(-3, Math.min(3, currentFontStep + direction));
+    applyFontSize();
+}
+
+function resetFontSize() {
+    currentFontStep = 0;
+    applyFontSize();
+}
+
+function applyFontSize() {
+    var container = document.querySelector('.report-text-content');
+    if (!container) return;
+    var step = currentFontStep * 2;
+    container.style.fontSize = (baseFontSizes.body + step) + 'px';
+    container.querySelectorAll('h2').forEach(function(el) { el.style.fontSize = (baseFontSizes.h2 + step) + 'px'; });
+    container.querySelectorAll('h3').forEach(function(el) { el.style.fontSize = (baseFontSizes.h3 + step) + 'px'; });
+    container.querySelectorAll('h4').forEach(function(el) { el.style.fontSize = (baseFontSizes.h4 + step) + 'px'; });
+}
+
+function printReport() {
+    const analysisText = document.getElementById('analysis-text').innerHTML;
+    document.getElementById('print-analysis-content').innerHTML = analysisText;
+    window.print();
+}
+
+// ========================================================
+// RAPOR İNDİRME FONKSİYONLARI
+// ========================================================
+function downloadReportAs(format) {
+    var modal = bootstrap.Modal.getInstance(document.getElementById('downloadFormatModal'));
+    if (modal) modal.hide();
+
+    var reportContent = document.getElementById('analysis-text');
+    var reportText = reportContent.innerText || reportContent.textContent || '';
+    var reportHtml = reportContent.innerHTML || '';
+
     var clientName = reportDataEl.getAttribute('data-client-name');
     var counselorName = reportDataEl.getAttribute('data-counselor-name');
     var dateRange = reportDataEl.getAttribute('data-date-range');
     var sessionsAnalyzed = reportDataEl.getAttribute('data-sessions-analyzed');
     var reportDate = reportDataEl.getAttribute('data-report-date');
+    var fileName = clientName + '_ilerleme_raporu_' + dateRange.replace(/\s/g, '_');
 
-    var reportTitle = clientName + ' - İlerleyiş Raporu (' + dateRange + ')';
-    var reportContent = document.getElementById('analysis-text').innerText;
-    
-    var fullContent = 'PDR ANALİZ SİSTEMİ\n' +
-        'İlerleyiş Analizi Raporu\n\n' +
+    if (format === 'txt') downloadProgressAsTxt(reportText, clientName, counselorName, dateRange, sessionsAnalyzed, reportDate, fileName);
+    else if (format === 'pdf') downloadProgressAsPdf(reportHtml, clientName, counselorName, dateRange, sessionsAnalyzed, reportDate, fileName);
+    else if (format === 'docx') downloadProgressAsDocx(reportText, clientName, counselorName, dateRange, sessionsAnalyzed, reportDate, fileName);
+}
+
+function downloadProgressAsTxt(content, clientName, counselorName, dateRange, sessionsAnalyzed, reportDate, fileName) {
+    var fullContent = 'PDR ANALİZ SİSTEMİ\nİlerleyiş Analizi Raporu\n\n' +
         'Danışan: ' + clientName + '\n' +
         'Danışman: ' + counselorName + '\n' +
         'Tarih Aralığı: ' + dateRange + '\n' +
         'Analiz Edilen Oturum Sayısı: ' + sessionsAnalyzed + '\n' +
         'Rapor Tarihi: ' + reportDate + '\n\n' +
         '================================================================================\n\n' +
-        reportContent + '\n\n' +
+        content + '\n\n' +
         '================================================================================\n' +
         'Bu rapor PDR Analiz Sistemi tarafından otomatik olarak oluşturulmuştur.\n';
-    
-    // Dosya oluştur ve indir
     var blob = new Blob([fullContent], { type: 'text/plain;charset=utf-8' });
-    var link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = reportTitle + '.txt';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    triggerDownload(blob, fileName + '.txt');
+}
+
+function downloadProgressAsPdf(htmlContent, clientName, counselorName, dateRange, sessionsAnalyzed, reportDate, fileName) {
+    var { jsPDF } = window.jspdf;
+    var tempDiv = document.createElement('div');
+    tempDiv.style.cssText = 'position:fixed;left:-9999px;top:0;width:800px;padding:40px;background:#fff;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#333;';
+    tempDiv.innerHTML = '<h1 style="font-size:22px;color:#1565c0;text-align:center;margin-bottom:5px;">PDR ANALİZ SİSTEMİ</h1>' +
+        '<h2 style="font-size:18px;color:#555;text-align:center;margin-bottom:20px;">İlerleyiş Analizi Raporu</h2>' +
+        '<p style="font-size:13px;color:#888;text-align:center;">Danışan: ' + clientName + ' | Danışman: ' + counselorName + '</p>' +
+        '<p style="font-size:13px;color:#888;text-align:center;">Tarih: ' + dateRange + ' | Oturum: ' + sessionsAnalyzed + ' | Rapor: ' + reportDate + '</p>' +
+        '<hr style="margin:15px 0;">' +
+        '<div style="font-size:14px;line-height:1.7;">' + htmlContent + '</div>' +
+        '<hr style="margin:20px 0;"><p style="font-size:11px;color:#999;text-align:center;">Bu rapor PDR Analiz Sistemi tarafından otomatik olarak oluşturulmuştur.</p>';
+    document.body.appendChild(tempDiv);
+
+    html2canvas(tempDiv, { scale: 2, useCORS: true, logging: false }).then(function(canvas) {
+        var imgData = canvas.toDataURL('image/jpeg', 0.95);
+        var pdf = new jsPDF('p', 'mm', 'a4');
+        var pageWidth = pdf.internal.pageSize.getWidth();
+        var pageHeight = pdf.internal.pageSize.getHeight();
+        var margin = 10;
+        var imgWidth = pageWidth - (margin * 2);
+        var imgHeight = (canvas.height * imgWidth) / canvas.width;
+        var heightLeft = imgHeight;
+        var position = margin;
+        pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - margin * 2);
+        while (heightLeft > 0) {
+            position = -(pageHeight - margin * 2) + margin + (imgHeight - heightLeft - (pageHeight - margin * 2));
+            pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', margin, position - heightLeft + margin, imgWidth, imgHeight);
+            heightLeft -= (pageHeight - margin * 2);
+        }
+        pdf.save(fileName + '.pdf');
+        document.body.removeChild(tempDiv);
+    }).catch(function(err) {
+        console.error('PDF oluşturma hatası:', err);
+        alert('PDF oluşturulurken bir hata oluştu. Lütfen TXT formatını deneyin.');
+        document.body.removeChild(tempDiv);
+    });
+}
+
+function downloadProgressAsDocx(content, clientName, counselorName, dateRange, sessionsAnalyzed, reportDate, fileName) {
+    var paragraphs = [];
+    paragraphs.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'PDR ANALİZ SİSTEMİ', bold: true, size: 36, color: '1565c0' })], alignment: docx.AlignmentType.CENTER, spacing: { after: 100 } }));
+    paragraphs.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'İlerleyiş Analizi Raporu', bold: true, size: 28, color: '555555' })], alignment: docx.AlignmentType.CENTER, spacing: { after: 200 } }));
+    paragraphs.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'Danışan: ' + clientName + '  |  Danışman: ' + counselorName, size: 20, color: '888888' })], alignment: docx.AlignmentType.CENTER, spacing: { after: 80 } }));
+    paragraphs.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'Tarih: ' + dateRange + '  |  Oturum: ' + sessionsAnalyzed + '  |  Rapor: ' + reportDate, size: 20, color: '888888' })], alignment: docx.AlignmentType.CENTER, spacing: { after: 300 } }));
+    paragraphs.push(new docx.Paragraph({ border: { bottom: { color: 'cccccc', space: 1, style: docx.BorderStyle.SINGLE, size: 6 } }, spacing: { after: 200 } }));
+    var lines = content.split('\n');
+    lines.forEach(function(line) {
+        var trimmed = line.trim();
+        if (!trimmed) { paragraphs.push(new docx.Paragraph({ spacing: { after: 100 } })); return; }
+        if (trimmed.match(/^#{1,2}\s/) || (trimmed === trimmed.toUpperCase() && trimmed.length > 3 && trimmed.length < 100)) {
+            paragraphs.push(new docx.Paragraph({ children: [new docx.TextRun({ text: trimmed.replace(/^#+\s*/, ''), bold: true, size: 28, color: '0d6efd' })], spacing: { before: 200, after: 100 } }));
+        } else if (trimmed.match(/^#{3,}\s/)) {
+            paragraphs.push(new docx.Paragraph({ children: [new docx.TextRun({ text: trimmed.replace(/^#+\s*/, ''), bold: true, size: 24, color: '495057' })], spacing: { before: 150, after: 80 } }));
+        } else if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+            paragraphs.push(new docx.Paragraph({ children: [new docx.TextRun({ text: trimmed.substring(2), size: 22 })], bullet: { level: 0 }, spacing: { after: 60 } }));
+        } else {
+            paragraphs.push(new docx.Paragraph({ children: [new docx.TextRun({ text: trimmed, size: 22 })], spacing: { after: 80 } }));
+        }
+    });
+    paragraphs.push(new docx.Paragraph({ border: { bottom: { color: 'cccccc', space: 1, style: docx.BorderStyle.SINGLE, size: 6 } }, spacing: { before: 300, after: 200 } }));
+    paragraphs.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'Bu rapor PDR Analiz Sistemi tarafından otomatik olarak oluşturulmuştur.', size: 18, color: '999999', italics: true })], alignment: docx.AlignmentType.CENTER }));
+
+    var doc = new docx.Document({ sections: [{ properties: {}, children: paragraphs }] });
+    docx.Packer.toBlob(doc).then(function(blob) {
+        triggerDownload(blob, fileName + '.docx');
+    }).catch(function(err) {
+        console.error('DOCX oluşturma hatası:', err);
+        alert('Word dosyası oluşturulurken bir hata oluştu. Lütfen TXT formatını deneyin.');
+    });
+}
+
+function triggerDownload(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 
 // İlerleyiş analizi durumunu kontrol et
@@ -537,6 +710,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<!-- Marked.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@9.1.1/build/index.min.js"></script>
 {% endblock %} 

@@ -229,11 +229,19 @@ def view_session(session_id):
         session_id=session_id
     ).first()
     
+    # Video süresi ve tahmini analiz süresi hesapla
+    from app.utils.file_handler import FileHandler
+    video_duration = FileHandler.get_video_duration_minutes(session.video_path)
+    estimate_min, estimate_max = FileHandler.estimate_analysis_time(video_duration)
+    
     return render_template(
         'client/view_session.html', 
         client=session.client, 
         session=session,
-        saved_analysis=saved_analysis
+        saved_analysis=saved_analysis,
+        video_duration=video_duration,
+        estimate_min=estimate_min,
+        estimate_max=estimate_max
     )
 
 @client_bp.route('/session/<int:session_id>/edit', methods=['GET', 'POST'])
