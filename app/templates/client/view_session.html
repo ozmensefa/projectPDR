@@ -363,18 +363,15 @@
             <div class="modal-body">
                 <p class="text-muted mb-3">Raporu hangi formatta indirmek istiyorsunuz?</p>
                 <div class="d-grid gap-2">
-                    <a href="{{ url_for('main.download_session_report', session_id=session.id, format_type='pdf') }}"
-                        class="btn btn-outline-primary d-flex align-items-center justify-content-between">
-                        <span><i class="fas fa-file-pdf me-2 text-danger"></i> PDF Formatı</span>
-                        <small class="text-muted">.pdf</small>
-                    </a>
-                    <a href="{{ url_for('main.download_session_report', session_id=session.id, format_type='docx') }}"
-                        class="btn btn-outline-primary d-flex align-items-center justify-content-between">
+                    <a href="#"
+                        class="download-link btn btn-outline-primary d-flex align-items-center justify-content-between"
+                        data-url="{{ url_for('main.download_session_report', session_id=session.id, format_type='docx') }}">
                         <span><i class="fas fa-file-word me-2 text-primary"></i> Word Formatı</span>
                         <small class="text-muted">.docx</small>
                     </a>
-                    <a href="{{ url_for('main.download_session_report', session_id=session.id, format_type='txt') }}"
-                        class="btn btn-outline-primary d-flex align-items-center justify-content-between">
+                    <a href="#"
+                        class="download-link btn btn-outline-primary d-flex align-items-center justify-content-between"
+                        data-url="{{ url_for('main.download_session_report', session_id=session.id, format_type='txt') }}">
                         <span><i class="fas fa-file-alt me-2 text-secondary"></i> Metin Formatı</span>
                         <small class="text-muted">.txt</small>
                     </a>
@@ -632,6 +629,30 @@
         container.querySelectorAll('h4').forEach(function (el) { el.style.fontSize = (baseFontSizes.h4 + step) + 'px'; });
     }
 
+    // ========================================================
+    // İNDİRME FONKSİYONU - Notları query param olarak ekler
+    // ========================================================
+    function downloadWithNotes(baseUrl) {
+        var modal = bootstrap.Modal.getInstance(document.getElementById('downloadFormatModal'));
+        if (modal) modal.hide();
+        var notes = localStorage.getItem('session_notes_' + sessionId) || '';
+        if (notes && notes.trim()) {
+            var separator = baseUrl.indexOf('?') !== -1 ? '&' : '?';
+            window.location.href = baseUrl + separator + 'notes=' + encodeURIComponent(notes.trim());
+        } else {
+            window.location.href = baseUrl;
+        }
+    }
+
+    // Event listener for download links
+    document.querySelectorAll('.download-link').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            var url = this.getAttribute('data-url');
+            if (url) downloadWithNotes(url);
+        });
+    });
+
     $(document).ready(function () {
         console.log('✅ Rapor Görüntüleme Sistemi Yüklendi');
 
@@ -679,6 +700,17 @@
 
                 localStorage.setItem('session_notes_' + sessionId, notes);
                 localStorage.setItem('session_notes_time_' + sessionId, new Date().toISOString());
+
+                // Veritabanına da kaydet (AJAX)
+                $.ajax({
+                    url: '/save_session_notes/' + sessionId,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ notes: notes }),
+                    headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+                    success: function () { console.log('💾 Notlar veritabanına kaydedildi'); },
+                    error: function () { console.log('⚠️ Notlar sadece yerel olarak kaydedildi'); }
+                });
 
                 saveStatusSpan.style.display = 'inline';
                 setTimeout(function () {

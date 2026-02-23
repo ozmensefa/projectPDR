@@ -797,6 +797,24 @@ def delete_complete_analysis(session_id):
         return redirect(url_for('client.view_session', session_id=session_id))
 
 
+@main_bp.route('/save_session_notes/<int:session_id>', methods=['POST'])
+@login_required
+def save_session_notes(session_id):
+    """Oturum notlarını veritabanına kaydet (AJAX)"""
+    try:
+        session_obj = Session.query.get_or_404(session_id)
+        if session_obj.client.counselor_id != current_user.id:
+            abort(403)
+        
+        data = request.get_json()
+        session_obj.notes = data.get('notes', '')
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 # ============================================================================
 # RAPOR İNDİRME ENDPOINT'LERİ (PDF, DOCX, TXT)
 # ============================================================================
@@ -838,7 +856,8 @@ def download_session_report(session_id, format_type):
         client_name = session_obj.client.name
         session_date = session_obj.date.strftime('%d-%m-%Y')
         counselor_name = current_user.name
-        notes = session_obj.notes or ''
+        # Notları önce DB'den, yoksa query param'dan al
+        notes = session_obj.notes or request.args.get('notes', '') or ''
         
         file_name = f"{client_name}_oturum_analizi_{session_date}"
         
@@ -938,10 +957,21 @@ def _generate_txt(analysis_text, notes, file_name, report_type, client_name, cou
                      as_attachment=True, download_name=f"{file_name}.txt")
 
 
+def _tr_to_latin(text):
+    """Türkçe özel karakterleri Latin-1 uyumlu eşdeğerlerine çevirir"""
+    if not text:
+        return text
+    tr_map = str.maketrans('şçğüöıİŞÇĞÜÖ', 'scguoiISCGUO')
+    return text.translate(tr_map)
+
+
 def _generate_pdf(analysis_text, notes, file_name, report_type, client_name, counselor_name, extra_info):
-    """PDF formatında rapor oluştur (fpdf2 ile)"""
+    """PDF formatında rapor oluştur (fpdf2 + Helvetica, Türkçe transliteration)"""
     import io
     from fpdf import FPDF
+    
+    # Tüm metinleri translitere et
+    t = _tr_to_latin
     
     class PDFReport(FPDF):
         def header(self):
@@ -968,15 +998,15 @@ def _generate_pdf(analysis_text, notes, file_name, report_type, client_name, cou
     pdf.cell(0, 12, 'PDR ANALIZ SISTEMI', align='C', new_x='LMARGIN', new_y='NEXT')
     pdf.set_font('Helvetica', 'B', 14)
     pdf.set_text_color(80, 80, 80)
-    pdf.cell(0, 10, report_type, align='C', new_x='LMARGIN', new_y='NEXT')
+    pdf.cell(0, 10, t(report_type), align='C', new_x='LMARGIN', new_y='NEXT')
     pdf.ln(5)
     
     # Bilgiler
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(120, 120, 120)
-    pdf.cell(0, 6, f'Danisan: {client_name}  |  Danisman: {counselor_name}', align='C', new_x='LMARGIN', new_y='NEXT')
+    pdf.cell(0, 6, t(f'Danisan: {client_name}  |  Danisman: {counselor_name}'), align='C', new_x='LMARGIN', new_y='NEXT')
     for line in extra_info.split('\n'):
-        pdf.cell(0, 6, line.strip(), align='C', new_x='LMARGIN', new_y='NEXT')
+        pdf.cell(0, 6, t(line.strip()), align='C', new_x='LMARGIN', new_y='NEXT')
     pdf.ln(3)
     pdf.line(10, pdf.get_y(), 200, pdf.get_y())
     pdf.ln(5)
@@ -988,32 +1018,33 @@ def _generate_pdf(analysis_text, notes, file_name, report_type, client_name, cou
         if not stripped:
             pdf.ln(3)
             continue
+        txt = t(stripped)
         # Başlık tespiti
         if stripped.startswith('## ') or stripped.startswith('# '):
             pdf.ln(3)
             pdf.set_font('Helvetica', 'B', 13)
             pdf.set_text_color(13, 110, 253)
-            pdf.multi_cell(0, 7, stripped.lstrip('#').strip())
+            pdf.multi_cell(0, 7, t(stripped.lstrip('#').strip()))
             pdf.set_text_color(50, 50, 50)
             pdf.ln(1)
         elif stripped.startswith('### '):
             pdf.ln(2)
             pdf.set_font('Helvetica', 'B', 11)
             pdf.set_text_color(73, 80, 87)
-            pdf.multi_cell(0, 6, stripped.lstrip('#').strip())
+            pdf.multi_cell(0, 6, t(stripped.lstrip('#').strip()))
             pdf.set_text_color(50, 50, 50)
             pdf.ln(1)
         elif stripped.startswith('- ') or stripped.startswith('* '):
             pdf.set_font('Helvetica', '', 10)
-            pdf.cell(8, 6, chr(8226))  # bullet
-            pdf.multi_cell(0, 6, stripped[2:])
+            pdf.cell(8, 6, '- ')
+            pdf.multi_cell(0, 6, t(stripped[2:]))
         elif stripped.startswith('**') and stripped.endswith('**'):
             pdf.set_font('Helvetica', 'B', 10)
-            pdf.multi_cell(0, 6, stripped.strip('*'))
+            pdf.multi_cell(0, 6, t(stripped.strip('*')))
             pdf.set_font('Helvetica', '', 10)
         else:
             pdf.set_font('Helvetica', '', 10)
-            pdf.multi_cell(0, 6, stripped)
+            pdf.multi_cell(0, 6, txt)
     
     # Danışman Notları
     if notes:
@@ -1027,7 +1058,7 @@ def _generate_pdf(analysis_text, notes, file_name, report_type, client_name, cou
         pdf.set_text_color(50, 50, 50)
         pdf.ln(2)
         for line in notes.split('\n'):
-            pdf.multi_cell(0, 6, line)
+            pdf.multi_cell(0, 6, t(line))
     
     # Alt Bilgi
     pdf.ln(10)
@@ -1045,11 +1076,47 @@ def _generate_pdf(analysis_text, notes, file_name, report_type, client_name, cou
 
 
 def _generate_docx(analysis_text, notes, file_name, report_type, client_name, counselor_name, extra_info):
-    """DOCX formatında rapor oluştur (python-docx ile)"""
+    """DOCX formatında rapor oluştur (python-docx ile, markdown desteği)"""
     import io
+    import re
     from docx import Document as DocxDocument
-    from docx.shared import Pt, Inches, RGBColor
+    from docx.shared import Pt, RGBColor
     from docx.enum.text import WD_ALIGN_PARAGRAPH
+    
+    def add_markdown_runs(paragraph, text):
+        """Bir satırdaki **kalın** ve *italik* markdown işaretlerini Word run'larına çevirir"""
+        # **bold** ve *italic* pattern'lerini bul
+        pattern = r'(\*\*(.+?)\*\*|\*(.+?)\*)'
+        parts = re.split(pattern, text)
+        
+        i = 0
+        while i < len(parts):
+            part = parts[i]
+            if part is None:
+                i += 1
+                continue
+            # ** ile başlayan tam eşleşme - atla (splitten gelen)
+            if part.startswith('**') and part.endswith('**') and len(part) > 4:
+                # Bold metin - bir sonraki parça asıl metin
+                run = paragraph.add_run(parts[i+1])
+                run.bold = True
+                i += 3  # match, bold_text, None atla
+            elif part.startswith('*') and part.endswith('*') and not part.startswith('**') and len(part) > 2:
+                # Italic metin
+                run = paragraph.add_run(parts[i+2])
+                run.italic = True
+                i += 3
+            else:
+                if part:
+                    paragraph.add_run(part)
+                i += 1
+    
+    def clean_md_line(text):
+        """Markdown işaretlerini temizleyip düz metin döndürür"""
+        text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
+        text = re.sub(r'\*(.+?)\*', r'\1', text)
+        text = text.lstrip('#').strip()
+        return text
     
     doc = DocxDocument()
     
@@ -1090,33 +1157,46 @@ def _generate_docx(analysis_text, notes, file_name, report_type, client_name, co
     
     doc.add_paragraph('_' * 80)
     
-    # Ana İçerik
+    # Ana İçerik - Markdown'ı Word formatına çevir
     for line in analysis_text.split('\n'):
         stripped = line.strip()
         if not stripped:
             doc.add_paragraph()
             continue
         
+        # Başlık: # veya ##
         if stripped.startswith('## ') or stripped.startswith('# '):
             p = doc.add_paragraph()
-            run = p.add_run(stripped.lstrip('#').strip())
+            title_text = clean_md_line(stripped)
+            run = p.add_run(title_text)
             run.bold = True
             run.font.size = Pt(14)
             run.font.color.rgb = RGBColor(13, 110, 253)
+        # Alt başlık: ###
         elif stripped.startswith('### '):
             p = doc.add_paragraph()
-            run = p.add_run(stripped.lstrip('#').strip())
+            title_text = clean_md_line(stripped)
+            run = p.add_run(title_text)
             run.bold = True
             run.font.size = Pt(12)
             run.font.color.rgb = RGBColor(73, 80, 87)
-        elif stripped.startswith('- ') or stripped.startswith('* ') or stripped.startswith('• '):
-            doc.add_paragraph(stripped[2:], style='List Bullet')
-        elif stripped.startswith('**') and stripped.endswith('**'):
+        # Madde işareti: - veya * veya •
+        elif stripped.startswith('- ') or stripped.startswith('• '):
+            item_text = clean_md_line(stripped[2:])
+            doc.add_paragraph(item_text, style='List Bullet')
+        # * ile başlayan ama madde değil (markdown bold/list karışımı)
+        elif stripped.startswith('* '):
+            item_text = clean_md_line(stripped[2:])
+            doc.add_paragraph(item_text, style='List Bullet')
+        # Tamamen **kalın** bir satır
+        elif stripped.startswith('**') and stripped.endswith('**') and stripped.count('**') == 2:
             p = doc.add_paragraph()
-            run = p.add_run(stripped.strip('*'))
+            run = p.add_run(stripped[2:-2])
             run.bold = True
+        # Normal metin (içinde **kalın** veya *italik* olabilir)
         else:
-            doc.add_paragraph(stripped)
+            clean = clean_md_line(stripped)
+            doc.add_paragraph(clean)
     
     # Danışman Notları
     if notes:
