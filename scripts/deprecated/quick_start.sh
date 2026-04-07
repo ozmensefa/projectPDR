@@ -1,8 +1,8 @@
 #!/bin/bash
-# PDR Analiz Sistemi - Hızlı Başlangıç Scripti
+# YAKADES - Hızlı Başlangıç Scripti
 
 echo "╔════════════════════════════════════════════════════════════════╗"
-echo "║                PDR ANALİZ SİSTEMİ                              ║"
+echo "║                YAKADES                                         ║"
 echo "║            İlerleyiş Analizi - Hızlı Başlangıç                 ║"
 echo "╚════════════════════════════════════════════════════════════════╝"
 echo

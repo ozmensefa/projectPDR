@@ -178,6 +178,9 @@ def index():
         # Önerileri oluştur
         suggestions = generate_suggestions(clients, upcoming_sessions, recent_sessions)
     
+    if not current_user.is_authenticated:
+        return render_template('landing.html')
+    
     return render_template('index.html', 
                          clients=clients, 
                          upcoming_sessions=upcoming_sessions, 
@@ -731,8 +734,8 @@ def view_progress_report(report_id):
     """İlerleyiş raporu görüntüleme"""
     report = ProgressAnalysis.query.get_or_404(report_id)
     
-    # Raporun bu kullanıcıya ait olup olmadığını kontrol et
-    if report.counselor_id != current_user.id:
+    # Raporun bu kullanıcıya ait olup olmadığını veya kullanıcının admin olup olmadığını kontrol et
+    if report.counselor_id != current_user.id and not current_user.is_admin:
         abort(403)
     
     return render_template('view_progress_report.html', report=report)
@@ -948,7 +951,7 @@ def _generate_txt(analysis_text, notes, file_name, report_type, client_name, cou
         content += "=" * 80 + "\n\n"
         content += notes
     content += "\n\n" + "=" * 80 + "\n"
-    content += "Bu rapor PDR Analiz Sistemi tarafından otomatik olarak oluşturulmuştur.\n"
+    content += "Bu rapor YAKADES tarafından psikolojik danışmanlık süreçlerine destek amacıyla oluşturulmuştur. Resmi bir geçerliliği yoktur.\n"
     
     buffer = io.BytesIO()
     buffer.write(content.encode('utf-8'))
@@ -977,7 +980,7 @@ def _generate_pdf(analysis_text, notes, file_name, report_type, client_name, cou
         def header(self):
             self.set_font('Helvetica', 'B', 10)
             self.set_text_color(100, 100, 100)
-            self.cell(0, 8, 'PDR Analiz Sistemi', align='R', new_x='LMARGIN', new_y='NEXT')
+            self.cell(0, 8, 'YAKADES', align='R', new_x='LMARGIN', new_y='NEXT')
             self.line(10, self.get_y(), 200, self.get_y())
             self.ln(3)
         
@@ -995,7 +998,7 @@ def _generate_pdf(analysis_text, notes, file_name, report_type, client_name, cou
     # Başlık
     pdf.set_font('Helvetica', 'B', 18)
     pdf.set_text_color(21, 101, 192)
-    pdf.cell(0, 12, 'PDR ANALIZ SISTEMI', align='C', new_x='LMARGIN', new_y='NEXT')
+    pdf.cell(0, 12, 'YAKADES', align='C', new_x='LMARGIN', new_y='NEXT')
     pdf.set_font('Helvetica', 'B', 14)
     pdf.set_text_color(80, 80, 80)
     pdf.cell(0, 10, t(report_type), align='C', new_x='LMARGIN', new_y='NEXT')
@@ -1066,7 +1069,7 @@ def _generate_pdf(analysis_text, notes, file_name, report_type, client_name, cou
     pdf.ln(3)
     pdf.set_font('Helvetica', 'I', 8)
     pdf.set_text_color(150, 150, 150)
-    pdf.cell(0, 6, 'Bu rapor PDR Analiz Sistemi tarafindan otomatik olarak olusturulmustur.', align='C')
+    pdf.cell(0, 6, 'Bu rapor YAKADES tarafından psikolojik danışmanlık süreçlerine destek amacıyla oluşturulmuştur. Resmi bir geçerliliği yoktur.', align='C')
     
     buffer = io.BytesIO()
     pdf.output(buffer)
@@ -1214,7 +1217,7 @@ def _generate_docx(analysis_text, notes, file_name, report_type, client_name, co
     doc.add_paragraph('_' * 80)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run('Bu rapor PDR Analiz Sistemi tarafından otomatik olarak oluşturulmuştur.')
+    run = p.add_run('Bu rapor YAKADES tarafından psikolojik danışmanlık süreçlerine destek amacıyla oluşturulmuştur. Resmi bir geçerliliği yoktur.')
     run.italic = True
     run.font.size = Pt(9)
     run.font.color.rgb = RGBColor(150, 150, 150)
@@ -1703,38 +1706,64 @@ from datetime import timedelta
 @admin_required
 def admin_user_activities():
     """Tüm kullanıcıların aktivitelerini göster (Sadece Admin)"""
-    # Filtreler
+    # Aktif tab
+    active_tab = request.args.get('tab', 'activities')
+    
+    # Ortak filtreler
     date_filter = request.args.get('date', 'week')
     user_id = request.args.get('user_id', type=int)
     action_filter = request.args.get('action', '')
+    status_filter = request.args.get('status', '')
     page = request.args.get('page', 1, type=int)
     per_page = 50
     
-    # Base query
-    query = UserActivity.query
+    # Tarih filtresi fonksiyonu
+    def apply_date_filter(query, date_col):
+        if date_filter == 'today':
+            today = get_turkey_time().date()
+            return query.filter(db.func.date(date_col) == today)
+        elif date_filter == 'week':
+            week_ago = get_turkey_time() - timedelta(days=7)
+            return query.filter(date_col >= week_ago)
+        elif date_filter == 'month':
+            month_ago = get_turkey_time() - timedelta(days=30)
+            return query.filter(date_col >= month_ago)
+        return query
     
-    # Kullanıcı filtresi
+    # ===== 1. Aktiviteler =====
+    act_query = UserActivity.query
     if user_id:
-        query = query.filter_by(counselor_id=user_id)
-    
-    # Tarih filtresi
-    if date_filter == 'today':
-        today = get_turkey_time().date()
-        query = query.filter(db.func.date(UserActivity.created_at) == today)
-    elif date_filter == 'week':
-        week_ago = get_turkey_time() - timedelta(days=7)
-        query = query.filter(UserActivity.created_at >= week_ago)
-    elif date_filter == 'month':
-        month_ago = get_turkey_time() - timedelta(days=30)
-        query = query.filter(UserActivity.created_at >= month_ago)
-    
-    # Action filtresi
+        act_query = act_query.filter_by(counselor_id=user_id)
+    act_query = apply_date_filter(act_query, UserActivity.created_at)
     if action_filter:
-        query = query.filter(UserActivity.action.like(f'%{action_filter}%'))
+        act_query = act_query.filter(UserActivity.action.like(f'%{action_filter}%'))
     
-    # Paginate
-    activities = query.order_by(UserActivity.created_at.desc()).paginate(
-        page=page, per_page=per_page, error_out=False
+    activities = act_query.order_by(UserActivity.created_at.desc()).paginate(
+        page=page if active_tab == 'activities' else 1, per_page=per_page, error_out=False
+    )
+    
+    # ===== 2. Oturum Analizleri (Session -> AIAnalysis) =====
+    sa_query = Session.query.filter(Session.analysis_status.in_(['completed', 'processing', 'failed', 'cancelled']))
+    if user_id:
+        sa_query = sa_query.join(Client).filter(Client.counselor_id == user_id)
+    sa_query = apply_date_filter(sa_query, Session.date)
+    if status_filter:
+        sa_query = sa_query.filter(Session.analysis_status == status_filter)
+    
+    session_analyses = sa_query.order_by(Session.date.desc()).paginate(
+        page=page if active_tab == 'session_analyses' else 1, per_page=per_page, error_out=False
+    )
+    
+    # ===== 3. İlerleyiş Analizleri =====
+    pa_query = ProgressAnalysis.query
+    if user_id:
+        pa_query = pa_query.filter_by(counselor_id=user_id)
+    pa_query = apply_date_filter(pa_query, ProgressAnalysis.created_at)
+    if status_filter:
+        pa_query = pa_query.filter(ProgressAnalysis.analysis_status == status_filter)
+    
+    progress_analyses = pa_query.order_by(ProgressAnalysis.created_at.desc()).paginate(
+        page=page if active_tab == 'progress_analyses' else 1, per_page=per_page, error_out=False
     )
     
     # Tüm kullanıcılar (dropdown için)
@@ -1742,20 +1771,35 @@ def admin_user_activities():
     
     # İstatistikler
     stats = {
-        'total_activities': query.count(),
+        'total_activities': act_query.count(),
         'unique_users': db.session.query(UserActivity.counselor_id).distinct().count(),
         'today_activities': UserActivity.query.filter(
             db.func.date(UserActivity.created_at) == get_turkey_time().date()
-        ).count()
+        ).count(),
+        # Analiz istatistikleri
+        'total_session_analyses': Session.query.filter(
+            Session.analysis_status.in_(['completed', 'processing', 'failed', 'cancelled'])
+        ).count(),
+        'completed_session_analyses': Session.query.filter_by(analysis_status='completed').count(),
+        'processing_session_analyses': Session.query.filter_by(analysis_status='processing').count(),
+        'failed_session_analyses': Session.query.filter_by(analysis_status='failed').count(),
+        'total_progress_analyses': ProgressAnalysis.query.count(),
+        'completed_progress_analyses': ProgressAnalysis.query.filter_by(analysis_status='completed').count(),
+        'processing_progress_analyses': ProgressAnalysis.query.filter_by(analysis_status='processing').count(),
+        'failed_progress_analyses': ProgressAnalysis.query.filter_by(analysis_status='failed').count(),
     }
     
     return render_template('admin/user_activities.html', 
                          activities=activities,
+                         session_analyses=session_analyses,
+                         progress_analyses=progress_analyses,
                          all_users=all_users,
                          stats=stats,
+                         active_tab=active_tab,
                          date_filter=date_filter,
                          selected_user_id=user_id,
-                         action_filter=action_filter)
+                         action_filter=action_filter,
+                         status_filter=status_filter)
 
 
 @main_bp.route('/admin/manage-users')

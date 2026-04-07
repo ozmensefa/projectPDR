@@ -221,7 +221,7 @@ def add_session(client_id):
 @login_required
 def view_session(session_id):
     session = Session.query.get_or_404(session_id)
-    if session.client.counselor_id != current_user.id:
+    if session.client.counselor_id != current_user.id and not current_user.is_admin:
         abort(403)
     
     # Kaydedilmiş AI analizini al

@@ -210,20 +210,28 @@ class EmotionService:
             frame_count = 0
             analyzed_frames = 0
             
-            # PyTorch CUDA için agresif optimizasyon
+            # Maksimum analiz süresi (saniye) - güvenlik sınırı
+            MAX_ANALYSIS_TIME_SEC = 10800  # 3 saat (hassas analiz için)
+            
+            # Saniyede 1 frame analiz stratejisi (psikolojik değerlendirme hassasiyeti)
+            # fps değerini kullanarak her saniyeden 1 frame al
+            video_duration_sec = total_frames / fps if fps > 0 else 0
+            
             if self.device == "pytorch_cuda":
-                skip_frames = 1  # PyTorch CUDA ile çok hızlı - her frame
-                print("  • PyTorch CUDA optimizasyonu: Her frame analiz edilecek!")
-            elif self.device == "tensorflow_gpu":
-                skip_frames = 3  # TensorFlow GPU orta hız
-                print(f"  • TensorFlow GPU: Her 3 frame'de bir analiz")
-            elif self.device == "directml":
-                skip_frames = 4  # DirectML
-                print(f"  • DirectML: Her 4 frame'de bir analiz")
+                # CUDA hızlı - kısa videolarda her frame, uzun videolarda saniyede 1
+                if video_duration_sec <= 300:  # 5 dakikadan kısa
+                    skip_frames = 1
+                else:
+                    skip_frames = max(1, int(fps))  # Saniyede 1 frame
+                estimated = total_frames // skip_frames
+                print(f"  • PyTorch CUDA: Her {skip_frames} frame'de bir analiz (~{estimated} frame, ~{video_duration_sec:.0f}s video)")
             else:
-                skip_frames = 5  # CPU en yavaş
-                print("  • PyTorch CPU: Her 5 frame'de bir analiz")
-                print("  💡 PyTorch CUDA ile 5-10x daha hızlı olabilir!")
+                # CPU/diğer: her zaman saniyede 1 frame (hassasiyet korunur)
+                skip_frames = max(1, int(fps))  # Saniyede 1 frame
+                estimated = total_frames // skip_frames
+                print(f"  • {self.device}: Saniyede 1 frame analiz (~{estimated} frame, ~{video_duration_sec:.0f}s video)")
+                if "cpu" in self.device:
+                    print("  💡 PyTorch CUDA ile 5-10x daha hızlı olabilir!")
             
             # Performans ölçümü
             from datetime import datetime
@@ -285,6 +293,15 @@ class EmotionService:
                     # Güvenlik kontrolü - sonsuz döngü önleme
                     if frame_count > total_frames + 100:  # Tolerans payı
                         print(f"⚠️ Frame sayısı beklenenin üzerinde ({frame_count} > {total_frames}), analiz sonlandırılıyor")
+                        break
+                    
+                    # Zaman aşımı kontrolü - Celery hard limit'ten önce graceful çıkış
+                    elapsed_time = (datetime.now() - analysis_start).total_seconds()
+                    if elapsed_time > MAX_ANALYSIS_TIME_SEC:
+                        progress = (frame_count / total_frames) * 100
+                        print(f"⏰ Duygu analizi zaman sınırına ulaştı ({MAX_ANALYSIS_TIME_SEC}s)")
+                        print(f"   İlerleme: {progress:.1f}% | {analyzed_frames} frame analiz edildi")
+                        print(f"   Mevcut verilerle devam ediliyor...")
                         break
                         
                 except Exception as e:

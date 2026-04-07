@@ -13,6 +13,7 @@ from app.utils.file_handler import FileHandler
 import json
 import os
 from datetime import datetime
+from celery.exceptions import SoftTimeLimitExceeded
 
 # Flask app'i oluştur
 flask_app = create_app()
@@ -60,63 +61,93 @@ def analyze_video(self, session_id, counselor_id):
             # Danışan bilgisi
             client_name = session.client.name
             
-            # İlerleme: %5 - Başlangıç
-            session.analysis_progress = 5
-            db.session.commit()
+            # Daha önce tamamlanmış ara sonuçlar var mı kontrol et
+            cached_data = None
+            if session.analysis_results:
+                try:
+                    cached_data = json.loads(session.analysis_results)
+                    # Geçerli ara sonuç mu kontrol et (4 ana key olmalı)
+                    required_keys = ['audio_summary', 'text_analysis', 'emotion_data', 'body_data']
+                    if all(k in cached_data for k in required_keys):
+                        print("📦 ÖNCEKİ ANALİZ SONUÇLARI BULUNDU — Adım 1-4 atlanıyor!")
+                        print(f"   Doğrudan AI analizine (5/5) geçiliyor...")
+                    else:
+                        cached_data = None
+                        print("⚠️ Eski analiz sonuçları eksik, baştan analiz yapılacak")
+                except (json.JSONDecodeError, TypeError):
+                    cached_data = None
+                    print("⚠️ Eski analiz sonuçları okunamadı, baştan analiz yapılacak")
             
-            # 1. Ses analizi
-            print("\n🎵 1/5 - SES ANALİZİ BAŞLIYOR...")
-            file_handler = FileHandler()
-            temp_audio = os.path.join(file_handler.temp_folder, f"temp_audio_{session_id}.wav")
-            file_handler._convert_video_to_audio(video_path, temp_audio)
-            
-            audio_service = AudioService()
-            audio_data = audio_service.analyze(video_path, temp_audio)
-            print("✅ Ses analizi tamamlandı")
-            session.analysis_progress = 25
-            db.session.commit()
-            
-            # 2. Metin analizi
-            print("\n📝 2/5 - METİN ANALİZİ BAŞLIYOR...")
-            text_service = TextService()
-            text_data = text_service.analyze(temp_audio)
-            print("✅ Metin analizi tamamlandı")
-            session.analysis_progress = 40
-            db.session.commit()
-            
-            # Temp audio dosyasını sil
-            if os.path.exists(temp_audio):
-                os.remove(temp_audio)
-            
-            # 3. Duygu analizi
-            print("\n😊 3/5 - DUYGU ANALİZİ BAŞLIYOR...")
-            emotion_service = EmotionService()
-            emotion_data = emotion_service.analyze(video_path)
-            print("✅ Duygu analizi tamamlandı")
-            session.analysis_progress = 60
-            db.session.commit()
-            
-            # 4. Beden dili analizi
-            print("\n🤸 4/5 - BEDEN DİLİ ANALİZİ BAŞLIYOR...")
-            body_service = BodyLanguageService()
-            body_data = body_service.analyze(video_path)
-            print("✅ Beden dili analizi tamamlandı")
-            session.analysis_progress = 80
-            db.session.commit()
+            if cached_data:
+                # Cached sonuçları kullan — direkt AI adımına geç
+                combined_data = cached_data
+                session.analysis_progress = 80
+                db.session.commit()
+            else:
+                # İlerleme: %5 - Başlangıç
+                session.analysis_progress = 5
+                db.session.commit()
+                
+                # 1. Ses analizi
+                print("\n🎵 1/5 - SES ANALİZİ BAŞLIYOR...")
+                file_handler = FileHandler()
+                temp_audio = os.path.join(file_handler.temp_folder, f"temp_audio_{session_id}.wav")
+                file_handler._convert_video_to_audio(video_path, temp_audio)
+                
+                audio_service = AudioService()
+                audio_data = audio_service.analyze(video_path, temp_audio)
+                print("✅ Ses analizi tamamlandı")
+                session.analysis_progress = 25
+                db.session.commit()
+                
+                # 2. Metin analizi
+                print("\n📝 2/5 - METİN ANALİZİ BAŞLIYOR...")
+                text_service = TextService()
+                text_data = text_service.analyze(temp_audio)
+                print("✅ Metin analizi tamamlandı")
+                session.analysis_progress = 40
+                db.session.commit()
+                
+                # Temp audio dosyasını sil
+                if os.path.exists(temp_audio):
+                    os.remove(temp_audio)
+                
+                # 3. Duygu analizi
+                print("\n😊 3/5 - DUYGU ANALİZİ BAŞLIYOR...")
+                emotion_service = EmotionService()
+                emotion_data = emotion_service.analyze(video_path)
+                print("✅ Duygu analizi tamamlandı")
+                session.analysis_progress = 60
+                db.session.commit()
+                
+                # 4. Beden dili analizi
+                print("\n🤸 4/5 - BEDEN DİLİ ANALİZİ BAŞLIYOR...")
+                body_service = BodyLanguageService()
+                body_data = body_service.analyze(video_path)
+                print("✅ Beden dili analizi tamamlandı")
+                session.analysis_progress = 80
+                db.session.commit()
+                
+                # Tüm verileri birleştir
+                combined_data = {
+                    'session_id': session_id,
+                    'client_name': client_name,
+                    'audio_summary': audio_data,
+                    'text_analysis': text_data,
+                    'emotion_data': emotion_data,
+                    'body_data': body_data
+                }
+                
+                # ✅ Ara sonuçları hemen veritabanına kaydet
+                # Gemini hatası durumunda tekrar analiz gerekmez
+                print("💾 Ara analiz sonuçları veritabanına kaydediliyor...")
+                session.analysis_results = json.dumps(combined_data, ensure_ascii=False)
+                db.session.commit()
+                print("✅ Ara sonuçlar kaydedildi")
             
             # 5. AI Analizi
             print("\n🤖 5/5 - AI ANALİZ BAŞLIYOR...")
             ai_service = AIService()
-            
-            # Tüm verileri birleştir
-            combined_data = {
-                'session_id': session_id,
-                'client_name': client_name,
-                'audio_summary': audio_data,
-                'text_analysis': text_data,
-                'emotion_data': emotion_data,
-                'body_data': body_data
-            }
             
             ai_result = ai_service.analyze(combined_data)
             
@@ -184,6 +215,39 @@ def analyze_video(self, session_id, counselor_id):
             else:
                 raise Exception(ai_result.get('analysis', 'AI analizi başarısız'))
                 
+        except SoftTimeLimitExceeded:
+            print(f"\n{'='*60}")
+            print(f"⏰ ANALİZ ZAMAN AŞIMI! (Soft Time Limit)")
+            print(f"Session ID: {session_id}")
+            print(f"{'='*60}\n")
+            
+            try:
+                session = Session.query.get(session_id)
+                if session:
+                    session.analysis_status = 'failed'
+                    session.analysis_progress = 0
+                    db.session.commit()
+                
+                notification = Notification(
+                    counselor_id=counselor_id,
+                    title="Analiz Zaman Aşımı! ⏰",
+                    message=f"Video analizi çok uzun sürdüğü için zaman aşımına uğradı. Daha kısa bir video ile tekrar deneyin.",
+                    notification_type='error',
+                    link=f"/session/view/{session_id}",
+                    related_session_id=session_id
+                )
+                db.session.add(notification)
+                db.session.commit()
+            except Exception as notify_error:
+                print(f"⚠️ Zaman aşımı bildirimi hatası: {notify_error}")
+                db.session.rollback()
+            
+            return {
+                'status': 'error',
+                'session_id': session_id,
+                'message': 'Analiz zaman aşımına uğradı'
+            }
+            
         except Exception as e:
             print(f"\n{'='*60}")
             print(f"❌ ANALİZ HATASI!")
@@ -389,6 +453,39 @@ def analyze_progress(self, progress_analysis_id, counselor_id):
                 'message': 'İlerleyiş analizi başarıyla tamamlandı'
             }
                 
+        except SoftTimeLimitExceeded:
+            print(f"\n{'='*60}")
+            print(f"⏰ İLERLEYİŞ ANALİZİ ZAMAN AŞIMI! (Soft Time Limit)")
+            print(f"Progress Analysis ID: {progress_analysis_id}")
+            print(f"{'='*60}\n")
+            
+            try:
+                progress_analysis = ProgressAnalysis.query.get(progress_analysis_id)
+                if progress_analysis:
+                    progress_analysis.analysis_status = 'failed'
+                    progress_analysis.analysis_progress = 0
+                    progress_analysis.analysis_text = "Analiz zaman aşımına uğradı."
+                    db.session.commit()
+                
+                notification = Notification(
+                    counselor_id=counselor_id,
+                    title="İlerleyiş Analizi Zaman Aşımı! ⏰",
+                    message=f"İlerleyiş analizi çok uzun sürdüğü için zaman aşımına uğradı.",
+                    notification_type='error',
+                    link=f"/progress_analysis/{progress_analysis.client_id}"
+                )
+                db.session.add(notification)
+                db.session.commit()
+            except Exception as notify_error:
+                print(f"⚠️ Zaman aşımı bildirimi hatası: {notify_error}")
+                db.session.rollback()
+            
+            return {
+                'status': 'error',
+                'progress_analysis_id': progress_analysis_id,
+                'message': 'İlerleyiş analizi zaman aşımına uğradı'
+            }
+            
         except Exception as e:
             print(f"\n{'='*60}")
             print(f"❌ İLERLEYİŞ ANALİZİ HATASI!")

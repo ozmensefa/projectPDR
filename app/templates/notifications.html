@@ -1,161 +1,163 @@
 {% extends "base.html" %}
 
-{% block title %}Bildirimler - PDR Analiz{% endblock %}
+{% block title %}Bildirimler - YAKADES{% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-12">
-            <!-- Sayfa Başlığı -->
-            <div class="page-header d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2><i class="fas fa-bell me-2"></i>Bildirimler</h2>
-                    <p class="text-muted mb-0 mt-1">
-                        {% if unread_count > 0 %}
-                            {{ unread_count }} okunmamış bildiriminiz var
-                        {% else %}
-                            Tüm bildirimler okundu
-                        {% endif %}
-                    </p>
-                </div>
-                <div>
+<div class="row">
+    <div class="col-12">
+        <!-- Sayfa Başlığı -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2><i class="fas fa-bell me-2"></i>Bildirimler</h2>
+                <p class="text-muted mb-0 mt-1">
                     {% if unread_count > 0 %}
-                    <button class="btn btn-outline-primary" onclick="markAllRead()">
-                        <i class="fas fa-check-double"></i> Tümünü Okundu İşaretle
-                    </button>
+                    {{ unread_count }} okunmamış bildiriminiz var
+                    {% else %}
+                    Tüm bildirimler okundu
                     {% endif %}
-                </div>
+                </p>
             </div>
-
-            {% if notifications %}
-            <div class="card">
-                <div class="card-body">
-                    <div class="list-group list-group-flush">
-                {% for notification in notifications %}
-                <div class="list-group-item {% if not notification.is_read %}list-group-item-light border-primary{% endif %}" 
-                     id="notification-{{ notification.id }}">
-                    <div class="d-flex w-100 justify-content-between align-items-start">
-                        <div class="flex-grow-1">
-                            <h5 class="mb-1">
-                                {% if notification.notification_type == 'success' %}
-                                <i class="fas fa-check-circle text-success"></i>
-                                {% elif notification.notification_type == 'error' %}
-                                <i class="fas fa-times-circle text-danger"></i>
-                                {% elif notification.notification_type == 'warning' %}
-                                <i class="fas fa-exclamation-triangle text-warning"></i>
-                                {% else %}
-                                <i class="fas fa-info-circle text-info"></i>
-                                {% endif %}
-                                {{ notification.title }}
-                                {% if not notification.is_read %}
-                                <span class="badge bg-primary">Yeni</span>
-                                {% endif %}
-                            </h5>
-                            <p class="mb-1">{{ notification.message }}</p>
-                            <small class="text-muted">
-                                <i class="fas fa-clock"></i> {{ notification.created_at.strftime('%d.%m.%Y %H:%M') }}
-                            </small>
-                        </div>
-                        <div class="ms-3 d-flex flex-column gap-2">
-                            {% if notification.link %}
-                            <a href="{{ notification.link.replace('/client/view_session/', '/session/view/') }}" 
-                               class="btn btn-sm btn-outline-primary" 
-                               onclick="{% if not notification.is_read %}markAsReadAndNavigate(event, {{ notification.id }});{% endif %}">
-                                <i class="fas fa-eye"></i> Detayı Görüntüle
-                            </a>
-                            {% endif %}
-                            {% if not notification.is_read %}
-                            <button class="btn btn-sm btn-outline-secondary" 
-                                    onclick="markAsReadOnly({{ notification.id }})">
-                                <i class="fas fa-check"></i> Okundu
-                            </button>
-                            {% endif %}
-                            <form method="POST" action="{{ url_for('main.delete_notification', notification_id=notification.id) }}" 
-                                  style="display: inline;" onsubmit="return confirm('Bu bildirimi silmek istediğinize emin misiniz?');">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-sm btn-outline-danger">
-                                    <i class="fas fa-trash"></i> Sil
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-                    </div>
-                </div>
+            <div>
+                {% if unread_count > 0 %}
+                <button class="btn btn-outline-primary" onclick="markAllRead()">
+                    <i class="fas fa-check-double"></i> Tümünü Okundu İşaretle
+                </button>
+                {% endif %}
             </div>
-            {% else %}
-            <div class="content-block empty-state">
-                <i class="fas fa-bell-slash d-block"></i>
-                <h5>Henüz bildiriminiz yok</h5>
-                <p class="text-muted">Video analizleri tamamlandığında burada bildirim alacaksınız.</p>
-            </div>
-            {% endif %}
         </div>
+
+        {% if notifications %}
+        <div class="card">
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% for notification in notifications %}
+                    <div class="list-group-item {% if not notification.is_read %}list-group-item-light border-primary{% endif %}"
+                        id="notification-{{ notification.id }}">
+                        <div class="d-flex w-100 justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1">
+                                    {% if notification.notification_type == 'success' %}
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    {% elif notification.notification_type == 'error' %}
+                                    <i class="fas fa-times-circle text-danger"></i>
+                                    {% elif notification.notification_type == 'warning' %}
+                                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                                    {% else %}
+                                    <i class="fas fa-info-circle text-info"></i>
+                                    {% endif %}
+                                    {{ notification.title }}
+                                    {% if not notification.is_read %}
+                                    <span class="badge bg-primary">Yeni</span>
+                                    {% endif %}
+                                </h5>
+                                <p class="mb-1">{{ notification.message }}</p>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock"></i> {{ notification.created_at.strftime('%d.%m.%Y %H:%M')
+                                    }}
+                                </small>
+                            </div>
+                            <div class="ms-3 d-flex flex-column gap-2">
+                                {% if notification.link %}
+                                <a href="{{ notification.link.replace('/client/view_session/', '/session/view/') }}"
+                                    class="btn btn-sm btn-outline-primary"
+                                    onclick="{% if not notification.is_read %}markAsReadAndNavigate(event, {{ notification.id }});{% endif %}">
+                                    <i class="fas fa-eye"></i> Detayı Görüntüle
+                                </a>
+                                {% endif %}
+                                {% if not notification.is_read %}
+                                <button class="btn btn-sm btn-outline-secondary"
+                                    onclick="markAsReadOnly({{ notification.id }})">
+                                    <i class="fas fa-check"></i> Okundu
+                                </button>
+                                {% endif %}
+                                <form method="POST"
+                                    action="{{ url_for('main.delete_notification', notification_id=notification.id) }}"
+                                    style="display: inline;"
+                                    onsubmit="return confirm('Bu bildirimi silmek istediğinize emin misiniz?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i> Sil
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="content-block empty-state">
+            <i class="fas fa-bell-slash d-block"></i>
+            <h5>Henüz bildiriminiz yok</h5>
+            <p class="text-muted">Video analizleri tamamlandığında burada bildirim alacaksınız.</p>
+        </div>
+        {% endif %}
     </div>
+</div>
 
 <script>
-// Link tıklandığında okundu işaretle ve linke git
-function markAsReadAndNavigate(event, notificationId) {
-    // Link'in varsayılan davranışını engelle
-    event.preventDefault();
-    const href = event.currentTarget.href;
-    
-    // Okundu olarak işaretle
-    fetch(`/mark_notification_read/${notificationId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Başarılı veya başarısız olsa da linke git
-        window.location.href = href;
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        // Hata olsa bile linke git
-        window.location.href = href;
-    });
-}
+    // Link tıklandığında okundu işaretle ve linke git
+    function markAsReadAndNavigate(event, notificationId) {
+        // Link'in varsayılan davranışını engelle
+        event.preventDefault();
+        const href = event.currentTarget.href;
 
-// Sadece okundu işaretle (buton için)
-function markAsReadOnly(notificationId) {
-    fetch(`/mark_notification_read/${notificationId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            // Sayfayı yenile
-            location.reload();
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
-
-function markAllRead() {
-    if (!confirm('Tüm bildirimleri okundu olarak işaretlemek istediğinize emin misiniz?')) {
-        return;
+        // Okundu olarak işaretle
+        fetch(`/mark_notification_read/${notificationId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Başarılı veya başarısız olsa da linke git
+                window.location.href = href;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Hata olsa bile linke git
+                window.location.href = href;
+            });
     }
-    
-    fetch('/mark_all_notifications_read', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
+
+    // Sadece okundu işaretle (buton için)
+    function markAsReadOnly(notificationId) {
+        fetch(`/mark_notification_read/${notificationId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Sayfayı yenile
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function markAllRead() {
+        if (!confirm('Tüm bildirimleri okundu olarak işaretlemek istediğinize emin misiniz?')) {
+            return;
         }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            location.reload();
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
+
+        fetch('/mark_all_notifications_read', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
 </script>
 {% endblock %}
-

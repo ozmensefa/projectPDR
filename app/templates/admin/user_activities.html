@@ -1,20 +1,263 @@
 {% extends "base.html" %}
 
-{% block title %}Kullanıcı Aktiviteleri (Admin){% endblock %}
+{% block title %}Kullanıcı Aktiviteleri & Analizler (Admin){% endblock %}
 
 {% block head %}
 <style>
-.stat-card-primary {
-    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
+/* ===== Stat Cards ===== */
+.stat-card {
     border: none !important;
+    border-radius: 16px !important;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+.stat-card .card-body {
+    position: relative;
+    z-index: 1;
+}
+.stat-card::after {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -20%;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+}
+.stat-card-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
 }
 .stat-card-success {
-    background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%) !important;
-    border: none !important;
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
 }
 .stat-card-info {
-    background: linear-gradient(135deg, #29b6f6 0%, #0288d1 100%) !important;
-    border: none !important;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+}
+.stat-card-warning {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+}
+.stat-card-orange {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%) !important;
+}
+.stat-card-teal {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%) !important;
+}
+.stat-icon {
+    font-size: 2rem;
+    opacity: 0.8;
+}
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.2;
+}
+.stat-label {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+/* ===== Tabs ===== */
+.nav-tabs-custom {
+    border-bottom: 2px solid #e9ecef;
+    gap: 4px;
+}
+.nav-tabs-custom .nav-link {
+    border: none;
+    color: #6c757d;
+    padding: 12px 20px;
+    font-weight: 600;
+    border-radius: 12px 12px 0 0;
+    transition: all 0.3s ease;
+    position: relative;
+}
+.nav-tabs-custom .nav-link:hover {
+    color: #495057;
+    background: rgba(102, 126, 234, 0.05);
+}
+.nav-tabs-custom .nav-link.active {
+    color: #667eea;
+    background: transparent;
+    border-bottom: 3px solid #667eea;
+}
+.nav-tabs-custom .nav-link .badge {
+    font-size: 0.7rem;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+
+/* ===== Filter Card ===== */
+.filter-card {
+    border: 1px solid #e9ecef !important;
+    border-radius: 12px !important;
+    background: linear-gradient(135deg, #f8f9fe 0%, #f0f2ff 100%) !important;
+}
+
+/* ===== Activity Table ===== */
+.activity-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+.activity-table thead th {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #495057;
+    padding: 12px 16px;
+}
+.activity-table tbody tr {
+    transition: background 0.2s ease;
+}
+.activity-table tbody tr:hover {
+    background: rgba(102, 126, 234, 0.04);
+}
+.activity-table tbody td {
+    padding: 12px 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* ===== Status Badges ===== */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.status-completed {
+    background: rgba(40, 167, 69, 0.12);
+    color: #1e7e34;
+}
+.status-processing {
+    background: rgba(0, 123, 255, 0.12);
+    color: #0056b3;
+}
+.status-failed {
+    background: rgba(220, 53, 69, 0.12);
+    color: #bd2130;
+}
+.status-cancelled {
+    background: rgba(108, 117, 125, 0.12);
+    color: #495057;
+}
+.status-pending {
+    background: rgba(255, 193, 7, 0.12);
+    color: #856404;
+}
+
+/* ===== Mini Stats Row ===== */
+.mini-stat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+.mini-stat .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.dot-completed { background: #28a745; }
+.dot-processing { background: #007bff; }
+.dot-failed { background: #dc3545; }
+
+/* ===== Analysis Preview ===== */
+.analysis-preview {
+    max-height: 60px;
+    overflow: hidden;
+    font-size: 0.82rem;
+    color: #6c757d;
+    line-height: 1.5;
+    position: relative;
+}
+.analysis-preview::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 25px;
+    background: linear-gradient(transparent, white);
+}
+
+/* ===== Empty State ===== */
+.empty-state {
+    padding: 60px 20px;
+    text-align: center;
+}
+.empty-state i {
+    font-size: 3rem;
+    color: #dee2e6;
+    margin-bottom: 16px;
+}
+.empty-state h5 {
+    color: #adb5bd;
+    font-weight: 600;
+}
+.empty-state p {
+    color: #ced4da;
+    font-size: 0.9rem;
+}
+
+/* ===== Pagination ===== */
+.pagination .page-link {
+    border-radius: 8px;
+    margin: 0 2px;
+    border: none;
+    color: #667eea;
+    font-weight: 500;
+}
+.pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .stat-number { font-size: 1.5rem; }
+    .nav-tabs-custom .nav-link { padding: 10px 14px; font-size: 0.85rem; }
+    .activity-table { font-size: 0.85rem; }
+}
+
+/* ===== User Avatar ===== */
+.user-avatar-sm {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+/* ===== Pulse Animation ===== */
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+.pulse-dot {
+    animation: pulse-dot 1.5s ease-in-out infinite;
 }
 </style>
 {% endblock %}
@@ -22,48 +265,102 @@
 {% block content %}
     <!-- Sayfa Başlığı -->
     <div class="page-header mb-4">
-        <h2>
-            <i class="fas fa-shield-alt text-danger me-2"></i>Kullanıcı Aktiviteleri 
-            <span class="badge bg-danger">Admin</span>
-        </h2>
-        <p class="text-muted mb-0 mt-1">Tüm kullanıcıların sistem aktiviteleri</p>
-    </div>
-    
-    <!-- İstatistikler -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card stat-card-primary text-white">
-                <div class="card-body text-center">
-                    <h3>{{ stats.total_activities }}</h3>
-                    <p class="mb-0">Toplam Aktivite</p>
-                </div>
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h2 class="mb-1">
+                    <i class="fas fa-chart-line text-primary me-2"></i>Sistem Monitörü
+                    <span class="badge bg-danger" style="font-size: 0.5em; vertical-align: middle;">Admin</span>
+                </h2>
+                <p class="text-muted mb-0">Kullanıcı aktiviteleri, oturum analizleri ve ilerleyiş raporları</p>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card stat-card-success text-white">
-                <div class="card-body text-center">
-                    <h3>{{ stats.unique_users }}</h3>
-                    <p class="mb-0">Aktif Kullanıcı</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card stat-card-info text-white">
-                <div class="card-body text-center">
-                    <h3>{{ stats.today_activities }}</h3>
-                    <p class="mb-0">Bugünkü Aktivite</p>
-                </div>
-            </div>
+            <a href="{{ url_for('main.manage_users') }}" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-users-cog me-1"></i> Kullanıcı Yönetimi
+            </a>
         </div>
     </div>
     
-    <!-- Filtreler -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Tarih</label>
-                    <select name="date" class="form-select" onchange="this.form.submit()">
+    <!-- ===== İstatistik Kartları ===== -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card stat-card-primary text-white">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <i class="fas fa-bolt stat-icon"></i>
+                    <div>
+                        <p class="stat-number">{{ stats.total_activities }}</p>
+                        <p class="stat-label">Toplam Aktivite</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card stat-card-success text-white">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <i class="fas fa-users stat-icon"></i>
+                    <div>
+                        <p class="stat-number">{{ stats.unique_users }}</p>
+                        <p class="stat-label">Aktif Kullanıcı</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card stat-card-info text-white">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <i class="fas fa-video stat-icon"></i>
+                    <div>
+                        <p class="stat-number">{{ stats.total_session_analyses }}</p>
+                        <p class="stat-label">Oturum Analizi</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card stat-card stat-card-warning text-white">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <i class="fas fa-chart-bar stat-icon"></i>
+                    <div>
+                        <p class="stat-number">{{ stats.total_progress_analyses }}</p>
+                        <p class="stat-label">İlerleyiş Analizi</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Mini İstatistikler ===== -->
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <div class="mini-stat">
+            <span class="dot dot-completed"></span>
+            <span><strong>{{ stats.completed_session_analyses }}</strong> Tamamlanan Oturum</span>
+        </div>
+        <div class="mini-stat">
+            <span class="dot dot-processing pulse-dot"></span>
+            <span><strong>{{ stats.processing_session_analyses }}</strong> Devam Eden</span>
+        </div>
+        <div class="mini-stat">
+            <span class="dot dot-failed"></span>
+            <span><strong>{{ stats.failed_session_analyses }}</strong> Başarısız</span>
+        </div>
+        <div class="mini-stat" style="background: #eef7ee;">
+            <span class="dot dot-completed"></span>
+            <span><strong>{{ stats.completed_progress_analyses }}</strong> Tamamlanan İlerleyiş</span>
+        </div>
+        <div class="mini-stat">
+            <i class="fas fa-calendar-day text-muted" style="font-size: 0.8rem;"></i>
+            <span><strong>{{ stats.today_activities }}</strong> Bugünkü Aktivite</span>
+        </div>
+    </div>
+    
+    <!-- ===== Filtreler ===== -->
+    <div class="card filter-card mb-4">
+        <div class="card-body py-3">
+            <form method="get" class="row g-2 align-items-end" id="filterForm">
+                <input type="hidden" name="tab" value="{{ active_tab }}">
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted">
+                        <i class="fas fa-calendar me-1"></i>Tarih
+                    </label>
+                    <select name="date" class="form-select form-select-sm" onchange="this.form.submit()">
                         <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Bugün</option>
                         <option value="week" {% if date_filter == 'week' %}selected{% endif %}>Son 7 Gün</option>
                         <option value="month" {% if date_filter == 'month' %}selected{% endif %}>Son 30 Gün</option>
@@ -72,8 +369,10 @@
                 </div>
                 
                 <div class="col-md-3">
-                    <label class="form-label">Kullanıcı</label>
-                    <select name="user_id" class="form-select" onchange="this.form.submit()">
+                    <label class="form-label small fw-bold text-muted">
+                        <i class="fas fa-user me-1"></i>Kullanıcı
+                    </label>
+                    <select name="user_id" class="form-select form-select-sm" onchange="this.form.submit()">
                         <option value="">Tüm Kullanıcılar</option>
                         {% for user in all_users %}
                         <option value="{{ user.id }}" {% if selected_user_id == user.id %}selected{% endif %}>
@@ -83,95 +382,492 @@
                     </select>
                 </div>
                 
-                <div class="col-md-3">
-                    <label class="form-label">Aksiyon</label>
-                    <input type="text" name="action" class="form-control" 
-                           placeholder="Ara..." value="{{ action_filter }}">
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted">
+                        <i class="fas fa-filter me-1"></i>Durum
+                    </label>
+                    <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">Tüm Durumlar</option>
+                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>✅ Tamamlandı</option>
+                        <option value="processing" {% if status_filter == 'processing' %}selected{% endif %}>🔄 Devam Ediyor</option>
+                        <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>❌ Başarısız</option>
+                        <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>⛔ İptal</option>
+                    </select>
                 </div>
                 
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted">
+                        <i class="fas fa-search me-1"></i>Aksiyon Ara
+                    </label>
+                    <input type="text" name="action" class="form-control form-control-sm" 
+                           placeholder="Aksiyon filtrele..." value="{{ action_filter }}">
+                </div>
+                
+                <div class="col-md-2 d-flex gap-1">
+                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
                         <i class="fas fa-search"></i> Filtrele
                     </button>
+                    <a href="{{ url_for('main.admin_user_activities', tab=active_tab) }}" class="btn btn-outline-secondary btn-sm" title="Filtreleri Sıfırla">
+                        <i class="fas fa-times"></i>
+                    </a>
                 </div>
             </form>
         </div>
     </div>
     
-    <!-- Aktivite Listesi -->
-    <div class="card">
-        <div class="card-body">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th width="180">Tarih/Saat</th>
-                        <th width="200">Kullanıcı</th>
-                        <th width="150">Aksiyon</th>
-                        <th>Açıklama</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if activities.items %}
-                        {% for activity in activities.items %}
+    <!-- ===== Tabs ===== -->
+    <ul class="nav nav-tabs nav-tabs-custom mb-0" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'activities' %}active{% endif %}" 
+               href="?tab=activities&date={{ date_filter }}&user_id={{ selected_user_id or '' }}">
+                <i class="fas fa-history me-1"></i> Aktiviteler
+                <span class="badge bg-secondary">{{ stats.total_activities }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'session_analyses' %}active{% endif %}" 
+               href="?tab=session_analyses&date={{ date_filter }}&user_id={{ selected_user_id or '' }}&status={{ status_filter }}">
+                <i class="fas fa-video me-1"></i> Oturum Analizleri
+                <span class="badge bg-info">{{ stats.total_session_analyses }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'progress_analyses' %}active{% endif %}" 
+               href="?tab=progress_analyses&date={{ date_filter }}&user_id={{ selected_user_id or '' }}&status={{ status_filter }}">
+                <i class="fas fa-chart-line me-1"></i> İlerleyiş Analizleri
+                <span class="badge bg-warning text-dark">{{ stats.total_progress_analyses }}</span>
+            </a>
+        </li>
+    </ul>
+    
+    <!-- ===== Tab İçerikleri ===== -->
+    <div class="card" style="border-top-left-radius: 0; border-top-right-radius: 0;">
+        <div class="card-body p-0">
+            
+            <!-- ==================== AKTİVİTELER TAB ==================== -->
+            {% if active_tab == 'activities' %}
+            <div class="table-responsive">
+                <table class="table activity-table mb-0">
+                    <thead>
                         <tr>
-                            <td>
-                                <small class="text-muted">
-                                    {{ activity.created_at.strftime('%d.%m.%Y') }}<br>
-                                    {{ activity.created_at.strftime('%H:%M:%S') }}
-                                </small>
-                            </td>
-                            <td>
-                                <strong>{{ activity.counselor.name }}</strong>
-                                {% if activity.counselor.is_admin %}
-                                <span class="badge bg-danger" title="Admin">⭐</span>
-                                {% endif %}
-                                <br>
-                                <small class="text-muted">{{ activity.counselor.email }}</small>
-                            </td>
-                            <td>
-                                <span class="badge bg-info">
-                                    {{ activity.action|replace('_', ' ')|title }}
-                                </span>
-                            </td>
-                            <td>{{ activity.description or '-' }}</td>
+                            <th width="160">Tarih / Saat</th>
+                            <th width="220">Kullanıcı</th>
+                            <th width="160">Aksiyon</th>
+                            <th>Açıklama</th>
                         </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="4" class="text-center text-muted">
-                                Kayıt bulunamadı
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% if activities.items %}
+                            {% for activity in activities.items %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-semibold" style="font-size: 0.85rem;">
+                                            {{ activity.created_at.strftime('%d.%m.%Y') }}
+                                        </span>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1" style="font-size: 0.7rem;"></i>{{ activity.created_at.strftime('%H:%M:%S') }}
+                                        </small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="user-avatar-sm" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                                            {{ activity.counselor.name[0] }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold" style="font-size: 0.9rem;">
+                                                {{ activity.counselor.name }}
+                                                {% if activity.counselor.is_admin %}
+                                                <span class="badge bg-danger" style="font-size: 0.6rem; padding: 2px 5px;">Admin</span>
+                                                {% endif %}
+                                            </div>
+                                            <small class="text-muted">{{ activity.counselor.email }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% set action = activity.action %}
+                                    {% if action == 'login' %}
+                                        <span class="status-badge status-completed"><i class="fas fa-sign-in-alt"></i> Giriş</span>
+                                    {% elif action == 'logout' %}
+                                        <span class="status-badge status-cancelled"><i class="fas fa-sign-out-alt"></i> Çıkış</span>
+                                    {% elif action == 'toggle_admin' %}
+                                        <span class="status-badge" style="background: rgba(255,193,7,0.12); color: #856404;">
+                                            <i class="fas fa-user-shield"></i> Admin
+                                        </span>
+                                    {% else %}
+                                        <span class="status-badge" style="background: rgba(13,110,253,0.08); color: #0d6efd;">
+                                            <i class="fas fa-cog"></i> {{ action|replace('_', ' ')|title }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span style="font-size: 0.9rem;">{{ activity.description or '-' }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4">
+                                    <div class="empty-state">
+                                        <i class="fas fa-inbox d-block"></i>
+                                        <h5>Aktivite Kaydı Bulunamadı</h5>
+                                        <p>Seçilen filtrelere uygun kayıt bulunamadı.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
             
             <!-- Pagination -->
             {% if activities.has_prev or activities.has_next %}
-            <nav class="mt-3">
-                <ul class="pagination justify-content-center">
-                    {% if activities.has_prev %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ activities.prev_num }}&date={{ date_filter }}&user_id={{ selected_user_id or '' }}&action={{ action_filter }}">
-                            Önceki
-                        </a>
-                    </li>
-                    {% endif %}
-                    
-                    <li class="page-item active">
-                        <span class="page-link">{{ activities.page }} / {{ activities.pages }}</span>
-                    </li>
-                    
-                    {% if activities.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ activities.next_num }}&date={{ date_filter }}&user_id={{ selected_user_id or '' }}&action={{ action_filter }}">
-                            Sonraki
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
+            <div class="p-3 border-top">
+                <nav>
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if activities.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="?tab=activities&page={{ activities.prev_num }}&date={{ date_filter }}&user_id={{ selected_user_id or '' }}&action={{ action_filter }}">
+                                <i class="fas fa-chevron-left"></i> Önceki
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for p in activities.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                            {% if p %}
+                                <li class="page-item {% if p == activities.page %}active{% endif %}">
+                                    <a class="page-link" href="?tab=activities&page={{ p }}&date={{ date_filter }}&user_id={{ selected_user_id or '' }}&action={{ action_filter }}">{{ p }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">…</span></li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if activities.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?tab=activities&page={{ activities.next_num }}&date={{ date_filter }}&user_id={{ selected_user_id or '' }}&action={{ action_filter }}">
+                                Sonraki <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+            
+            <!-- ==================== OTURUM ANALİZLERİ TAB ==================== -->
+            {% elif active_tab == 'session_analyses' %}
+            <div class="table-responsive">
+                <table class="table activity-table mb-0">
+                    <thead>
+                        <tr>
+                            <th width="140">Tarih</th>
+                            <th width="200">Danışman</th>
+                            <th width="180">Danışan</th>
+                            <th>Oturum</th>
+                            <th width="120">Durum</th>
+                            <th width="100">İlerleme</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if session_analyses.items %}
+                            {% for session in session_analyses.items %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-semibold" style="font-size: 0.85rem;">
+                                            {{ session.date.strftime('%d.%m.%Y') }}
+                                        </span>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1" style="font-size: 0.7rem;"></i>{{ session.date.strftime('%H:%M') }}
+                                        </small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="user-avatar-sm" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                                            {{ session.client.counselor.name[0] }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold" style="font-size: 0.9rem;">
+                                                {{ session.client.counselor.name }}
+                                            </div>
+                                            <small class="text-muted">{{ session.client.counselor.email }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold" style="font-size: 0.9rem;">
+                                        <i class="fas fa-user-circle text-muted me-1"></i>{{ session.client.name }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold" style="font-size: 0.9rem;">
+                                        <a href="{{ url_for('client.view_session', session_id=session.id) }}" class="text-decoration-none">
+                                            {{ session.title }}
+                                        </a>
+                                    </div>
+                                    <div class="mt-1">
+                                        <a href="{{ url_for('client.view_session', session_id=session.id) }}" class="btn btn-sm btn-outline-primary" style="font-size: 0.75rem;">
+                                            <i class="fas fa-eye me-1"></i>Oturumu Görüntüle
+                                        </a>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if session.analysis_status == 'completed' %}
+                                        <span class="status-badge status-completed">
+                                            <i class="fas fa-check-circle"></i> Tamamlandı
+                                        </span>
+                                    {% elif session.analysis_status == 'processing' %}
+                                        <span class="status-badge status-processing">
+                                            <i class="fas fa-spinner fa-spin"></i> Devam Ediyor
+                                        </span>
+                                    {% elif session.analysis_status == 'failed' %}
+                                        <span class="status-badge status-failed">
+                                            <i class="fas fa-times-circle"></i> Başarısız
+                                        </span>
+                                    {% elif session.analysis_status == 'cancelled' %}
+                                        <span class="status-badge status-cancelled">
+                                            <i class="fas fa-ban"></i> İptal
+                                        </span>
+                                    {% else %}
+                                        <span class="status-badge status-pending">
+                                            <i class="fas fa-hourglass-half"></i> Bekliyor
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if session.analysis_status == 'processing' %}
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height: 6px; border-radius: 3px;">
+                                            <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" 
+                                                 style="width: {{ session.analysis_progress }}%"></div>
+                                        </div>
+                                        <small class="text-muted fw-bold">%{{ session.analysis_progress }}</small>
+                                    </div>
+                                    {% elif session.analysis_status == 'completed' %}
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1" style="height: 6px; border-radius: 3px;">
+                                                <div class="progress-bar bg-success" style="width: 100%"></div>
+                                            </div>
+                                            <small class="text-success fw-bold">%100</small>
+                                        </div>
+                                    {% else %}
+                                        <small class="text-muted">-</small>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6">
+                                    <div class="empty-state">
+                                        <i class="fas fa-video d-block"></i>
+                                        <h5>Oturum Analizi Bulunamadı</h5>
+                                        <p>Seçilen filtrelere uygun oturum analizi bulunamadı.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if session_analyses.has_prev or session_analyses.has_next %}
+            <div class="p-3 border-top">
+                <nav>
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if session_analyses.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="?tab=session_analyses&page={{ session_analyses.prev_num }}&date={{ date_filter }}&user_id={{ selected_user_id or '' }}&status={{ status_filter }}">
+                                <i class="fas fa-chevron-left"></i> Önceki
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for p in session_analyses.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                            {% if p %}
+                                <li class="page-item {% if p == session_analyses.page %}active{% endif %}">
+                                    <a class="page-link" href="?tab=session_analyses&page={{ p }}&date={{ date_filter }}&user_id={{ selected_user_id or '' }}&status={{ status_filter }}">{{ p }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">…</span></li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if session_analyses.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?tab=session_analyses&page={{ session_analyses.next_num }}&date={{ date_filter }}&user_id={{ selected_user_id or '' }}&status={{ status_filter }}">
+                                Sonraki <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+            
+            <!-- ==================== İLERLEYİŞ ANALİZLERİ TAB ==================== -->
+            {% elif active_tab == 'progress_analyses' %}
+            <div class="table-responsive">
+                <table class="table activity-table mb-0">
+                    <thead>
+                        <tr>
+                            <th width="140">Tarih</th>
+                            <th width="200">Danışman</th>
+                            <th width="160">Danışan</th>
+                            <th width="150">Tarih Aralığı</th>
+                            <th width="100">Oturum Sayısı</th>
+                            <th width="120">Durum</th>
+                            <th width="100">İlerleme</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if progress_analyses.items %}
+                            {% for pa in progress_analyses.items %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-semibold" style="font-size: 0.85rem;">
+                                            {{ pa.created_at.strftime('%d.%m.%Y') }}
+                                        </span>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1" style="font-size: 0.7rem;"></i>{{ pa.created_at.strftime('%H:%M') }}
+                                        </small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="user-avatar-sm" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                                            {{ pa.counselor.name[0] }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold" style="font-size: 0.9rem;">
+                                                {{ pa.counselor.name }}
+                                            </div>
+                                            <small class="text-muted">{{ pa.counselor.email }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold" style="font-size: 0.9rem;">
+                                        <i class="fas fa-user-circle text-muted me-1"></i>{{ pa.client.name }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar-alt me-1"></i>{{ pa.date_range }}
+                                    </small>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark" style="font-size: 0.85rem; padding: 5px 12px;">
+                                        <i class="fas fa-layer-group me-1 text-primary"></i>{{ pa.sessions_analyzed }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if pa.analysis_status == 'completed' %}
+                                        <span class="status-badge status-completed">
+                                            <i class="fas fa-check-circle"></i> Tamamlandı
+                                        </span>
+                                    {% elif pa.analysis_status == 'processing' %}
+                                        <span class="status-badge status-processing">
+                                            <i class="fas fa-spinner fa-spin"></i> Devam Ediyor
+                                        </span>
+                                    {% elif pa.analysis_status == 'failed' %}
+                                        <span class="status-badge status-failed">
+                                            <i class="fas fa-times-circle"></i> Başarısız
+                                        </span>
+                                    {% elif pa.analysis_status == 'cancelled' %}
+                                        <span class="status-badge status-cancelled">
+                                            <i class="fas fa-ban"></i> İptal
+                                        </span>
+                                    {% else %}
+                                        <span class="status-badge status-pending">
+                                            <i class="fas fa-hourglass-half"></i> Bekliyor
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if pa.analysis_status == 'completed' %}
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height: 6px; border-radius: 3px;">
+                                            <div class="progress-bar bg-success" style="width: 100%"></div>
+                                        </div>
+                                        <small class="text-success fw-bold">%100</small>
+                                    </div>
+                                    <div class="mt-2">
+                                        <a href="{{ url_for('main.view_progress_report', report_id=pa.id) }}" class="btn btn-sm btn-outline-primary w-100" style="font-size: 0.75rem;">
+                                            <i class="fas fa-eye me-1"></i>Raporu Görüntüle
+                                        </a>
+                                    </div>
+                                    {% elif pa.analysis_status == 'processing' %}
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height: 6px; border-radius: 3px;">
+                                            <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" 
+                                                 style="width: {{ pa.analysis_progress }}%"></div>
+                                        </div>
+                                        <small class="text-muted fw-bold">%{{ pa.analysis_progress }}</small>
+                                    </div>
+                                    {% else %}
+                                        <small class="text-muted">-</small>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <i class="fas fa-chart-line d-block"></i>
+                                        <h5>İlerleyiş Analizi Bulunamadı</h5>
+                                        <p>Seçilen filtrelere uygun ilerleyiş analizi bulunamadı.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if progress_analyses.has_prev or progress_analyses.has_next %}
+            <div class="p-3 border-top">
+                <nav>
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if progress_analyses.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="?tab=progress_analyses&page={{ progress_analyses.prev_num }}&date={{ date_filter }}&user_id={{ selected_user_id or '' }}&status={{ status_filter }}">
+                                <i class="fas fa-chevron-left"></i> Önceki
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for p in progress_analyses.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                            {% if p %}
+                                <li class="page-item {% if p == progress_analyses.page %}active{% endif %}">
+                                    <a class="page-link" href="?tab=progress_analyses&page={{ p }}&date={{ date_filter }}&user_id={{ selected_user_id or '' }}&status={{ status_filter }}">{{ p }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">…</span></li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if progress_analyses.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?tab=progress_analyses&page={{ progress_analyses.next_num }}&date={{ date_filter }}&user_id={{ selected_user_id or '' }}&status={{ status_filter }}">
+                                Sonraki <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+            
             {% endif %}
         </div>
+    </div>
 {% endblock %}
-

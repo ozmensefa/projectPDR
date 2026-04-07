@@ -3,7 +3,7 @@ REM Celery Worker Başlatma Scripti (Windows)
 REM Bu script Celery worker'ı başlatır
 
 echo ========================================
-echo PDR Analiz Sistemi - Celery Worker
+echo YAKADES - Celery Worker
 echo ========================================
 echo.
 

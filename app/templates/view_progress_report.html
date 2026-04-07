@@ -68,7 +68,8 @@
             </div>
             <div class="mt-5 text-center">
                 <hr>
-                <p><small>Bu rapor PDR Analiz Sistemi tarafından otomatik olarak oluşturulmuştur.</small></p>
+                <p><small>Bu rapor YAKADES tarafından psikolojik danışmanlık süreçlerine destek amacıyla
+                        oluşturulmuştur. Resmi bir geçerliliği yoktur.</small></p>
             </div>
         </div>
 
@@ -503,7 +504,7 @@
             '================================================================================\n\n' +
             content + '\n\n' +
             '================================================================================\n' +
-            'Bu rapor PDR Analiz Sistemi tarafından otomatik olarak oluşturulmuştur.\n';
+            'Bu rapor YAKADES tarafından psikolojik danışmanlık süreçlerine destek amacıyla oluşturulmuştur. Resmi bir geçerliliği yoktur.\n';
         var blob = new Blob([fullContent], { type: 'text/plain;charset=utf-8' });
         triggerDownload(blob, fileName + '.txt');
     }
@@ -518,7 +519,7 @@
             '<p style="font-size:13px;color:#888;text-align:center;">Tarih: ' + dateRange + ' | Oturum: ' + sessionsAnalyzed + ' | Rapor: ' + reportDate + '</p>' +
             '<hr style="margin:15px 0;">' +
             '<div style="font-size:14px;line-height:1.7;">' + htmlContent + '</div>' +
-            '<hr style="margin:20px 0;"><p style="font-size:11px;color:#999;text-align:center;">Bu rapor PDR Analiz Sistemi tarafından otomatik olarak oluşturulmuştur.</p>';
+            '<hr style="margin:20px 0;"><p style="font-size:11px;color:#999;text-align:center;">Bu rapor YAKADES tarafından psikolojik danışmanlık süreçlerine destek amacıyla oluşturulmuştur. Resmi bir geçerliliği yoktur.</p>';
         document.body.appendChild(tempDiv);
 
         html2canvas(tempDiv, { scale: 2, useCORS: true, logging: false }).then(function (canvas) {
@@ -570,7 +571,7 @@
             }
         });
         paragraphs.push(new docx.Paragraph({ border: { bottom: { color: 'cccccc', space: 1, style: docx.BorderStyle.SINGLE, size: 6 } }, spacing: { before: 300, after: 200 } }));
-        paragraphs.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'Bu rapor PDR Analiz Sistemi tarafından otomatik olarak oluşturulmuştur.', size: 18, color: '999999', italics: true })], alignment: docx.AlignmentType.CENTER }));
+        paragraphs.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'Bu rapor YAKADES tarafından psikolojik danışmanlık süreçlerine destek amacıyla oluşturulmuştur. Resmi bir geçerliliği yoktur.', size: 18, color: '999999', italics: true })], alignment: docx.AlignmentType.CENTER }));
 
         var doc = new docx.Document({ sections: [{ properties: {}, children: paragraphs }] });
         docx.Packer.toBlob(doc).then(function (blob) {

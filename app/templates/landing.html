@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YAKADES — Yapay Zeka Destekli Psikolojik Danışmanlık Analiz Sistemi</title>
+    <meta name="description"
+        content="YAKADES, psikolojik danışma oturumlarınızı yapay zeka ile analiz eden, ses, duygu, beden dili ve metin analizleri sunan profesyonel karar destek sistemidir.">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1565c0;
+            --primary-dark: #0d47a1;
+            --primary-light: #42a5f5;
+            --accent: #7c4dff;
+            --accent-light: #b388ff;
+            --bg-dark: #0a0e27;
+            --bg-card: rgba(255, 255, 255, 0.06);
+            --text-main: #e8eaf6;
+            --text-muted: #9fa8da;
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --gradient-hero: linear-gradient(135deg, #0a0e27 0%, #1a1f4e 40%, #0d2137 100%);
+            --gradient-accent: linear-gradient(135deg, #1565c0 0%, #7c4dff 100%);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.3);
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.7;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .bg-glow {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .bg-glow .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: .18;
+            animation: orbFloat 20s ease-in-out infinite;
+        }
+
+        .bg-glow .orb:nth-child(1) {
+            width: 600px;
+            height: 600px;
+            background: var(--primary);
+            top: -10%;
+            left: -5%;
+            animation-duration: 22s;
+        }
+
+        .bg-glow .orb:nth-child(2) {
+            width: 500px;
+            height: 500px;
+            background: var(--accent);
+            bottom: -10%;
+            right: -5%;
+            animation-duration: 26s;
+            animation-delay: -5s;
+        }
+
+        .bg-glow .orb:nth-child(3) {
+            width: 350px;
+            height: 350px;
+            background: #00bcd4;
+            top: 40%;
+            left: 50%;
+            animation-duration: 30s;
+            animation-delay: -10s;
+        }
+
+        @keyframes orbFloat {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(40px, -30px) scale(1.05);
+            }
+
+            66% {
+                transform: translate(-30px, 20px) scale(0.95);
+            }
+        }
+
+        .landing-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 16px 0;
+            transition: all 0.4s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .landing-nav.scrolled {
+            background: rgba(10, 14, 39, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 10px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #fff;
+            font-weight: 800;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+        }
+
+        .nav-brand i {
+            font-size: 1.6rem;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.92rem;
+            padding: 8px 18px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #fff;
+            background: var(--glass);
+        }
+
+        .nav-links .btn-nav-login {
+            color: #fff;
+            background: transparent;
+            border: 1.5px solid var(--glass-border);
+        }
+
+        .nav-links .btn-nav-login:hover {
+            border-color: var(--primary-light);
+            background: rgba(21, 101, 192, 0.15);
+        }
+
+        .nav-links .btn-nav-register {
+            color: #fff;
+            background: var(--gradient-accent);
+            border: none;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(124, 77, 255, 0.3);
+        }
+
+        .nav-links .btn-nav-register:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 25px rgba(124, 77, 255, 0.45);
+        }
+
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .hero {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 24px 80px;
+            text-align: center;
+        }
+
+        .hero-inner {
+            max-width: 1000px;
+        }
+
+        .hero h2 {
+            font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+            font-weight: 400;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            animation: fadeInUp 0.8s ease 0.1s both;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 6px 18px;
+            border-radius: 50px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--accent-light);
+            margin-bottom: 28px;
+            animation: fadeInUp 0.8s ease both;
+        }
+
+        .hero-badge i {
+            font-size: 0.75rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+            font-weight: 900;
+            line-height: 1.15;
+            margin-bottom: 24px;
+            animation: fadeInUp 0.8s ease 0.15s both;
+        }
+
+        .hero h1 .gradient-text {
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1rem;
+            color: var(--text-muted);
+            max-width: 1000px;
+            margin: 0 auto 40px;
+            line-height: 1.9;
+            text-align: justify;
+            animation: fadeInUp 0.8s ease 0.3s both;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease 0.45s both;
+        }
+
+        .btn-hero-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 36px;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+            background: var(--gradient-accent);
+            box-shadow: 0 8px 30px rgba(124, 77, 255, 0.35);
+            transition: all 0.3s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .btn-hero-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(124, 77, 255, 0.5);
+        }
+
+        .btn-hero-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 36px;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #fff;
+            text-decoration: none;
+            background: transparent;
+            border: 2px solid var(--glass-border);
+            transition: all 0.3s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .btn-hero-secondary:hover {
+            border-color: var(--primary-light);
+            background: rgba(21, 101, 192, 0.12);
+            transform: translateY(-3px);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+        }
+
+        .scroll-indicator i {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            opacity: .5;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            40% {
+                transform: translateX(-50%) translateY(-8px);
+            }
+
+            60% {
+                transform: translateX(-50%) translateY(-4px);
+            }
+        }
+
+        section {
+            position: relative;
+            z-index: 1;
+            padding: 100px 24px;
+        }
+
+        .section-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .section-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--accent-light);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .section-header h2 {
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        .section-header p {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 36px 28px;
+            transition: all 0.4s cubic-bezier(.4, 0, .2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-accent);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+            transform-origin: left;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(124, 77, 255, 0.3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            background: rgba(21, 101, 192, 0.12);
+            color: var(--primary-light);
+        }
+
+        .feature-card:nth-child(2) .feature-icon {
+            background: rgba(124, 77, 255, 0.12);
+            color: var(--accent-light);
+        }
+
+        .feature-card:nth-child(3) .feature-icon {
+            background: rgba(0, 188, 212, 0.12);
+            color: #4dd0e1;
+        }
+
+        .feature-card:nth-child(4) .feature-icon {
+            background: rgba(255, 112, 67, 0.12);
+            color: #ff8a65;
+        }
+
+        .feature-card:nth-child(5) .feature-icon {
+            background: rgba(102, 187, 106, 0.12);
+            color: #81c784;
+        }
+
+        .feature-card:nth-child(6) .feature-icon {
+            background: rgba(255, 183, 77, 0.12);
+            color: #ffb74d;
+        }
+
+        .feature-card h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 32px;
+        }
+
+        .step-card {
+            text-align: center;
+            padding: 40px 24px;
+            position: relative;
+        }
+
+        .step-number {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 1.4rem;
+            font-weight: 800;
+            background: var(--gradient-accent);
+            color: #fff;
+            box-shadow: 0 6px 25px rgba(124, 77, 255, 0.3);
+        }
+
+        .step-card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .step-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .step-card:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 56px;
+            right: -16px;
+            width: 32px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), transparent);
+        }
+
+        /* ========== TEAM ========== */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .team-card {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 32px 24px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(.4, 0, .2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .team-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-accent);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+            transform-origin: left;
+        }
+
+        .team-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .team-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(124, 77, 255, 0.3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .team-card.lead-card {
+            border-color: rgba(124, 77, 255, 0.25);
+            background: linear-gradient(135deg, rgba(21, 101, 192, 0.1) 0%, rgba(124, 77, 255, 0.08) 100%);
+        }
+
+        .team-card.lead-card::before {
+            transform: scaleX(1);
+        }
+
+        .team-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, rgba(21, 101, 192, 0.2), rgba(124, 77, 255, 0.2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--accent-light);
+            border: 3px solid var(--glass-border);
+            overflow: hidden;
+            transition: border-color 0.3s ease;
+        }
+
+        .team-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .team-card:hover .team-photo {
+            border-color: rgba(124, 77, 255, 0.5);
+        }
+
+        .team-role {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--accent-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+            background: rgba(124, 77, 255, 0.12);
+            padding: 4px 12px;
+            border-radius: 50px;
+        }
+
+        .team-card.lead-card .team-role {
+            background: var(--gradient-accent);
+            color: #fff;
+        }
+
+        .team-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--text-main);
+        }
+
+        .team-university {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .team-university i {
+            font-size: 0.75rem;
+            color: var(--primary-light);
+        }
+
+        .cta-section {
+            text-align: center;
+            padding: 120px 24px;
+        }
+
+        .cta-box {
+            max-width: 700px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, rgba(21, 101, 192, 0.15) 0%, rgba(124, 77, 255, 0.15) 100%);
+            border: 1px solid rgba(124, 77, 255, 0.25);
+            border-radius: 24px;
+            padding: 60px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-box::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 50%, rgba(124, 77, 255, 0.1) 0%, transparent 60%);
+        }
+
+        .cta-box h2 {
+            font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+            font-weight: 800;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .cta-box p {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .landing-footer {
+            position: relative;
+            z-index: 1;
+            border-top: 1px solid var(--glass-border);
+            padding: 40px 24px;
+            text-align: center;
+        }
+
+        .landing-footer p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .landing-footer .footer-links {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .landing-footer .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.3s;
+        }
+
+        .landing-footer .footer-links a:hover {
+            color: var(--primary-light);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.7s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .nav-links.open {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(10, 14, 39, 0.97);
+                backdrop-filter: blur(20px);
+                padding: 16px 24px;
+                border-bottom: 1px solid var(--glass-border);
+            }
+
+            .nav-toggle {
+                display: block;
+            }
+
+            .hero {
+                padding: 100px 20px 60px;
+                min-height: auto;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn-hero-primary,
+            .btn-hero-secondary {
+                width: 100%;
+                max-width: 320px;
+                justify-content: center;
+            }
+
+            section {
+                padding: 60px 16px;
+            }
+
+            .features-grid,
+            .steps-grid,
+            .team-grid {
+                grid-template-columns: 1fr;
+                max-width: 100%;
+            }
+
+            .hero p {
+                text-align: left;
+            }
+
+            .step-card:not(:last-child)::after {
+                display: none;
+            }
+
+            .cta-box {
+                padding: 40px 24px;
+            }
+
+            .scroll-indicator {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="bg-glow">
+        <div class="orb"></div>
+        <div class="orb"></div>
+        <div class="orb"></div>
+    </div>
+
+    <nav class="landing-nav" id="landingNav">
+        <div class="nav-container">
+            <a href="#" class="nav-brand">
+                <i class="fas fa-brain"></i>
+                <span>YAKADES</span>
+            </a>
+            <button class="nav-toggle" id="navToggle" aria-label="Menüyü aç/kapat">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="nav-links" id="navLinks">
+                <a href="#features">Özellikler</a>
+                <a href="#how-it-works">Nasıl Çalışır</a>
+                <a href="#team">Proje Ekibi</a>
+                <a href="{{ url_for('auth.login') }}" class="btn-nav-login">Giriş Yap</a>
+                <a href="{{ url_for('auth.register') }}" class="btn-nav-register">Kayıt Ol</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-inner">
+            <div class="hero-badge">
+                <i class="fas fa-award"></i>
+                TÜBİTAK 1001 Destekli Proje — 125R120
+            </div>
+            <h2>
+                Psikolojik Danışmanlara Yönelik
+            </h2>
+            <h1>
+                <span class="gradient-text">Yapay Zeka Tabanlı<br>Karar Destek Sistemi</span>
+            </h1>
+            <p>
+                Bu sistem; TÜBİTAK 1001 — Bilimsel ve Teknolojik Araştırma Projelerini Destekleme Programı (ARDEB)
+                kapsamında desteklenmeye hak kazanan 125R120 kodlu <b>"Üniversite Öğrencilerinin Kaygı ile İlişkili
+                    Problemlerinin Tespiti ve Takibine Yönelik Yapay Zekâ Tabanlı Karar Destek Sisteminin (YAKADES)
+                    Tasarlanması"</b> projesi kapsamında geliştirilmiştir.
+            </p>
+            <p>
+                YAKADES; üniversite öğrencilerinde yaygın olarak görülen kaygı ile ilişkili problemlerin erken tespiti
+                ve sistematik takibi amacıyla geliştirilmiş yapay zeka tabanlı bir sistemdir. Proje, psikolojik
+                danışmanların karar alma süreçlerini güçlendirmeyi ve danışmanlık hizmetlerinin etkililiğini artırmayı
+                hedeflemektedir.
+            </p>
+            <p>
+                Üniversite yaşamı; akademik baskılar, sosyal uyum süreçleri ve bireysel sorumlulukların artışı gibi
+                nedenlerle öğrenciler için yoğun bir psikolojik yük oluşturmaktadır. Bu süreçte ortaya çıkan kaygı
+                problemlerinin zamanında tespit edilememesi, öğrencilerin akademik başarılarını, sosyal ilişkilerini ve
+                genel iyi oluşlarını olumsuz etkileyebilmektedir. Bu bağlamda YAKADES, yalnızca öz-bildirimlere dayalı
+                değerlendirmelerin ötesine geçerek çoklu veri kaynaklarını (ses, metin, beden dili ve duygu analizi)
+                kullanarak kapsamlı bir analiz sunmayı amaçlamaktadır.
+            </p>
+            <div class="hero-buttons">
+                <a href="{{ url_for('auth.register') }}" class="btn-hero-primary" id="hero-register-btn">
+                    <i class="fas fa-rocket"></i>
+                    Hemen Başla
+                </a>
+                <a href="#how-it-works" class="btn-hero-secondary" id="hero-learn-btn">
+                    <i class="fas fa-play-circle"></i>
+                    Nasıl Çalışır?
+                </a>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </section>
+
+    <section id="features">
+        <div class="section-container">
+            <div class="section-header reveal">
+                <div class="section-tag"><i class="fas fa-star"></i> Özellikler</div>
+                <h2>Kapsamlı Analiz Araçları</h2>
+                <p>Danışma oturumlarınızı çok boyutlu olarak değerlendiren güçlü yapay zeka altyapısı</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card reveal">
+                    <div class="feature-icon"><i class="fas fa-microphone-alt"></i></div>
+                    <h3>Ses Analizi</h3>
+                    <p>Konuşma tonunu, hızını ve ses frekans değişimlerini analiz ederek duygusal durumu değerlendirir.
+                    </p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="feature-icon"><i class="fas fa-file-alt"></i></div>
+                    <h3>Metin Analizi</h3>
+                    <p>Otomatik transkripsiyon yaparak konuşma içeriğini detaylı şekilde analiz eder.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="feature-icon"><i class="fas fa-face-smile"></i></div>
+                    <h3>Duygu Analizi</h3>
+                    <p>Yenilikçi teknolojisiyle yüz ifadelerinden duygu değişimlerini saniye saniye takip eder.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="feature-icon"><i class="fas fa-person-walking"></i></div>
+                    <h3>Beden Dili Analizi</h3>
+                    <p>Vücut postürü ve hareketleri analiz ederek sözel olmayan iletişim verilerini ortaya koyar.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works">
+        <div class="section-container">
+            <div class="section-header reveal">
+                <div class="section-tag"><i class="fas fa-route"></i> Adımlar</div>
+                <h2>Nasıl Çalışır?</h2>
+                <p>Üç kolay adımda profesyonel oturum analizi</p>
+            </div>
+            <div class="steps-grid">
+                <div class="step-card reveal">
+                    <div class="step-number">1</div>
+                    <h3>Video Yükleyin</h3>
+                    <p>Danışma oturumunuzun video kaydını sisteme yükleyin.</p>
+                </div>
+                <div class="step-card reveal">
+                    <div class="step-number">2</div>
+                    <h3>AI Analiz Etsin</h3>
+                    <p>Yapay zeka modelimiz videoyu ses, metin, duygu ve beden dili boyutlarında analiz eder.</p>
+                </div>
+                <div class="step-card reveal">
+                    <div class="step-number">3</div>
+                    <h3>Raporu İnceleyin</h3>
+                    <p>Kapsamlı psikolojik danışmanlık raporunuzu görüntüleyin veya PDF olarak indirin.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="team">
+        <div class="section-container">
+            <div class="section-header reveal">
+                <div class="section-tag"><i class="fas fa-users"></i> Proje Ekibi</div>
+                <h2>Araştırma Ekibimiz</h2>
+                <p>YAKADES projesini geliştiren akademik kadro</p>
+            </div>
+
+            <!-- Yürütücü - tek başına ortalı -->
+            <div style="display:flex; justify-content:center; margin-bottom:24px;">
+                <a href="https://akademik.yok.gov.tr/AkademikArama/AkademisyenGorevOgrenimBilgileri?islem=direct&sira=_D2bDdARDMCOgjHVGzFVZw&authorId=51DB9EE38E5F07C1"
+                    target="_blank" class="team-card lead-card reveal" style="max-width:280px; width:100%;">
+                    <div class="team-photo">
+                        <img src="{{ url_for('static', filename='images/erumit.jpg') }}" alt="Ali Kürşat Erümit">
+                    </div>
+                    <div class="team-role">Yürütücü</div>
+                    <div class="team-name">Doç. Dr. Ali Kürşat Erümit</div>
+                    <div class="team-university">Trabzon Üniversitesi</div>
+                </a>
+            </div>
+
+            <!-- Araştırmacılar -->
+            <div class="team-grid">
+                <a href="https://akademik.yok.gov.tr/AkademikArama/AkademisyenGorevOgrenimBilgileri?islem=direct&sira=_D2bDdARDMCOgjHVGzFVZw&authorId=53F10D97B5DA6424"
+                    target="_blank" class="team-card reveal">
+                    <div class="team-photo">
+                        <img src="{{ url_for('static', filename='images/hasankaral.jpg') }}" alt="Hasan Karal">
+                    </div>
+                    <div class="team-role">Araştırmacı</div>
+                    <div class="team-name">Prof. Dr. Hasan Karal</div>
+                    <div class="team-university">Trabzon Üniversitesi</div>
+                </a>
+                <a href="https://akademik.yok.gov.tr/AkademikArama/AkademisyenGorevOgrenimBilgileri?islem=direct&sira=_D2bDdARDMCOgjHVGzFVZw&authorId=1952A2FCD199D883"
+                    target="_blank" class="team-card reveal">
+                    <div class="team-photo">
+                        <img src="{{ url_for('static', filename='images/hikmetyazici.jpg') }}" alt="Hikmet Yazıcı">
+                    </div>
+                    <div class="team-role">Araştırmacı</div>
+                    <div class="team-name">Prof. Dr. Hikmet Yazıcı</div>
+                    <div class="team-university">Trabzon Üniversitesi</div>
+                </a>
+                <a href="https://akademik.yok.gov.tr/AkademikArama/AkademisyenGorevOgrenimBilgileri?islem=direct&sira=_D2bDdARDMCOgjHVGzFVZw&authorId=71433975F7D1BA10"
+                    target="_blank" class="team-card reveal">
+                    <div class="team-photo">
+                        <img src="{{ url_for('static', filename='images/vasifnabiyev.jpg') }}" alt="Vasif Nabiyev">
+                    </div>
+                    <div class="team-role">Araştırmacı</div>
+                    <div class="team-name">Prof. Dr. Vasif Nabiyev</div>
+                    <div class="team-university">Karadeniz Teknik Üniversitesi</div>
+                </a>
+                <a href="https://akademik.yok.gov.tr/AkademikArama/AkademisyenGorevOgrenimBilgileri?islem=direct&sira=VAWp5jxMDUj5cB0bvOvsDw&authorId=2DEA31B9A84569C6"
+                    target="_blank" class="team-card reveal">
+                    <div class="team-photo">
+                        <img src="{{ url_for('static', filename='images/aysekalyon.jpg') }}" alt="Ayşe Kalyon">
+                    </div>
+                    <div class="team-role">Araştırmacı</div>
+                    <div class="team-name">Dr. Öğr. Üyesi Ayşe Kalyon</div>
+                    <div class="team-university">Trabzon Üniversitesi</div>
+                </a>
+                <a href="https://akademik.yok.gov.tr/AkademikArama/AkademisyenGorevOgrenimBilgileri?islem=direct&sira=NPyYQsydu7pn_jChegdWIA&authorId=74A34E764ED4355C"
+                    target="_blank" class="team-card reveal">
+                    <div class="team-photo">
+                        <img src="{{ url_for('static', filename='images/fatihkoca.jpg') }}" alt="Fatih Koca">
+                    </div>
+                    <div class="team-role">Araştırmacı</div>
+                    <div class="team-name">Dr. Öğr. Üyesi Fatih Koca</div>
+                    <div class="team-university">Trabzon Üniversitesi</div>
+                </a>
+                <a href="https://akademik.yok.gov.tr/AkademikArama/AkademisyenGorevOgrenimBilgileri?islem=direct&authorId=ABA8C9B5B9776A64"
+                    target="_blank" class="team-card reveal">
+                    <div class="team-photo">
+                        <img src="{{ url_for('static', filename='images/sefa.png') }}" alt="Sefa Özmen">
+                    </div>
+                    <div class="team-role">Araştırmacı</div>
+                    <div class="team-name">Öğr. Gör. Sefa Özmen</div>
+                    <div class="team-university">Trabzon Üniversitesi</div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="landing-footer">
+        <div class="footer-links">
+            <a href="#features">Özellikler</a>
+            <a href="#how-it-works">Nasıl Çalışır</a>
+            <a href="#team">Proje Ekibi</a>
+            <a href="{{ url_for('auth.login') }}">Giriş Yap</a>
+            <a href="{{ url_for('auth.register') }}">Kayıt Ol</a>
+        </div>
+        <p style="font-size: 0.78rem; color: rgba(159,168,218,0.6); margin-top: 12px;">
+            Bu proje TÜBİTAK 1001 — Bilimsel ve Teknolojik Araştırma Projelerini Destekleme Programı kapsamında
+            desteklenmektedir.
+        </p>
+        <p>&copy; 2026 YAKADES — Tüm hakları saklıdır.</p>
+    </footer>
+
+    <script>
+        (function () {
+            var nav = document.getElementById('landingNav');
+            window.addEventListener('scroll', function () {
+                nav.classList.toggle('scrolled', window.scrollY > 40);
+            });
+
+            var toggle = document.getElementById('navToggle');
+            var links = document.getElementById('navLinks');
+            toggle.addEventListener('click', function () {
+                links.classList.toggle('open');
+                var icon = toggle.querySelector('i');
+                icon.classList.toggle('fa-bars');
+                icon.classList.toggle('fa-times');
+            });
+
+            links.querySelectorAll('a').forEach(function (a) {
+                a.addEventListener('click', function () {
+                    links.classList.remove('open');
+                    var icon = toggle.querySelector('i');
+                    icon.classList.add('fa-bars');
+                    icon.classList.remove('fa-times');
+                });
+            });
+
+            var reveals = document.querySelectorAll('.reveal');
+            function checkReveal() {
+                var wh = window.innerHeight;
+                reveals.forEach(function (el) {
+                    var top = el.getBoundingClientRect().top;
+                    if (top < wh - 80) {
+                        el.classList.add('visible');
+                    }
+                });
+            }
+            window.addEventListener('scroll', checkReveal);
+            window.addEventListener('load', checkReveal);
+
+            document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+                a.addEventListener('click', function (e) {
+                    var target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        e.preventDefault();
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
+        })();
+    </script>
+
+</body>
+
+</html>
