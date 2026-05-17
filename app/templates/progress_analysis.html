@@ -43,6 +43,7 @@
                     </div>
 
                     <form method="POST" action="{{ url_for('main.generate_progress_report', client_id=client.id) }}" id="progress-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">

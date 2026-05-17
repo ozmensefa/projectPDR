@@ -265,7 +265,7 @@ def analyze_video(self, session_id, counselor_id):
                 # Hata mesajını kullanıcı dostu hale getir (429 = API kotası)
                 err_msg = str(e)
                 if '429' in err_msg or 'quota' in err_msg.lower():
-                    display_msg = "Google Gemini API kotası aşıldı. Lütfen plan ve faturalandırma ayarlarınızı kontrol edin veya daha sonra tekrar deneyin."
+                    display_msg = "Analiz sırasında bir hata oluştu. Lütfen yöneticinizle iletişime geçin."
                 else:
                     display_msg = err_msg[:200] + ("..." if len(err_msg) > 200 else "")
                 # Hata bildirimi oluştur
@@ -396,7 +396,7 @@ def analyze_progress(self, progress_analysis_id, counselor_id):
             
             # AI ile ilerleyiş analizi yap
             print("\n🤖 AI İLE İLERLEYİŞ ANALİZİ BAŞLIYOR...")
-            ai_service = AIService()
+            ai_service = AIService(api_key_type='progress')
             progress_result = ai_service.analyze_progress(
                 client_name=progress_analysis.client.name,
                 session_analyses=session_analyses,

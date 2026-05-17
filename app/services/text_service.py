@@ -146,7 +146,7 @@ class TextService:
                 "language": "tr",
                 "task": "transcribe",
                 "verbose": True,
-                "condition_on_previous_text": True,
+                "condition_on_previous_text": False,
                 "initial_prompt": "Bu bir video konuşma transkripsiyonudur.",
                 "compression_ratio_threshold": 2.4,
                 "temperature": 0,
@@ -166,7 +166,7 @@ class TextService:
                     "patience": 1.0,  # Beam search patience
                     "length_penalty": 1.0,  # Uzunluk cezası
                     "suppress_tokens": "-1",  # Token bastırma
-                    "condition_on_previous_text": True  # Önceki metne dayalı
+                    "condition_on_previous_text": False  # Önceki metne dayalı
                 })
                 print("  • CUDA optimize ayarları aktif - En yüksek kalite")
                 

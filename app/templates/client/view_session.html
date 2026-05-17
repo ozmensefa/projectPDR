@@ -70,7 +70,7 @@
                                             accept="video/*" required>
                                         <div class="form-text">
                                             <i class="fas fa-info-circle"></i> Desteklenen formatlar: MP4, AVI, MOV, MKV
-                                            (Maksimum 500MB)
+                                            (Maksimum 2.5GB)
                                         </div>
                                     </div>
 
@@ -141,8 +141,8 @@
                 </div>
                 {% else %}
                 <!-- Analiz durumu kontrolü -->
-                {% if session.analysis_status == 'processing' %}
-                <!-- Analiz devam ediyor -->
+                {% if session.analysis_status == 'processing' or session.analysis_status == 'queued' %}
+                <!-- Analiz devam ediyor veya sıraya alındı -->
                 <div class="alert alert-warning text-center" id="analysisInProgress">
                     <div class="spinner-border text-primary mb-3" role="status">
                         <span class="visually-hidden">Yükleniyor...</span>
@@ -186,8 +186,8 @@
                     <i class="fas fa-times-circle fa-2x mb-3"></i>
                     <h5>Analiz Başarısız</h5>
                     <p>Video analizi sırasında bir hata oluştu. Lütfen tekrar deneyin.</p>
-                    <p class="small text-muted mb-0">Sık neden: Google Gemini API kotası aşılmış olabilir. Bildirimlerde
-                        hata detayını görebilirsiniz.</p>
+                    <p class="small text-muted mb-0">Sorunu tekrar yaşamanız durumunda lütfen sistem yöneticinizle
+                        iletişime geçin.</p>
 
                     {% if session.video_path %}
                     <button onclick="startAsyncAnalysis()" class="btn btn-danger btn-lg">
@@ -791,10 +791,10 @@
             return;
         }
 
-        // Dosya boyutu kontrolü (500MB = 500 * 1024 * 1024 bytes)
-        const maxSize = 500 * 1024 * 1024;
+        // Dosya boyutu kontrolü (2.5GB = 2.5 * 1024 * 1024 * 1024 bytes)
+        const maxSize = 2.5 * 1024 * 1024 * 1024;
         if (file.size > maxSize) {
-            alert('Video dosyası çok büyük! Maksimum 500MB yükleyebilirsiniz.');
+            alert('Video dosyası çok büyük! Maksimum 2.5GB yükleyebilirsiniz.');
             return;
         }
 
@@ -975,7 +975,7 @@
             });
     }
 
-    // Eğer analiz devam ediyorsa, durum kontrolünü başlat
+    // Eğer analiz devam ediyorsa veya sıradaysa, durum kontrolünü başlat
     document.addEventListener('DOMContentLoaded', function () {
         var analysisStatus = sessionDataEl.getAttribute('data-analysis-status');
         var initialProgress = parseInt(sessionDataEl.getAttribute('data-analysis-progress')) || 0;
@@ -985,7 +985,8 @@
         if (cancelBtn) cancelBtn.addEventListener('click', cancelAnalysis);
 
         // Başlangıç ilerleme değerini ayarla
-        if (analysisStatus === 'processing') {
+        // 'queued': sırada bekliyor (progress=0 sabit), 'processing': aktif çalışıyor
+        if (analysisStatus === 'processing' || analysisStatus === 'queued') {
             updateProgressBar(initialProgress);
             // İlk kontrolü hemen yap
             checkAnalysisStatus();

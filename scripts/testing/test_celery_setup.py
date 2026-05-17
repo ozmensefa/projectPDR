@@ -129,18 +129,33 @@ print("\n6️⃣ Gemini API Kontrolü...")
 try:
     from app.config import Config
     
-    if Config.GEMINI_API_KEY:
-        key_preview = Config.GEMINI_API_KEY[:10] + "..." + Config.GEMINI_API_KEY[-4:]
-        print(f"   ✅ Gemini API Key bulundu: {key_preview}")
+    # Oturum API Key kontrolü
+    if Config.GEMINI_API_KEY_SESSION:
+        key_preview = Config.GEMINI_API_KEY_SESSION[:10] + "..." + Config.GEMINI_API_KEY_SESSION[-4:]
+        print(f"   ✅ Gemini Oturum API Key bulundu: {key_preview}")
         
-        is_valid, message = Config.validate_gemini_api_key()
+        is_valid, message = Config.validate_gemini_api_key('session')
         if is_valid:
-            print(f"   ✅ API Key formatı geçerli")
+            print(f"   ✅ Oturum API Key formatı geçerli")
         else:
-            print(f"   ⚠️  API Key uyarısı: {message}")
+            print(f"   ⚠️  Oturum API Key uyarısı: {message}")
     else:
-        print("   ❌ Gemini API Key bulunamadı!")
-        print("   💡 Config.py dosyasında GEMINI_API_KEY ayarlayın")
+        print("   ❌ Gemini Oturum API Key bulunamadı!")
+        print("   💡 .env dosyasında GEMINI_API_KEY_SESSION ayarlayın")
+    
+    # İlerleyiş API Key kontrolü
+    if Config.GEMINI_API_KEY_PROGRESS:
+        key_preview = Config.GEMINI_API_KEY_PROGRESS[:10] + "..." + Config.GEMINI_API_KEY_PROGRESS[-4:]
+        print(f"   ✅ Gemini İlerleyiş API Key bulundu: {key_preview}")
+        
+        is_valid, message = Config.validate_gemini_api_key('progress')
+        if is_valid:
+            print(f"   ✅ İlerleyiş API Key formatı geçerli")
+        else:
+            print(f"   ⚠️  İlerleyiş API Key uyarısı: {message}")
+    else:
+        print("   ❌ Gemini İlerleyiş API Key bulunamadı!")
+        print("   💡 .env dosyasında GEMINI_API_KEY_PROGRESS ayarlayın")
 except Exception as e:
     print(f"   ❌ API kontrolü hatası: {e}")
 

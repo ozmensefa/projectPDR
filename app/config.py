@@ -9,8 +9,9 @@ class Config:
     UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
     TEMP_FOLDER = os.path.join(os.getcwd(), 'temp_files')
     
-    # Gemini API
-    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+    # Gemini API - Oturum ve İlerleyiş analizi için ayrı anahtarlar
+    GEMINI_API_KEY_SESSION = os.environ.get('GEMINI_API_KEY_SESSION', '')
+    GEMINI_API_KEY_PROGRESS = os.environ.get('GEMINI_API_KEY_PROGRESS', '')
     GEMINI_MAX_OUTPUT_TOKENS = int(os.environ.get('GEMINI_MAX_OUTPUT_TOKENS', '8192'))
     
     # SQLAlchemy ayarları
@@ -30,11 +31,11 @@ class Config:
     
     # Resend E-posta
     RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
-    RESEND_FROM_EMAIL = 'PDR Video Analiz <noreply@yakades.com.tr>'
+    RESEND_FROM_EMAIL = 'YAKADES Analiz <noreply@yakades.com.tr>'
     SITE_URL = 'https://yakades.com.tr'
     
     # Dosya yükleme ayarları
-    MAX_CONTENT_LENGTH = 1 * 1024 * 1024 * 1024  # 1GB max-size
+    MAX_CONTENT_LENGTH = int(2.5 * 1024 * 1024 * 1024)  # 2.5GB max-size
     ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'wmv'}
 
     # Analiz süre tahminleri (dakika)
@@ -51,15 +52,22 @@ class Config:
             os.makedirs(folder)
     
     @classmethod
-    def validate_gemini_api_key(cls):
-        """Gemini API key'ini doğrula"""
-        if not cls.GEMINI_API_KEY:
-            return False, "API key bulunamadı"
+    def validate_gemini_api_key(cls, key_type='session'):
+        """Gemini API key'ini doğrula
         
-        if len(cls.GEMINI_API_KEY) < 30:
-            return False, "API key çok kısa"
+        Args:
+            key_type: 'session' veya 'progress'
+        """
+        key = cls.GEMINI_API_KEY_SESSION if key_type == 'session' else cls.GEMINI_API_KEY_PROGRESS
+        label = 'Oturum' if key_type == 'session' else 'İlerleyiş'
         
-        if not cls.GEMINI_API_KEY.startswith('AIzaSy'):
-            return False, "API key formatı yanlış (AIzaSy ile başlamalı)"
+        if not key:
+            return False, f"{label} API key bulunamadı"
+        
+        if len(key) < 30:
+            return False, f"{label} API key çok kısa"
+        
+        if not key.startswith('AIzaSy'):
+            return False, f"{label} API key formatı yanlış (AIzaSy ile başlamalı)"
         
         return True, "Geçerli" 

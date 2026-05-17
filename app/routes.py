@@ -703,9 +703,9 @@ def generate_progress_report(client_id):
             countdown=1  # 1 saniye gecikme ile başlat (DB commit'in tamamlanması için)
         )
         
-        # Task ID'yi kaydet
+        # Task ID'yi kaydet — durum 'queued' olarak işaretlenir (henüz başlamadı)
         progress_analysis.task_id = task.id
-        progress_analysis.analysis_status = 'processing'
+        progress_analysis.analysis_status = 'queued'
         db.session.commit()
         
         print(f"🚀 İlerleyiş analizi arka planda başlatıldı - Task ID: {task.id}")
@@ -1271,12 +1271,12 @@ def start_async_analysis(session_id):
         
         print(f"✅ Video dosyası mevcut: {session.video_path}")
         
-        # Eğer zaten işlem devam ediyorsa
-        if session.analysis_status == 'processing':
-            print(f"⚠️ Analiz zaten devam ediyor")
+        # Eğer zaten işlem devam ediyorsa veya sırada bekliyorsa
+        if session.analysis_status in ('processing', 'queued'):
+            print(f"⚠️ Analiz zaten devam ediyor veya sırada bekliyor")
             return jsonify({
                 'status': 'warning',
-                'message': 'Bu oturum için analiz zaten devam ediyor.',
+                'message': 'Bu oturum için analiz zaten devam ediyor veya sırada bekliyor.',
                 'progress': session.analysis_progress
             })
         
@@ -1289,9 +1289,9 @@ def start_async_analysis(session_id):
         )
         print(f"✅ Celery task başlatıldı - Task ID: {task.id}")
         
-        # Task ID'yi kaydet
+        # Task ID'yi kaydet — durum 'queued' olarak işaretlenir (henüz başlamadı)
         session.task_id = task.id
-        session.analysis_status = 'processing'
+        session.analysis_status = 'queued'
         session.analysis_progress = 0
         db.session.commit()
         print(f"✅ Veritabanı güncellendi")
@@ -1369,7 +1369,7 @@ def cancel_analysis(session_id):
         session = Session.query.get_or_404(session_id)
         if session.client.counselor_id != current_user.id:
             abort(403)
-        if session.analysis_status != 'processing':
+        if session.analysis_status not in ('processing', 'queued'):
             return jsonify({
                 'status': 'error',
                 'message': 'İptal edilebilecek aktif bir analiz bulunmuyor.'
@@ -1399,7 +1399,7 @@ def cancel_progress_analysis(progress_analysis_id):
         progress_analysis = ProgressAnalysis.query.get_or_404(progress_analysis_id)
         if progress_analysis.counselor_id != current_user.id:
             abort(403)
-        if progress_analysis.analysis_status not in ('processing', 'pending'):
+        if progress_analysis.analysis_status not in ('processing', 'queued', 'pending'):
             return jsonify({
                 'status': 'error',
                 'message': 'İptal edilebilecek aktif bir analiz bulunmuyor.'
@@ -1581,11 +1581,11 @@ def upload_session_video(session_id):
         if video_file.filename == '':
             return jsonify({'status': 'error', 'message': 'Dosya seçilmedi'}), 400
         
-        # Analiz devam ediyorsa yüklemeyi engelle
-        if session.analysis_status == 'processing':
+        # Analiz devam ediyorsa veya sıradaysa yüklemeyi engelle
+        if session.analysis_status in ('processing', 'queued'):
             return jsonify({
                 'status': 'error',
-                'message': 'Analiz devam ederken yeni video yüklenemez. Lütfen analizin bitmesini bekleyin.'
+                'message': 'Analiz devam ederken veya sıradayken yeni video yüklenemez. Lütfen analizin bitmesini bekleyin.'
             }), 400
         
         # Dosya uzantısını kontrol et
@@ -1652,11 +1652,11 @@ def delete_session_video(session_id):
         if session.client.counselor_id != current_user.id:
             abort(403)
         
-        # Analiz devam ediyorsa silmeyi engelle
-        if session.analysis_status == 'processing':
+        # Analiz devam ediyorsa veya sıradaysa silmeyi engelle
+        if session.analysis_status in ('processing', 'queued'):
             return jsonify({
                 'status': 'error',
-                'message': 'Analiz devam ederken video silinemez. Lütfen analizin bitmesini bekleyin.'
+                'message': 'Analiz devam ederken veya sıradayken video silinemez. Lütfen analizin bitmesini bekleyin.'
             }), 400
         
         # Video yoksa
@@ -1698,7 +1698,7 @@ def delete_session_video(session_id):
 # ADMIN ROUTES - Sadece admin kullanıcılar erişebilir
 # ============================================================================
 
-from app.utils.decorators import admin_required
+from app.utils.decorators import admin_required, superadmin_required
 from datetime import timedelta
 
 @main_bp.route('/admin/user-activities')
@@ -1742,15 +1742,15 @@ def admin_user_activities():
         page=page if active_tab == 'activities' else 1, per_page=per_page, error_out=False
     )
     
-    # ===== 2. Oturum Analizleri (Session -> AIAnalysis) =====
-    sa_query = Session.query.filter(Session.analysis_status.in_(['completed', 'processing', 'failed', 'cancelled']))
+    # ===== 2. Oturum Analizleri (Session -> AIAnalysis join ile rapor tarihine göre) =====
+    sa_query = Session.query.outerjoin(AIAnalysis).filter(Session.analysis_status.in_(['completed', 'processing', 'queued', 'failed', 'cancelled']))
     if user_id:
         sa_query = sa_query.join(Client).filter(Client.counselor_id == user_id)
-    sa_query = apply_date_filter(sa_query, Session.date)
+    sa_query = apply_date_filter(sa_query, db.func.coalesce(AIAnalysis.created_at, Session.date))
     if status_filter:
         sa_query = sa_query.filter(Session.analysis_status == status_filter)
     
-    session_analyses = sa_query.order_by(Session.date.desc()).paginate(
+    session_analyses = sa_query.order_by(db.func.coalesce(AIAnalysis.created_at, Session.date).desc()).paginate(
         page=page if active_tab == 'session_analyses' else 1, per_page=per_page, error_out=False
     )
     
@@ -1778,7 +1778,7 @@ def admin_user_activities():
         ).count(),
         # Analiz istatistikleri
         'total_session_analyses': Session.query.filter(
-            Session.analysis_status.in_(['completed', 'processing', 'failed', 'cancelled'])
+            Session.analysis_status.in_(['completed', 'processing', 'queued', 'failed', 'cancelled'])
         ).count(),
         'completed_session_analyses': Session.query.filter_by(analysis_status='completed').count(),
         'processing_session_analyses': Session.query.filter_by(analysis_status='processing').count(),
@@ -1804,32 +1804,95 @@ def admin_user_activities():
 
 @main_bp.route('/admin/manage-users')
 @login_required
-@admin_required
+@superadmin_required
 def manage_users():
-    """Kullanıcı yönetimi - Admin yetkisi ver/al"""
+    """Kullanıcı yönetimi - Sadece Admin erişebilir"""
     users = Counselor.query.order_by(Counselor.created_at.desc()).all()
     return render_template('admin/manage_users.html', users=users)
 
 
-@main_bp.route('/admin/toggle-admin/<int:user_id>', methods=['POST'])
+@main_bp.route('/admin/toggle-role/<int:user_id>', methods=['POST'])
 @login_required
-@admin_required
-def toggle_admin(user_id):
-    """Kullanıcının admin yetkisini aç/kapat"""
+@superadmin_required
+def toggle_role(user_id):
+    """Kullanıcının rolünü değiştir (Sadece Admin)"""
     from app.utils.activity import log_activity
     
     user = Counselor.query.get_or_404(user_id)
+    role = request.form.get('role', '')  # 'supervisor' veya 'admin'
     
-    # Kendini admin'likten çıkaramaz
+    # Kendini değiştiremez
     if user.id == current_user.id:
-        flash('Kendi admin yetkinizi kaldıramazsınız!', 'danger')
+        flash('Kendi yetkinizi değiştiremezsiniz!', 'danger')
         return redirect(url_for('main.manage_users'))
     
-    user.is_admin = not user.is_admin
+    if role == 'supervisor':
+        user.is_admin = not user.is_admin
+        if not user.is_admin:
+            # Süpervizörlük kaldırıldıysa admin de kaldırılsın
+            user.is_superadmin = False
+        status = 'verildi' if user.is_admin else 'kaldırıldı'
+        flash(f'{user.name} kullanıcısının süpervizör yetkisi {status}.', 'success')
+        log_activity('toggle_role', f'{user.name} kullanıcısının süpervizör yetkisi {status}')
+    elif role == 'admin':
+        user.is_superadmin = not user.is_superadmin
+        if user.is_superadmin:
+            # Admin yapıldıysa süpervizör de olsun
+            user.is_admin = True
+        status = 'verildi' if user.is_superadmin else 'kaldırıldı'
+        flash(f'{user.name} kullanıcısının admin yetkisi {status}.', 'success')
+        log_activity('toggle_role', f'{user.name} kullanıcısının admin yetkisi {status}')
+    else:
+        flash('Geçersiz rol parametresi.', 'danger')
+    
     db.session.commit()
-    
-    status = 'verildi' if user.is_admin else 'kaldırıldı'
-    flash(f'{user.name} kullanıcısının admin yetkisi {status}.', 'success')
-    log_activity('toggle_admin', f'{user.name} kullanıcısının admin yetkisi {status}')
-    
     return redirect(url_for('main.manage_users'))
+
+@main_bp.route('/admin/regenerate_ai_report/<int:session_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_regenerate_ai_report(session_id):
+    """
+    Kayıtlı ara sonuçları (1-4 adımları pas geçerek) tekrar AI'ya gönderip
+    raporun yeniden oluşturulmasını sağlayan admin endpoint'i.
+    """
+    session = Session.query.get_or_404(session_id)
+    
+    if session.analysis_status not in ('completed', 'failed', 'cancelled'):
+        return jsonify({
+            'status': 'error', 
+            'message': 'Yalnızca bitmiş, iptal edilmiş veya başarısız olmuş analizler için rapor yeniden oluşturulabilir.'
+        }), 400
+        
+    if not session.analysis_results:
+        return jsonify({
+            'status': 'error', 
+            'message': 'Oturumda ara analiz sonuçları bulunmuyor. Video analizi baştan yapılmalıdır.'
+        }), 400
+        
+    try:
+        from app.tasks import analyze_video
+        # Task'i başlat (Zaten analysis_results dolu olduğu için steps 1-4'ü direkt atlayacak)
+        task = analyze_video.apply_async(args=[session.id, session.client.counselor_id])
+        
+        session.task_id = task.id
+        session.analysis_status = 'queued'
+        session.analysis_progress = 80  # Sadece AI adımı kalıyor
+        db.session.commit()
+        
+        # User activity kaydı atalım
+        activity = UserActivity(
+            counselor_id=current_user.id,
+            action="admin_regenerate_ai",
+            description=f"AI raporunu yeniden oluşturma başlattı (Oturum: {session.title})"
+        )
+        db.session.add(activity)
+        db.session.commit()
+        
+        return jsonify({
+            'status': 'success', 
+            'message': 'AI raporu yeniden oluşturma işlemi kuyruğa alındı. Sayfayı yenileyerek durumu takip edebilirsiniz.'
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'status': 'error', 'message': str(e)}), 500

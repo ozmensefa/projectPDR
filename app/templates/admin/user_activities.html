@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Kullanıcı Aktiviteleri & Analizler (Admin){% endblock %}
+{% block title %}Kullanıcı Aktiviteleri & Analizler (Süpervizör){% endblock %}
 
 {% block head %}
 <style>
@@ -157,6 +157,10 @@
     background: rgba(255, 193, 7, 0.12);
     color: #856404;
 }
+.status-queued {
+    background: rgba(255, 140, 0, 0.12);
+    color: #b36200;
+}
 
 /* ===== Mini Stats Row ===== */
 .mini-stat {
@@ -269,13 +273,19 @@
             <div>
                 <h2 class="mb-1">
                     <i class="fas fa-chart-line text-primary me-2"></i>Sistem Monitörü
-                    <span class="badge bg-danger" style="font-size: 0.5em; vertical-align: middle;">Admin</span>
+                    {% if current_user.is_superadmin %}
+                    <span class="badge bg-dark" style="font-size: 0.5em; vertical-align: middle;"><i class="fas fa-crown me-1"></i>Admin</span>
+                    {% else %}
+                    <span class="badge bg-danger" style="font-size: 0.5em; vertical-align: middle;">Süpervizör</span>
+                    {% endif %}
                 </h2>
                 <p class="text-muted mb-0">Kullanıcı aktiviteleri, oturum analizleri ve ilerleyiş raporları</p>
             </div>
+            {% if current_user.is_superadmin %}
             <a href="{{ url_for('main.manage_users') }}" class="btn btn-outline-primary btn-sm">
                 <i class="fas fa-users-cog me-1"></i> Kullanıcı Yönetimi
             </a>
+            {% endif %}
         </div>
     </div>
     
@@ -390,6 +400,7 @@
                         <option value="">Tüm Durumlar</option>
                         <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>✅ Tamamlandı</option>
                         <option value="processing" {% if status_filter == 'processing' %}selected{% endif %}>🔄 Devam Ediyor</option>
+                        <option value="queued" {% if status_filter == 'queued' %}selected{% endif %}>⏳ Sırada Bekliyor</option>
                         <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>❌ Başarısız</option>
                         <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>⛔ İptal</option>
                     </select>
@@ -479,7 +490,11 @@
                                             <div class="fw-semibold" style="font-size: 0.9rem;">
                                                 {{ activity.counselor.name }}
                                                 {% if activity.counselor.is_admin %}
-                                                <span class="badge bg-danger" style="font-size: 0.6rem; padding: 2px 5px;">Admin</span>
+                                                {% if activity.counselor.is_superadmin %}
+                                                <span class="badge bg-dark" style="font-size: 0.6rem; padding: 2px 5px;"><i class="fas fa-crown me-1"></i>Admin</span>
+                                                {% else %}
+                                                <span class="badge bg-danger" style="font-size: 0.6rem; padding: 2px 5px;">Süpervizör</span>
+                                                {% endif %}
                                                 {% endif %}
                                             </div>
                                             <small class="text-muted">{{ activity.counselor.email }}</small>
@@ -494,7 +509,11 @@
                                         <span class="status-badge status-cancelled"><i class="fas fa-sign-out-alt"></i> Çıkış</span>
                                     {% elif action == 'toggle_admin' %}
                                         <span class="status-badge" style="background: rgba(255,193,7,0.12); color: #856404;">
-                                            <i class="fas fa-user-shield"></i> Admin
+                                            <i class="fas fa-user-shield"></i> Rol Değişikliği
+                                        </span>
+                                    {% elif action == 'toggle_role' %}
+                                        <span class="status-badge" style="background: rgba(255,193,7,0.12); color: #856404;">
+                                            <i class="fas fa-user-shield"></i> Rol Değişikliği
                                         </span>
                                     {% else %}
                                         <span class="status-badge" style="background: rgba(13,110,253,0.08); color: #0d6efd;">
@@ -567,8 +586,10 @@
                             <th width="200">Danışman</th>
                             <th width="180">Danışan</th>
                             <th>Oturum</th>
+                            <th width="140">Rapor Tarihi</th>
                             <th width="120">Durum</th>
                             <th width="100">İlerleme</th>
+                            <th width="60">İşlem</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -616,6 +637,15 @@
                                     </div>
                                 </td>
                                 <td>
+                                    <div class="fw-semibold" style="font-size: 0.9rem;">
+                                        {% if session.ai_analyses and session.ai_analyses|length > 0 %}
+                                            {{ session.ai_analyses[0].created_at.strftime('%d.%m.%Y %H:%M') }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
                                     {% if session.analysis_status == 'completed' %}
                                         <span class="status-badge status-completed">
                                             <i class="fas fa-check-circle"></i> Tamamlandı
@@ -623,6 +653,10 @@
                                     {% elif session.analysis_status == 'processing' %}
                                         <span class="status-badge status-processing">
                                             <i class="fas fa-spinner fa-spin"></i> Devam Ediyor
+                                        </span>
+                                    {% elif session.analysis_status == 'queued' %}
+                                        <span class="status-badge status-queued">
+                                            <i class="fas fa-clock"></i> Sırada
                                         </span>
                                     {% elif session.analysis_status == 'failed' %}
                                         <span class="status-badge status-failed">
@@ -647,6 +681,14 @@
                                         </div>
                                         <small class="text-muted fw-bold">%{{ session.analysis_progress }}</small>
                                     </div>
+                                    {% elif session.analysis_status == 'queued' %}
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height: 6px; border-radius: 3px;">
+                                            <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" 
+                                                 style="width: 5%"></div>
+                                        </div>
+                                        <small class="text-muted fw-bold">Sıra</small>
+                                    </div>
                                     {% elif session.analysis_status == 'completed' %}
                                         <div class="d-flex align-items-center gap-2">
                                             <div class="progress flex-grow-1" style="height: 6px; border-radius: 3px;">
@@ -656,6 +698,13 @@
                                         </div>
                                     {% else %}
                                         <small class="text-muted">-</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if session.analysis_status in ['completed', 'failed', 'cancelled'] and session.analysis_results %}
+                                    <button type="button" class="btn btn-sm btn-outline-warning" title="AI Raporunu Yeniden Oluştur" onclick="regenerateAIReport({{ session.id }})">
+                                        <i class="fas fa-magic"></i>
+                                    </button>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -721,6 +770,7 @@
                             <th width="160">Danışan</th>
                             <th width="150">Tarih Aralığı</th>
                             <th width="100">Oturum Sayısı</th>
+                            <th width="140">Rapor Tarihi</th>
                             <th width="120">Durum</th>
                             <th width="100">İlerleme</th>
                         </tr>
@@ -768,6 +818,11 @@
                                     </span>
                                 </td>
                                 <td>
+                                    <div class="fw-semibold" style="font-size: 0.9rem;">
+                                        {{ pa.created_at.strftime('%d.%m.%Y %H:%M') if pa.created_at else '-' }}
+                                    </div>
+                                </td>
+                                <td>
                                     {% if pa.analysis_status == 'completed' %}
                                         <span class="status-badge status-completed">
                                             <i class="fas fa-check-circle"></i> Tamamlandı
@@ -775,6 +830,10 @@
                                     {% elif pa.analysis_status == 'processing' %}
                                         <span class="status-badge status-processing">
                                             <i class="fas fa-spinner fa-spin"></i> Devam Ediyor
+                                        </span>
+                                    {% elif pa.analysis_status == 'queued' %}
+                                        <span class="status-badge status-queued">
+                                            <i class="fas fa-clock"></i> Sırada
                                         </span>
                                     {% elif pa.analysis_status == 'failed' %}
                                         <span class="status-badge status-failed">
@@ -810,6 +869,14 @@
                                                  style="width: {{ pa.analysis_progress }}%"></div>
                                         </div>
                                         <small class="text-muted fw-bold">%{{ pa.analysis_progress }}</small>
+                                    </div>
+                                    {% elif pa.analysis_status == 'queued' %}
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height: 6px; border-radius: 3px;">
+                                            <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" 
+                                                 style="width: 5%"></div>
+                                        </div>
+                                        <small class="text-muted fw-bold">Sıra</small>
                                     </div>
                                     {% else %}
                                         <small class="text-muted">-</small>
@@ -870,4 +937,31 @@
             {% endif %}
         </div>
     </div>
+    
+    <script>
+    function regenerateAIReport(sessionId) {
+        if (!confirm('Bu işlem var olan AI raporunu silip saklanan ara veriler üzerinden yeni bir rapor oluşturacaktır. Video analiz baştan yapılmayacak, sadece yapay zeka kısmı baştan çalıştırılacaktır. Devam etmek istiyor musunuz?')) return;
+        
+        fetch('/admin/regenerate_ai_report/' + sessionId, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.status === 'success') {
+                alert('✅ ' + data.message);
+                location.reload();
+            } else {
+                alert('❌ ' + data.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('İşlem sırasında hata oluştu.');
+        });
+    }
+    </script>
 {% endblock %}

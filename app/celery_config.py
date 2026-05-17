@@ -28,6 +28,7 @@ def make_celery(app=None):
         task_track_started=True,
         task_time_limit=14400,  # 4 saat max (uzun videolar için)
         task_soft_time_limit=13500,  # 3 saat 45 dakika soft limit
+        worker_concurrency=1,          # Aynı anda sadece 1 task işle (sıralama garantisi)
         worker_prefetch_multiplier=1,
         worker_max_tasks_per_child=50,
         task_acks_late=True,

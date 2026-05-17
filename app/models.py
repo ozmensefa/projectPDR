@@ -14,7 +14,8 @@ class Counselor(UserMixin, db.Model):
     name = db.Column(db.String(100), nullable=False)
     title = db.Column(db.String(100))
     photo_filename = db.Column(db.String(100), nullable=True)  # Profil fotoğrafı
-    is_admin = db.Column(db.Boolean, default=False)  # Admin yetkisi
+    is_admin = db.Column(db.Boolean, default=False)  # Süpervizör yetkisi
+    is_superadmin = db.Column(db.Boolean, default=False)  # Admin yetkisi (en üst yetki)
     email_verified = db.Column(db.Boolean, default=False)  # E-posta doğrulandı mı?
     email_verification_token = db.Column(db.String(100), nullable=True)  # Doğrulama token'ı
     token_created_at = db.Column(db.DateTime, nullable=True)  # Token oluşturulma zamanı

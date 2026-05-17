@@ -6,18 +6,32 @@ import os
 import time
 
 class AIService:
-    def __init__(self):
-        # API key kontrolü - artık her zaman bir key olacak
-        if not Config.GEMINI_API_KEY:
-            raise ValueError("Gemini API key bulunamadı. Lütfen GEMINI_API_KEY çevre değişkenini ayarlayın.")
+    def __init__(self, api_key_type='session'):
+        """AIService başlatıcı
+        
+        Args:
+            api_key_type: 'session' (oturum analizi) veya 'progress' (ilerleyiş analizi)
+        """
+        self.api_key_type = api_key_type
+        
+        # Analiz tipine göre doğru API key'i seç
+        if api_key_type == 'progress':
+            api_key = Config.GEMINI_API_KEY_PROGRESS
+            key_label = 'İlerleyiş'
+        else:
+            api_key = Config.GEMINI_API_KEY_SESSION
+            key_label = 'Oturum'
+        
+        if not api_key:
+            raise ValueError(f"Gemini {key_label} API key bulunamadı. Lütfen GEMINI_API_KEY_{api_key_type.upper()} çevre değişkenini ayarlayın.")
         
         try:
-            genai.configure(api_key=Config.GEMINI_API_KEY)
+            genai.configure(api_key=api_key)
             # Gemini 2.5 Flash modelini kullan (En güncel ve en hızlı model)
             self.model = genai.GenerativeModel('gemini-2.5-flash')
-            print(f"✅ Gemini 2.5 Flash API başarıyla yapılandırıldı. Key: {Config.GEMINI_API_KEY[:10]}...")
+            print(f"✅ Gemini 2.5 Flash API ({key_label}) başarıyla yapılandırıldı. Key: {api_key[:10]}...")
         except Exception as e:
-            print(f"❌ Gemini API yapılandırma hatası: {str(e)}")
+            print(f"❌ Gemini API ({key_label}) yapılandırma hatası: {str(e)}")
             raise
         
         # Finetuning verilerini yükle
@@ -145,9 +159,9 @@ class AIService:
             if "API_KEY_INVALID" in error_msg:
                 error_msg = "Geçersiz API key. Lütfen sistem yöneticisiyle iletişime geçin."
             elif "429" in error_msg or "quota" in error_msg.lower():
-                error_msg = "Google Gemini API kotası aşıldı. Lütfen plan/faturalandırma ayarlarınızı kontrol edin veya daha sonra tekrar deneyin."
+                error_msg = "API kotası aşıldı. Lütfen yöneticinizle iletişime geçin."
             elif "QUOTA_EXCEEDED" in error_msg or "RATE_LIMIT_EXCEEDED" in error_msg:
-                error_msg = "API kullanım kotası aşıldı. Lütfen bir süre bekleyip tekrar deneyin."
+                error_msg = "API kullanım kotası aşıldı. Lütfen yöneticinizle iletişime geçin."
             elif "timeout" in error_msg.lower():
                 error_msg = "İstek zaman aşımına uğradı. Lütfen tekrar deneyin."
             
@@ -156,7 +170,75 @@ class AIService:
                 'status': 'error'
             }
 
+    def _estimate_tokens(self, text):
+        """Karakter sayısından yaklaşık token sayısını tahmin eder.
+        JSON formatındaki veriler (rakamlar ve noktalama) çok daha fazla token tüketir.
+        Bu nedenle 1 token ≈ 1.8 karakter olarak daha güvenli bir hesaplama yapıyoruz."""
+        return len(text) / 1.8
+
+    def _downsample_body_data(self, body_data, factor):
+        """Body data'yı her N. frame'i alarak küçültür.
+        Her zaman ilk ve son frame korunur."""
+        if not body_data or len(body_data) <= 2:
+            return body_data
+        # İlk ve son frame'i koru, aradakileri örnekle
+        middle = body_data[1:-1]
+        sampled = [middle[i] for i in range(0, len(middle), factor)]
+        return [body_data[0]] + sampled + [body_data[-1]]
+
+    def _summarize_body_data(self, body_data):
+        """Body data'yı sadece istatistiksel özet olarak döndürür (son çare)."""
+        if not body_data or not isinstance(body_data, list):
+            return "Beden Dili Analizi: Veri bulunamadı."
+        
+        total_poses = sum(len(entry.get('poses', [])) for entry in body_data)
+        timestamps = [entry.get('timestamp', 0) for entry in body_data]
+        min_t = min(timestamps) if timestamps else 0
+        max_t = max(timestamps) if timestamps else 0
+        
+        # Her zaman noktasındaki duruş sayısı ortalaması
+        pose_counts = [len(entry.get('poses', [])) for entry in body_data]
+        avg_poses = sum(pose_counts) / len(pose_counts) if pose_counts else 0
+        
+        summary = f"""Beden Dili Analizi Özeti:
+- Toplam analiz noktası: {len(body_data)}
+- Zaman aralığı: {min_t:.1f}s - {max_t:.1f}s
+- Toplam tespit edilen pose: {total_poses}
+- Ortalama pose/frame: {avg_poses:.1f}
+- İlk frame ({min_t:.1f}s): {pose_counts[0] if pose_counts else 0} pose
+- Son frame ({max_t:.1f}s): {pose_counts[-1] if pose_counts else 0} pose"""
+        
+        # Birkaç temsili frame'den detay ekle (başlangıç, orta, son)
+        sample_indices = [0, len(body_data)//4, len(body_data)//2, 3*len(body_data)//4, len(body_data)-1]
+        sample_indices = sorted(set(i for i in sample_indices if 0 <= i < len(body_data)))
+        
+        summary += "\n\nTemsili zaman noktalarından detaylar:"
+        for idx in sample_indices:
+            entry = body_data[idx]
+            t = entry.get('timestamp', 0)
+            poses = entry.get('poses', [])
+            summary += f"\n  [{t:.1f}s] {len(poses)} pose tespit edildi"
+            if poses and isinstance(poses[0], dict):
+                # İlk pose'dan anahtar bilgileri ekle
+                first_pose = poses[0]
+                if 'confidence' in first_pose:
+                    summary += f" (güven: {first_pose['confidence']:.2f})"
+        
+        return summary
+
     def _create_prompt(self, analysis_data):
+        """
+        Prompt oluşturur. Token bütçesini aşarsa, veri kaybını minimize ederek
+        kademeli olarak küçültür.
+        
+        Küçültme önceliği (en az hassas → en hassas):
+        1. body_data raw JSON → örnekleme → istatistiksel özet
+        2. emotion_data raw JSON → sadece özet metni
+        3. text_analysis → kırpma (baş + son korunur)
+        """
+        # Token bütçesi: 900K token (1M limitin altında güvenli marj)
+        TOKEN_BUDGET = 900_000
+        
         # Analiz verilerini metin formatına dönüştür
         audio_data = analysis_data.get('audio_summary', {})
         
@@ -205,10 +287,9 @@ Ses Analizi Sonuçları:
         else:
             audio_summary = "Ses Analizi: Veri bulunamadı veya ses dosyası işlenemedi."
         
-        # Duygu verilerini zaman bazlı özetle
-        emotion_timeline = ""
+        # Duygu verilerini zaman bazlı özetle (özet metin her zaman hazırlanır)
+        emotion_summary_text = ""
         if emotion_data and isinstance(emotion_data, dict) and len(emotion_data) > 0:
-            # String değerleri parse et (örn: "15.0%" -> 15.0)
             try:
                 emotion_values = {}
                 for emotion, value in emotion_data.items():
@@ -219,28 +300,24 @@ Ses Analizi Sonuçları:
                     else:
                         emotion_values[emotion] = 0.0
                 
-                top_emotions = sorted(emotion_values.items(), key=lambda x: x[1], reverse=True)[:3]
-                emotion_timeline = f"Baskın Duygular: {', '.join([f'{emotion}: {value:.1f}%' for emotion, value in top_emotions])}"
+                sorted_emotions = sorted(emotion_values.items(), key=lambda x: x[1], reverse=True)
+                emotion_summary_text = "Duygusal Analiz Sonuçları:\n"
+                emotion_summary_text += "\n".join([f"- {emotion}: {value:.1f}%" for emotion, value in sorted_emotions])
             except Exception as e:
                 print(f"⚠️ Emotion data parse hatası: {e}")
-                emotion_timeline = f"Duygusal Analiz: {', '.join([f'{k}: {v}' for k, v in emotion_data.items()])}"
+                emotion_summary_text = f"Duygusal Analiz: {', '.join([f'{k}: {v}' for k, v in emotion_data.items()])}"
         else:
-            emotion_timeline = "Duygusal Analiz: Veri bulunamadı veya yüz tespit edilemedi."
+            emotion_summary_text = "Duygusal Analiz: Veri bulunamadı veya yüz tespit edilemedi."
         
-        # Beden dili verilerini zaman bazlı özetle
-        body_timeline = ""
+        # Beden dili özet metin (her zaman hazırlanır)
+        body_summary_text = ""
         if body_data and isinstance(body_data, list) and len(body_data) > 0:
-            body_timeline = f"Beden Dili Analizi: {len(body_data)} zaman noktasında analiz yapıldı."
-            # İlk ve son analiz noktalarını göster
-            first_analysis = body_data[0]
-            last_analysis = body_data[-1] if len(body_data) > 1 else first_analysis
-            body_timeline += f"\nBaşlangıç ({first_analysis.get('timestamp', 0)}s): {len(first_analysis.get('poses', []))} duruş tespit edildi"
-            if len(body_data) > 1:
-                body_timeline += f"\nSon ({last_analysis.get('timestamp', 0)}s): {len(last_analysis.get('poses', []))} duruş tespit edildi"
-        elif not body_data or (isinstance(body_data, list) and len(body_data) == 0):
-            body_timeline = "Beden Dili Analizi: Veri bulunamadı veya yüz/vücut tespit edilemedi."
+            body_summary_text = self._summarize_body_data(body_data)
+        else:
+            body_summary_text = "Beden Dili Analizi: Veri bulunamadı veya yüz/vücut tespit edilemedi."
         
-        prompt = f"""
+        # --- Sabit prompt parçaları (değişmeyenler) ---
+        prompt_template = """
         Sen bir psikolojik danışmanlık uzmanısın. Aşağıdaki problemler ve açıklamalarına göre bir psikolojik danışma oturumunun analiz sonuçlarını değerlendirerek kapsamlı bir rapor hazırlayacağız. Aşağıda problemler ve açıklamaları yer almaktadır. Bununla birlikte, ses analizi, metin analizi, duygusal analiz ve beden dili analizi de ayrıca verilmiştir. Bu analizleri değerlendirerek kapsamlı bir rapor hazırlaya.
         
         Problemler ve Açıklamaları:
@@ -255,10 +332,10 @@ Ses Analizi Sonuçları:
         {text_analysis}
         
         DUYGUSAL ANALİZ:
-        {json.dumps(emotion_data, indent=2, ensure_ascii=False)}
+        {emotion_section}
         
         Beden Dili Analizi:
-        {json.dumps(body_data, indent=2, ensure_ascii=False)}
+        {body_section}
         
         Lütfen aşağıdaki başlıklar altında profesyonel bir değerlendirme yap:
         1. Psikolojik danışma seansının genel özeti (seansta üzerinde durulan ana temalar, danışanın genel görünümü, seanstaki işbirlikçi tutumu, seansta uygulanan müdahaleler/teknikler vb.)
@@ -275,6 +352,101 @@ Ses Analizi Sonuçları:
         
         Her başlık için detaylı ve profesyonel açıklamalar yap, önemli noktaları vurgula ve danışana yönelik öneriler sun.
         """
+        
+        # --- Sabit kısımların token maliyetini hesapla ---
+        fixed_parts_size = (
+            len(prompt_template) + len(training_examples) + 
+            len(client_name) + len(audio_summary)
+        )
+        fixed_tokens = self._estimate_tokens(str(fixed_parts_size))
+        
+        # --- Değişken verileri tam haliyle hazırla ---
+        emotion_full = json.dumps(emotion_data, indent=2, ensure_ascii=False)
+        body_full = json.dumps(body_data, indent=2, ensure_ascii=False) if body_data else ""
+        
+        # --- Token tahminleri ---
+        text_tokens = self._estimate_tokens(text_analysis)
+        emotion_full_tokens = self._estimate_tokens(emotion_full)
+        body_full_tokens = self._estimate_tokens(body_full)
+        emotion_summary_tokens = self._estimate_tokens(emotion_summary_text)
+        body_summary_tokens = self._estimate_tokens(body_summary_text)
+        template_tokens = self._estimate_tokens(prompt_template + training_examples + client_name + audio_summary)
+        
+        total_full_tokens = template_tokens + text_tokens + emotion_full_tokens + body_full_tokens
+        
+        print(f"📊 Token bütçesi analizi:")
+        print(f"   Sabit kısımlar: ~{int(template_tokens):,} token")
+        print(f"   Konuşma metni: ~{int(text_tokens):,} token")
+        print(f"   Duygu verisi (tam): ~{int(emotion_full_tokens):,} token")
+        print(f"   Beden dili (tam): ~{int(body_full_tokens):,} token")
+        print(f"   TOPLAM (tam): ~{int(total_full_tokens):,} token")
+        print(f"   BÜTÇE: {TOKEN_BUDGET:,} token")
+        
+        # --- Bütçe içindeyse hiçbir şeye dokunma ---
+        if total_full_tokens <= TOKEN_BUDGET:
+            print(f"   ✅ Bütçe dahilinde, tüm veriler tam gönderiliyor.")
+            emotion_section = emotion_full
+            body_section = body_full if body_full else body_summary_text
+        else:
+            print(f"   ⚠️ Bütçe aşılıyor ({int(total_full_tokens - TOKEN_BUDGET):,} token fazla), kademeli küçültme uygulanıyor...")
+            
+            # Kalan bütçe (sabit + metin hariç)
+            remaining_for_data = TOKEN_BUDGET - template_tokens - text_tokens
+            
+            # --- ADIM 1: Body data'yı örnekleyerek küçült ---
+            emotion_section = emotion_full  # Duygu verisine henüz dokunma
+            body_section = body_full
+            
+            if body_data and len(body_data) > 0:
+                # Önce 2x örnekleme dene
+                for downsample_factor in [2, 4, 8, 16]:
+                    sampled = self._downsample_body_data(body_data, downsample_factor)
+                    body_section = json.dumps(sampled, indent=2, ensure_ascii=False)
+                    current_total = template_tokens + text_tokens + self._estimate_tokens(emotion_section) + self._estimate_tokens(body_section)
+                    if current_total <= TOKEN_BUDGET:
+                        print(f"   📉 Beden dili: {len(body_data)} → {len(sampled)} frame (her {downsample_factor}. frame)")
+                        break
+                else:
+                    # Örnekleme yetmedi, istatistiksel özete geç
+                    body_section = body_summary_text
+                    print(f"   📉 Beden dili: Raw JSON → istatistiksel özet ({len(body_summary_text)} karakter)")
+            
+            # --- ADIM 2: Hâlâ aşıyorsa duygu verisini özetle ---
+            current_total = template_tokens + text_tokens + self._estimate_tokens(emotion_section) + self._estimate_tokens(body_section)
+            if current_total > TOKEN_BUDGET:
+                emotion_section = emotion_summary_text
+                print(f"   📉 Duygu verisi: Raw JSON → özet metin ({len(emotion_summary_text)} karakter)")
+            
+            # --- ADIM 3: Son çare — konuşma metnini kırp (baş + son korunur) ---
+            current_total = template_tokens + self._estimate_tokens(text_analysis) + self._estimate_tokens(emotion_section) + self._estimate_tokens(body_section)
+            if current_total > TOKEN_BUDGET:
+                available_for_text = TOKEN_BUDGET - template_tokens - self._estimate_tokens(emotion_section) - self._estimate_tokens(body_section)
+                available_chars = int(available_for_text * 3.5)  # Token → karakter
+                
+                if available_chars > 0 and len(text_analysis) > available_chars:
+                    # Baş ve son eşit bölünür, ortaya "[...kırpıldı...]" eklenir
+                    half = available_chars // 2 - 100  # Kırpma notu için yer bırak
+                    original_len = len(text_analysis)
+                    text_analysis = (
+                        text_analysis[:half] +
+                        f"\n\n[... Konuşma metninin ortasından {original_len - available_chars:,} karakter kırpıldı. "
+                        f"Toplam orijinal uzunluk: {original_len:,} karakter ...]\n\n" +
+                        text_analysis[-half:]
+                    )
+                    print(f"   📉 Konuşma metni: {original_len:,} → {len(text_analysis):,} karakter (baş+son korundu)")
+            
+            final_total = template_tokens + self._estimate_tokens(text_analysis) + self._estimate_tokens(emotion_section) + self._estimate_tokens(body_section)
+            print(f"   📊 Küçültme sonrası toplam: ~{int(final_total):,} token")
+        
+        # --- Prompt'u oluştur ---
+        prompt = prompt_template.format(
+            training_examples=training_examples,
+            client_name=client_name,
+            audio_summary=audio_summary,
+            text_analysis=text_analysis,
+            emotion_section=emotion_section,
+            body_section=body_section
+        )
         
         return prompt
     

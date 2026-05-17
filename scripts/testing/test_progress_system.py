@@ -128,19 +128,30 @@ def test_ai_service():
         from app.services.ai_service import AIService
         from app.config import Config
         
-        # API key kontrolü
-        is_valid, message = Config.validate_gemini_api_key()
+        # Oturum API key kontrolü
+        is_valid, message = Config.validate_gemini_api_key('session')
         if is_valid:
-            print(f"✅ Gemini API Key geçerli: {Config.GEMINI_API_KEY[:10]}...")
+            print(f"✅ Gemini Oturum API Key geçerli: {Config.GEMINI_API_KEY_SESSION[:10]}...")
         else:
-            print(f"⚠️  Gemini API Key sorunu: {message}")
+            print(f"⚠️  Gemini Oturum API Key sorunu: {message}")
         
-        # AIService başlatmayı dene
-        ai_service = AIService()
-        print("✅ AI Service başarıyla başlatıldı")
+        # İlerleyiş API key kontrolü
+        is_valid, message = Config.validate_gemini_api_key('progress')
+        if is_valid:
+            print(f"✅ Gemini İlerleyiş API Key geçerli: {Config.GEMINI_API_KEY_PROGRESS[:10]}...")
+        else:
+            print(f"⚠️  Gemini İlerleyiş API Key sorunu: {message}")
+        
+        # AIService başlatmayı dene (oturum)
+        ai_service = AIService(api_key_type='session')
+        print("✅ AI Service (Oturum) başarıyla başlatıldı")
+        
+        # AIService başlatmayı dene (ilerleyiş)
+        ai_service_progress = AIService(api_key_type='progress')
+        print("✅ AI Service (İlerleyiş) başarıyla başlatıldı")
         
         # analyze_progress metodunun varlığını kontrol et
-        if hasattr(ai_service, 'analyze_progress'):
+        if hasattr(ai_service_progress, 'analyze_progress'):
             print("✅ 'analyze_progress' metodu mevcut")
             return True
         else:
