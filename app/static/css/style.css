@@ -4203,3 +4203,276 @@ body.dark-mode input[type="datetime-local"]::-webkit-calendar-picker-indicator,
 body.dark-mode input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(1);
 }
+
+/* ============================================================================
+   INTRO.JS PREMIUM CUSTOM STYLES (LIGHT & DARK MODE SENSITIVE)
+   ============================================================================ */
+
+/* Navbar Yardım İkonu Animasyonu */
+@keyframes pulseGlow {
+    0% {
+        transform: scale(1);
+        text-shadow: 0 0 4px rgba(79, 195, 247, 0.4);
+    }
+    50% {
+        transform: scale(1.15);
+        text-shadow: 0 0 12px rgba(79, 195, 247, 0.8), 0 0 16px rgba(79, 195, 247, 0.4);
+        color: #81d4fa !important;
+    }
+    100% {
+        transform: scale(1);
+        text-shadow: 0 0 4px rgba(79, 195, 247, 0.4);
+    }
+}
+
+#startTourBtn i {
+    animation: pulseGlow 3s infinite ease-in-out;
+    transition: all 0.3s ease;
+}
+
+#startTourBtn:hover i {
+    animation: none;
+    transform: scale(1.2) rotate(15deg);
+    color: #ffffff !important;
+    text-shadow: 0 0 15px #4fc3f7;
+}
+
+/* IntroJS Genel Kapsayıcı (Aydınlık Mod) */
+.introjs-tooltip {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(10px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(10px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 1px 8px rgba(0, 0, 0, 0.05) !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    color: #2c3e50 !important;
+    max-width: 380px !important;
+    padding: 20px 24px !important;
+    z-index: 9999999 !important;
+}
+
+/* Karanlık Mod IntroJS Desteği */
+body.dark-mode .introjs-tooltip {
+    background: rgba(30, 41, 59, 0.85) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
+    color: #f1f5f9 !important;
+}
+
+/* IntroJS Başlık Alanı */
+.introjs-tooltip-header {
+    padding: 0 50px 10px 0 !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+    margin-bottom: 12px !important;
+}
+
+body.dark-mode .introjs-tooltip-header {
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Başlık Yazısı */
+.introjs-tooltip-title {
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    color: #1a237e !important;
+}
+
+body.dark-mode .introjs-tooltip-title {
+    color: #64b5f6 !important;
+}
+
+/* Açıklama Metni */
+.introjs-tooltiptext {
+    font-size: 0.92rem !important;
+    line-height: 1.6 !important;
+    color: #475569 !important;
+}
+
+body.dark-mode .introjs-tooltiptext {
+    color: #cbd5e1 !important;
+}
+
+/* İlerleme Numarası Baloncuğu */
+.introjs-helperNumberLayer {
+    background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    border-radius: 50% !important;
+    box-shadow: 0 4px 10px rgba(13, 71, 161, 0.3) !important;
+    width: 28px !important;
+    height: 28px !important;
+    line-height: 28px !important;
+    text-align: center !important;
+    font-size: 0.85rem !important;
+    border: 2px solid #ffffff !important;
+}
+
+body.dark-mode .introjs-helperNumberLayer {
+    border-color: #1e293b !important;
+    background: linear-gradient(135deg, #64b5f6 0%, #1976d2 100%) !important;
+    box-shadow: 0 4px 10px rgba(100, 181, 246, 0.3) !important;
+}
+
+/* Buton Konteyneri */
+.introjs-tooltipbuttons {
+    border-top: 1px solid rgba(0, 0, 0, 0.06) !important;
+    padding-top: 14px !important;
+    margin-top: 16px !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+}
+
+body.dark-mode .introjs-tooltipbuttons {
+    border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* IntroJS Buton Tasarımları */
+.introjs-button {
+    font-family: inherit !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    padding: 8px 16px !important;
+    border-radius: 8px !important;
+    border: none !important;
+    text-shadow: none !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* İleri ve Bitiş Butonları */
+.introjs-nextbutton, .introjs-donebutton {
+    background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%) !important;
+    color: #ffffff !important;
+}
+
+.introjs-nextbutton:hover, .introjs-donebutton:hover {
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 10px rgba(13, 71, 161, 0.25) !important;
+}
+
+body.dark-mode .introjs-nextbutton, body.dark-mode .introjs-donebutton {
+    background: linear-gradient(135deg, #64b5f6 0%, #1976d2 100%) !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+body.dark-mode .introjs-nextbutton:hover, body.dark-mode .introjs-donebutton:hover {
+    background: linear-gradient(135deg, #90caf9 0%, #64b5f6 100%) !important;
+    box-shadow: 0 4px 12px rgba(100, 181, 246, 0.3) !important;
+}
+
+/* Geri Butonu */
+.introjs-prevbutton {
+    background: #f1f5f9 !important;
+    color: #475569 !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.introjs-prevbutton:hover {
+    background: #e2e8f0 !important;
+    color: #1e293b !important;
+}
+
+body.dark-mode .introjs-prevbutton {
+    background: #334155 !important;
+    color: #cbd5e1 !important;
+    border: 1px solid #475569 !important;
+}
+
+body.dark-mode .introjs-prevbutton:hover {
+    background: #475569 !important;
+    color: #ffffff !important;
+}
+
+/* Kapat Butonu */
+.introjs-skipbutton {
+    color: #94a3b8 !important;
+    font-size: 0.82rem !important;
+    font-weight: 500 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    position: absolute !important;
+    top: 15px !important;
+    right: 15px !important;
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
+    white-space: nowrap !important;
+    text-decoration: none !important;
+    line-height: 1 !important;
+    display: inline-block !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+.introjs-skipbutton:hover {
+    color: #e53935 !important;
+    background: rgba(229, 57, 53, 0.05) !important;
+}
+
+body.dark-mode .introjs-skipbutton:hover {
+    color: #ef5350 !important;
+    background: rgba(239, 83, 80, 0.1) !important;
+}
+
+/* İlerleme Noktaları */
+.introjs-bullets ul li a {
+    background: #cbd5e1 !important;
+    transition: all 0.25s ease !important;
+}
+
+.introjs-bullets ul li a.active {
+    background: #1565c0 !important;
+    transform: scale(1.2) !important;
+}
+
+body.dark-mode .introjs-bullets ul li a {
+    background: #475569 !important;
+}
+
+body.dark-mode .introjs-bullets ul li a.active {
+    background: #64b5f6 !important;
+}
+
+/* Odak Maskesi ve Parlama Efekti */
+.introjs-helperLayer {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    border: 2px solid #1565c0 !important;
+    box-shadow: 0 0 20px rgba(21, 101, 192, 0.5) !important;
+    border-radius: 8px !important;
+}
+
+body.dark-mode .introjs-helperLayer {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 2px solid #64b5f6 !important;
+    box-shadow: 0 0 25px rgba(100, 181, 246, 0.4) !important;
+    border-radius: 8px !important;
+}
+
+/* Arrow (Ok) Renk Uyumu */
+.introjs-arrow.left { border-right-color: rgba(255, 255, 255, 0.9) !important; }
+.introjs-arrow.right { border-left-color: rgba(255, 255, 255, 0.9) !important; }
+.introjs-arrow.top { border-bottom-color: rgba(255, 255, 255, 0.9) !important; }
+.introjs-arrow.bottom { border-top-color: rgba(255, 255, 255, 0.9) !important; }
+
+body.dark-mode .introjs-arrow.left { border-right-color: rgba(30, 41, 59, 0.85) !important; }
+body.dark-mode .introjs-arrow.right { border-left-color: rgba(30, 41, 59, 0.85) !important; }
+body.dark-mode .introjs-arrow.top { border-bottom-color: rgba(30, 41, 59, 0.85) !important; }
+body.dark-mode .introjs-arrow.bottom { border-top-color: rgba(30, 41, 59, 0.85) !important; }
+
+/* Arka Plan Karartma ve Blur (Cam Efekti) */
+.introjs-overlay {
+    background-color: rgba(15, 23, 42, 0.5) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    transition: all 0.3s ease !important;
+}
+
+body.dark-mode .introjs-overlay {
+    background-color: rgba(0, 0, 0, 0.75) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+}
