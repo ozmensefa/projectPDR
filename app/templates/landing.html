@@ -861,46 +861,49 @@
     <nav class="landing-nav" id="landingNav">
         <div class="nav-container">
             <a href="#" class="nav-brand">
-                <img src="{{ url_for('static', filename='images/logoforDarkBackground.png') }}" alt="YAKADES Logo" style="height: 40px;">
+                <img src="{{ url_for('static', filename='images/logoforDarkBackground.png') }}" alt="YAKADES Logo"
+                    style="height: 40px;">
             </a>
             <button class="nav-toggle" id="navToggle" aria-label="Menüyü aç/kapat">
                 <i class="fas fa-bars"></i>
             </button>
             <div class="nav-links" id="navLinks">
-                <a href="#features">Özellikler</a>
-                <a href="#how-it-works">Nasıl Çalışır</a>
-                <a href="#team">Proje Ekibi</a>
-                <a href="{{ url_for('auth.login') }}" class="btn-nav-login">Giriş Yap</a>
-                <a href="{{ url_for('auth.register') }}" class="btn-nav-register">Kayıt Ol</a>
+                <a href="#features" data-i18n="nav-features">Özellikler</a>
+                <a href="#how-it-works" data-i18n="nav-how">Nasıl Çalışır</a>
+                <a href="#team" data-i18n="nav-team">Proje Ekibi</a>
+                <button id="langToggleBtn" onclick="toggleLanguage()"
+                    style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-right: 8px; font-weight: 600; font-family: inherit; transition: all 0.3s ease;">EN</button>
+                <a href="{{ url_for('auth.login') }}" class="btn-nav-login" data-i18n="nav-login">Giriş Yap</a>
+                <a href="{{ url_for('auth.register') }}" class="btn-nav-register" data-i18n="nav-register">Kayıt Ol</a>
             </div>
         </div>
     </nav>
 
     <section class="hero">
         <div class="hero-inner">
-            <div class="hero-badge">
+            <div class="hero-badge" data-i18n="hero-badge">
                 <i class="fas fa-award"></i>
                 TÜBİTAK 1001 Destekli Proje — 125R120
             </div>
-            <h2>
+            <h2 data-i18n="hero-h2">
                 Psikolojik Danışmanlara Yönelik
             </h2>
-            <h1>
+            <h1 data-i18n="hero-h1">
                 <span class="gradient-text">Yapay Zeka Tabanlı<br>Karar Destek Sistemi</span>
             </h1>
-            <p>
+            <p data-i18n="hero-p1">
                 Bu sistem; TÜBİTAK 1001 — Bilimsel ve Teknolojik Araştırma Projelerini Destekleme Programı (ARDEB)
                 kapsamında desteklenmeye hak kazanan 125R120 kodlu <b>"Üniversite Öğrencilerinin Kaygı ile İlişkili
                     Problemlerinin Tespiti ve Takibine Yönelik Yapay Zekâ Tabanlı Karar Destek Sisteminin (YAKADES)
                     Tasarlanması"</b> projesi kapsamında geliştirilmiştir.
             </p>
-            <p>
+            <p data-i18n="hero-p2">
                 YAKADES; üniversite öğrencilerinde yaygın olarak görülen kaygı ile ilişkili problemlerin erken tespiti
                 ve sistematik takibi amacıyla geliştirilmiş yapay zeka tabanlı bir sistemdir. Proje, psikolojik
                 danışmanların karar alma süreçlerini güçlendirmeyi ve danışmanlık hizmetlerinin etkililiğini artırmayı
                 hedeflemektedir.
             </p>
-            <p>
+            <p data-i18n="hero-p3">
                 Üniversite yaşamı; akademik baskılar, sosyal uyum süreçleri ve bireysel sorumlulukların artışı gibi
                 nedenlerle öğrenciler için yoğun bir psikolojik yük oluşturmaktadır. Bu süreçte ortaya çıkan kaygı
                 problemlerinin zamanında tespit edilememesi, öğrencilerin akademik başarılarını, sosyal ilişkilerini ve
@@ -909,11 +912,12 @@
                 kullanarak kapsamlı bir analiz sunmayı amaçlamaktadır.
             </p>
             <div class="hero-buttons">
-                <a href="{{ url_for('auth.register') }}" class="btn-hero-primary" id="hero-register-btn">
+                <a href="{{ url_for('auth.register') }}" class="btn-hero-primary" id="hero-register-btn"
+                    data-i18n="hero-btn-start">
                     <i class="fas fa-rocket"></i>
                     Hemen Başla
                 </a>
-                <a href="#how-it-works" class="btn-hero-secondary" id="hero-learn-btn">
+                <a href="#how-it-works" class="btn-hero-secondary" id="hero-learn-btn" data-i18n="hero-btn-learn">
                     <i class="fas fa-play-circle"></i>
                     Nasıl Çalışır?
                 </a>
@@ -927,31 +931,36 @@
     <section id="features">
         <div class="section-container">
             <div class="section-header reveal">
-                <div class="section-tag"><i class="fas fa-star"></i> Özellikler</div>
-                <h2>Kapsamlı Analiz Araçları</h2>
-                <p>Danışma oturumlarınızı çok boyutlu olarak değerlendiren güçlü yapay zeka altyapısı</p>
+                <div class="section-tag"><i class="fas fa-star"></i> <span data-i18n="feat-tag">Özellikler</span></div>
+                <h2 data-i18n="feat-h2">Kapsamlı Analiz Araçları</h2>
+                <p data-i18n="feat-desc">Danışma oturumlarınızı çok boyutlu olarak değerlendiren güçlü yapay zeka
+                    altyapısı</p>
             </div>
             <div class="features-grid">
                 <div class="feature-card reveal">
                     <div class="feature-icon"><i class="fas fa-microphone-alt"></i></div>
-                    <h3>Ses Analizi</h3>
-                    <p>Konuşma tonunu, hızını ve ses frekans değişimlerini analiz ederek duygusal durumu değerlendirir.
+                    <h3 data-i18n="feat1-t">Ses Analizi</h3>
+                    <p data-i18n="feat1-p">Konuşma tonunu, hızını ve ses frekans değişimlerini analiz ederek duygusal
+                        durumu değerlendirir.
                     </p>
                 </div>
                 <div class="feature-card reveal">
                     <div class="feature-icon"><i class="fas fa-file-alt"></i></div>
-                    <h3>Metin Analizi</h3>
-                    <p>Otomatik transkripsiyon yaparak konuşma içeriğini detaylı şekilde analiz eder.</p>
+                    <h3 data-i18n="feat2-t">Metin Analizi</h3>
+                    <p data-i18n="feat2-p">Otomatik transkripsiyon yaparak konuşma içeriğini detaylı şekilde analiz
+                        eder.</p>
                 </div>
                 <div class="feature-card reveal">
                     <div class="feature-icon"><i class="fas fa-face-smile"></i></div>
-                    <h3>Duygu Analizi</h3>
-                    <p>Yenilikçi teknolojisiyle yüz ifadelerinden duygu değişimlerini saniye saniye takip eder.</p>
+                    <h3 data-i18n="feat3-t">Duygu Analizi</h3>
+                    <p data-i18n="feat3-p">Yenilikçi teknolojisiyle yüz ifadelerinden duygu değişimlerini saniye saniye
+                        takip eder.</p>
                 </div>
                 <div class="feature-card reveal">
                     <div class="feature-icon"><i class="fas fa-person-walking"></i></div>
-                    <h3>Beden Dili Analizi</h3>
-                    <p>Vücut postürü ve hareketleri analiz ederek sözel olmayan iletişim verilerini ortaya koyar.</p>
+                    <h3 data-i18n="feat4-t">Beden Dili Analizi</h3>
+                    <p data-i18n="feat4-p">Vücut postürü ve hareketleri analiz ederek sözel olmayan iletişim verilerini
+                        ortaya koyar.</p>
                 </div>
             </div>
         </div>
@@ -960,25 +969,27 @@
     <section id="how-it-works">
         <div class="section-container">
             <div class="section-header reveal">
-                <div class="section-tag"><i class="fas fa-route"></i> Adımlar</div>
-                <h2>Nasıl Çalışır?</h2>
-                <p>Üç kolay adımda profesyonel oturum analizi</p>
+                <div class="section-tag"><i class="fas fa-route"></i> <span data-i18n="how-tag">Adımlar</span></div>
+                <h2 data-i18n="how-h2">Nasıl Çalışır?</h2>
+                <p data-i18n="how-desc">Üç kolay adımda profesyonel oturum analizi</p>
             </div>
             <div class="steps-grid">
                 <div class="step-card reveal">
                     <div class="step-number">1</div>
-                    <h3>Video Yükleyin</h3>
-                    <p>Danışma oturumunuzun video kaydını sisteme yükleyin.</p>
+                    <h3 data-i18n="how1-t">Video Yükleyin</h3>
+                    <p data-i18n="how1-p">Danışma oturumunuzun video kaydını sisteme yükleyin.</p>
                 </div>
                 <div class="step-card reveal">
                     <div class="step-number">2</div>
-                    <h3>AI Analiz Etsin</h3>
-                    <p>Yapay zeka modelimiz videoyu ses, metin, duygu ve beden dili boyutlarında analiz eder.</p>
+                    <h3 data-i18n="how2-t">AI Analiz Etsin</h3>
+                    <p data-i18n="how2-p">Yapay zeka modelimiz videoyu ses, metin, duygu ve beden dili boyutlarında
+                        analiz eder.</p>
                 </div>
                 <div class="step-card reveal">
                     <div class="step-number">3</div>
-                    <h3>Raporu İnceleyin</h3>
-                    <p>Kapsamlı psikolojik danışmanlık raporunuzu görüntüleyin veya PDF olarak indirin.</p>
+                    <h3 data-i18n="how3-t">Raporu İnceleyin</h3>
+                    <p data-i18n="how3-p">Kapsamlı psikolojik danışmanlık raporunuzu görüntüleyin veya PDF olarak
+                        indirin.</p>
                 </div>
             </div>
         </div>
@@ -987,9 +998,10 @@
     <section id="team">
         <div class="section-container">
             <div class="section-header reveal">
-                <div class="section-tag"><i class="fas fa-users"></i> Proje Ekibi</div>
-                <h2>Araştırma Ekibimiz</h2>
-                <p>YAKADES projesini geliştiren akademik kadro</p>
+                <div class="section-tag"><i class="fas fa-users"></i> <span data-i18n="team-tag">Proje Ekibi</span>
+                </div>
+                <h2 data-i18n="team-h2">Araştırma Ekibimiz</h2>
+                <p data-i18n="team-desc">YAKADES projesini geliştiren akademik kadro</p>
             </div>
 
             <!-- Yürütücü - tek başına ortalı -->
@@ -999,7 +1011,7 @@
                     <div class="team-photo">
                         <img src="{{ url_for('static', filename='images/erumit.jpg') }}" alt="Ali Kürşat Erümit">
                     </div>
-                    <div class="team-role">Yürütücü</div>
+                    <div class="team-role" data-i18n="team-role-pi">Yürütücü</div>
                     <div class="team-name">Doç. Dr. Ali Kürşat Erümit</div>
                     <div class="team-university">Trabzon Üniversitesi</div>
                 </a>
@@ -1012,7 +1024,7 @@
                     <div class="team-photo">
                         <img src="{{ url_for('static', filename='images/hasankaral.jpg') }}" alt="Hasan Karal">
                     </div>
-                    <div class="team-role">Araştırmacı</div>
+                    <div class="team-role" data-i18n="team-role-res">Araştırmacı</div>
                     <div class="team-name">Prof. Dr. Hasan Karal</div>
                     <div class="team-university">Trabzon Üniversitesi</div>
                 </a>
@@ -1021,7 +1033,7 @@
                     <div class="team-photo">
                         <img src="{{ url_for('static', filename='images/hikmetyazici.jpg') }}" alt="Hikmet Yazıcı">
                     </div>
-                    <div class="team-role">Araştırmacı</div>
+                    <div class="team-role" data-i18n="team-role-res">Araştırmacı</div>
                     <div class="team-name">Prof. Dr. Hikmet Yazıcı</div>
                     <div class="team-university">Trabzon Üniversitesi</div>
                 </a>
@@ -1030,7 +1042,7 @@
                     <div class="team-photo">
                         <img src="{{ url_for('static', filename='images/vasifnabiyev.jpg') }}" alt="Vasif Nabiyev">
                     </div>
-                    <div class="team-role">Araştırmacı</div>
+                    <div class="team-role" data-i18n="team-role-res">Araştırmacı</div>
                     <div class="team-name">Prof. Dr. Vasif Nabiyev</div>
                     <div class="team-university">Karadeniz Teknik Üniversitesi</div>
                 </a>
@@ -1039,7 +1051,7 @@
                     <div class="team-photo">
                         <img src="{{ url_for('static', filename='images/fatihkoca.jpg') }}" alt="Fatih Koca">
                     </div>
-                    <div class="team-role">Araştırmacı</div>
+                    <div class="team-role" data-i18n="team-role-res">Araştırmacı</div>
                     <div class="team-name">Doç. Dr. Fatih Koca</div>
                     <div class="team-university">Trabzon Üniversitesi</div>
                 </a>
@@ -1048,7 +1060,7 @@
                     <div class="team-photo">
                         <img src="{{ url_for('static', filename='images/aysekalyon.jpg') }}" alt="Ayşe Kalyon">
                     </div>
-                    <div class="team-role">Araştırmacı</div>
+                    <div class="team-role" data-i18n="team-role-res">Araştırmacı</div>
                     <div class="team-name">Dr. Öğr. Üyesi Ayşe Kalyon</div>
                     <div class="team-university">Trabzon Üniversitesi</div>
                 </a>
@@ -1057,7 +1069,7 @@
                     <div class="team-photo">
                         <img src="{{ url_for('static', filename='images/sefa.png') }}" alt="Sefa Özmen">
                     </div>
-                    <div class="team-role">Araştırmacı</div>
+                    <div class="team-role" data-i18n="team-role-res">Araştırmacı</div>
                     <div class="team-name">Öğr. Gör. Sefa Özmen</div>
                     <div class="team-university">Trabzon Üniversitesi</div>
                 </a>
@@ -1067,17 +1079,17 @@
 
     <footer class="landing-footer">
         <div class="footer-links">
-            <a href="#features">Özellikler</a>
-            <a href="#how-it-works">Nasıl Çalışır</a>
-            <a href="#team">Proje Ekibi</a>
-            <a href="{{ url_for('auth.login') }}">Giriş Yap</a>
-            <a href="{{ url_for('auth.register') }}">Kayıt Ol</a>
+            <a href="#features" data-i18n="nav-features">Özellikler</a>
+            <a href="#how-it-works" data-i18n="nav-how">Nasıl Çalışır</a>
+            <a href="#team" data-i18n="nav-team">Proje Ekibi</a>
+            <a href="{{ url_for('auth.login') }}" data-i18n="nav-login">Giriş Yap</a>
+            <a href="{{ url_for('auth.register') }}" data-i18n="nav-register">Kayıt Ol</a>
         </div>
-        <p style="font-size: 0.78rem; color: rgba(159,168,218,0.6); margin-top: 12px;">
+        <p style="font-size: 0.78rem; color: rgba(159,168,218,0.6); margin-top: 12px;" data-i18n="footer-tubitak">
             Bu proje TÜBİTAK 1001 — Bilimsel ve Teknolojik Araştırma Projelerini Destekleme Programı kapsamında
             desteklenmektedir.
         </p>
-        <p>&copy; 2026 YAKADES — Tüm hakları saklıdır.</p>
+        <p data-i18n="footer-rights">&copy; 2026 YAKADES — Tüm hakları saklıdır.</p>
     </footer>
 
     <script>
@@ -1130,6 +1142,117 @@
         })();
     </script>
 
+    <script>
+        const i18n = {
+            tr: {
+                "nav-features": "Özellikler",
+                "nav-how": "Nasıl Çalışır",
+                "nav-team": "Proje Ekibi",
+                "nav-login": "Giriş Yap",
+                "nav-register": "Kayıt Ol",
+                "hero-badge": "TÜBİTAK 1001 Destekli Proje — 125R120",
+                "hero-h2": "Psikolojik Danışmanlara Yönelik",
+                "hero-h1": "Yapay Zeka Tabanlı<br>Karar Destek Sistemi",
+                "hero-p1": "Bu sistem; TÜBİTAK 1001 — Bilimsel ve Teknolojik Araştırma Projelerini Destekleme Programı (ARDEB) kapsamında desteklenmeye hak kazanan 125R120 kodlu <b>\"Üniversite Öğrencilerinin Kaygı ile İlişkili Problemlerinin Tespiti ve Takibine Yönelik Yapay Zekâ Tabanlı Karar Destek Sisteminin (YAKADES) Tasarlanması\"</b> projesi kapsamında geliştirilmiştir.",
+                "hero-p2": "YAKADES; üniversite öğrencilerinde yaygın olarak görülen kaygı ile ilişkili problemlerin erken tespiti ve sistematik takibi amacıyla geliştirilmiş yapay zeka tabanlı bir sistemdir. Proje, psikolojik danışmanların karar alma süreçlerini güçlendirmeyi ve danışmanlık hizmetlerinin etkililiğini artırmayı hedeflemektedir.",
+                "hero-p3": "Üniversite yaşamı; akademik baskılar, sosyal uyum süreçleri ve bireysel sorumlulukların artışı gibi nedenlerle öğrenciler için yoğun bir psikolojik yük oluşturmaktadır. Bu süreçte ortaya çıkan kaygı problemlerinin zamanında tespit edilememesi, öğrencilerin akademik başarılarını, sosyal ilişkilerini ve genel iyi oluşlarını olumsuz etkileyebilmektedir. Bu bağlamda YAKADES, yalnızca öz-bildirimlere dayalı değerlendirmelerin ötesine geçerek çoklu veri kaynaklarını (ses, metin, beden dili ve duygu analizi) kullanarak kapsamlı bir analiz sunmayı amaçlamaktadır.",
+                "hero-btn-start": "Hemen Başla",
+                "hero-btn-learn": "Nasıl Çalışır?",
+                "feat-tag": "Özellikler",
+                "feat-h2": "Kapsamlı Analiz Araçları",
+                "feat-desc": "Danışma oturumlarınızı çok boyutlu olarak değerlendiren güçlü yapay zeka altyapısı",
+                "feat1-t": "Ses Analizi",
+                "feat1-p": "Konuşma tonunu, hızını ve ses frekans değişimlerini analiz ederek duygusal durumu değerlendirir.",
+                "feat2-t": "Metin Analizi",
+                "feat2-p": "Otomatik transkripsiyon yaparak konuşma içeriğini detaylı şekilde analiz eder.",
+                "feat3-t": "Duygu Analizi",
+                "feat3-p": "Yenilikçi teknolojisiyle yüz ifadelerinden duygu değişimlerini saniye saniye takip eder.",
+                "feat4-t": "Beden Dili Analizi",
+                "feat4-p": "Vücut postürü ve hareketleri analiz ederek sözel olmayan iletişim verilerini ortaya koyar.",
+                "how-tag": "Adımlar",
+                "how-h2": "Nasıl Çalışır?",
+                "how-desc": "Üç kolay adımda profesyonel oturum analizi",
+                "how1-t": "Video Yükleyin",
+                "how1-p": "Danışma oturumunuzun video kaydını sisteme yükleyin.",
+                "how2-t": "AI Analiz Etsin",
+                "how2-p": "Yapay zeka modelimiz videoyu ses, metin, duygu ve beden dili boyutlarında analiz eder.",
+                "how3-t": "Raporu İnceleyin",
+                "how3-p": "Kapsamlı psikolojik danışmanlık raporunuzu görüntüleyin veya PDF olarak indirin.",
+                "team-tag": "Proje Ekibi",
+                "team-h2": "Araştırma Ekibimiz",
+                "team-desc": "YAKADES projesini geliştiren akademik kadro",
+                "team-role-pi": "Yürütücü",
+                "team-role-res": "Araştırmacı",
+                "footer-tubitak": "Bu proje TÜBİTAK 1001 — Bilimsel ve Teknolojik Araştırma Projelerini Destekleme Programı kapsamında desteklenmektedir.",
+                "footer-rights": "© 2026 YAKADES — Tüm hakları saklıdır."
+            },
+            en: {
+                "nav-features": "Features",
+                "nav-how": "How It Works",
+                "nav-team": "Project Team",
+                "nav-login": "Log In",
+                "nav-register": "Sign Up",
+                "hero-badge": "TÜBİTAK 1001 Supported Project — 125R120",
+                "hero-h2": "For Psychological Counselors",
+                "hero-h1": "AI-Powered<br>Decision Support System",
+                "hero-p1": "This system was developed within the scope of the project coded 125R120, <b>\"Designing an AI-Based Decision Support System (YAKADES) for the Detection and Monitoring of Anxiety-Related Problems of University Students\"</b>, supported by TÜBİTAK 1001 — Scientific and Technological Research Projects Funding Program (ARDEB).",
+                "hero-p2": "YAKADES is an artificial intelligence-based system developed for the early detection and systematic tracking of anxiety-related problems commonly seen in university students. The project aims to strengthen the decision-making processes of psychological counselors and increase the effectiveness of counseling services.",
+                "hero-p3": "University life creates an intense psychological burden for students due to reasons such as academic pressures, social adaptation processes, and increasing individual responsibilities. Failure to detect anxiety problems in a timely manner can negatively affect students' academic success, social relationships, and overall well-being. In this context, YAKADES goes beyond self-report-based evaluations and aims to provide a comprehensive analysis using multiple data sources (voice, text, body language, and emotion analysis).",
+                "hero-btn-start": "Get Started",
+                "hero-btn-learn": "How It Works?",
+                "feat-tag": "Features",
+                "feat-h2": "Comprehensive Analysis Tools",
+                "feat-desc": "Powerful AI infrastructure that evaluates your counseling sessions multi-dimensionally",
+                "feat1-t": "Voice Analysis",
+                "feat1-p": "Evaluates emotional state by analyzing speech tone, pace, and vocal frequency variations.",
+                "feat2-t": "Text Analysis",
+                "feat2-p": "Provides automatic transcription and detailed analysis of speech content.",
+                "feat3-t": "Emotion Analysis",
+                "feat3-p": "Tracks emotional changes second by second from facial expressions with innovative technology.",
+                "feat4-t": "Body Language Analysis",
+                "feat4-p": "Reveals non-verbal communication data by analyzing body posture and movements.",
+                "how-tag": "Steps",
+                "how-h2": "How It Works?",
+                "how-desc": "Professional session analysis in three easy steps",
+                "how1-t": "Upload Video",
+                "how1-p": "Upload the video recording of your counseling session to the system.",
+                "how2-t": "Let AI Analyze",
+                "how2-p": "Our AI model analyzes the video in terms of voice, text, emotion, and body language.",
+                "how3-t": "Review Report",
+                "how3-p": "View your comprehensive psychological counseling report or download it as a PDF.",
+                "team-tag": "Project Team",
+                "team-h2": "Our Research Team",
+                "team-desc": "The academic team that developed the YAKADES project",
+                "team-role-pi": "Prıncıpal Investıgator",
+                "team-role-res": "Researcher",
+                "footer-tubitak": "This project is supported by the TÜBİTAK 1001 — Scientific and Technological Research Projects Funding Program.",
+                "footer-rights": "© 2026 YAKADES — All rights reserved."
+            }
+        };
+
+        let currentLang = localStorage.getItem('yakades_lang') || 'tr';
+
+        function updateTexts() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[currentLang] && i18n[currentLang][key]) {
+                    el.innerHTML = i18n[currentLang][key];
+                }
+            });
+            const toggleBtn = document.getElementById('langToggleBtn');
+            if (toggleBtn) {
+                toggleBtn.innerText = currentLang === 'tr' ? 'EN' : 'TR';
+            }
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'tr' ? 'en' : 'tr';
+            localStorage.setItem('yakades_lang', currentLang);
+            updateTexts();
+        }
+
+        window.addEventListener('DOMContentLoaded', updateTexts);
+    </script>
 </body>
 
 </html>
