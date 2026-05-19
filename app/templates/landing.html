@@ -7,8 +7,8 @@
     <title>YAKADES — Yapay Zeka Destekli Psikolojik Danışmanlık Analiz Sistemi</title>
     <meta name="description"
         content="YAKADES, psikolojik danışma oturumlarınızı yapay zeka ile analiz eden, ses, duygu, beden dili ve metin analizleri sunan profesyonel karar destek sistemidir.">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -861,8 +861,7 @@
     <nav class="landing-nav" id="landingNav">
         <div class="nav-container">
             <a href="#" class="nav-brand">
-                <i class="fas fa-brain"></i>
-                <span>YAKADES</span>
+                <img src="{{ url_for('static', filename='images/logoforDarkBackground.png') }}" alt="YAKADES Logo" style="height: 40px;">
             </a>
             <button class="nav-toggle" id="navToggle" aria-label="Menüyü aç/kapat">
                 <i class="fas fa-bars"></i>

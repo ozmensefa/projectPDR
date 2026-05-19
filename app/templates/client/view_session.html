@@ -292,6 +292,49 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Uygulanan Teknikler Bölümü -->
+                <hr class="my-4">
+                <div class="techniques-section">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0 text-secondary">
+                            <i class="fas fa-tools"></i> Uygulanan Teknikler
+                        </h5>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="appliedTechniques" class="form-label">
+                            <i class="fas fa-pen"></i> Teknikler:
+                        </label>
+                        <textarea id="appliedTechniques" class="form-control session-notes-textarea" rows="4"
+                            placeholder="Bu oturumda uyguladığınız teknikleri buraya yazın (ör: Bilişsel yeniden yapılandırma, Gevşeme egzersizi, Sistematik duyarsızlaştırma...)"></textarea>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle"></i>
+                            Bu bölüme girdiğiniz teknikler analiz raporunda değerlendirilecektir.
+                            <span class="text-success" id="tech-save-status" style="display: none;">
+                                <i class="fas fa-check"></i> Kaydedildi
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                        <div class="text-muted">
+                            <small>
+                                <i class="fas fa-lightbulb"></i>
+                                Uyguladığınız teknikleri kaydettiğinizde, analiz sistemi bu teknikleri raporunda dikkate
+                                alır.
+                            </small>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm me-2" id="clear-techniques">
+                                <i class="fas fa-eraser"></i> Temizle
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="save-techniques">
+                                <i class="fas fa-save"></i> Kaydet
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="card-footer">
                 <a href="{{ url_for('client.view_client', client_id=session.client_id) }}"
@@ -763,6 +806,66 @@
         }
 
         console.log('✅ Manuel not sistemi hazır!');
+
+        // ========================================================
+        // UYGULANAN TEKNİKLER SİSTEMİ
+        // ========================================================
+        var techTextarea = document.getElementById('appliedTechniques');
+        var techSaveStatus = document.getElementById('tech-save-status');
+        var saveTechBtn = document.getElementById('save-techniques');
+        var clearTechBtn = document.getElementById('clear-techniques');
+
+        if (techTextarea) {
+            // Veritabanından mevcut teknikleri yükle
+            function loadTechniques() {
+                // Veritabanından yükle (session objesi üzerinden)
+                var dbTechniques = {{ (session.applied_techniques or '') | tojson }};
+    if (dbTechniques && dbTechniques.trim()) {
+        techTextarea.value = dbTechniques;
+    }
+            }
+
+    // Teknikleri kaydet
+    function saveTechniques() {
+        var techniques = techTextarea.value.trim();
+
+        $.ajax({
+            url: '/save_applied_techniques/' + sessionId,
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ techniques: techniques }),
+            headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+            success: function () {
+                console.log('💾 Teknikler veritabanına kaydedildi');
+                techSaveStatus.style.display = 'inline';
+                setTimeout(function () {
+                    techSaveStatus.style.display = 'none';
+                }, 2000);
+            },
+            error: function () {
+                console.log('⚠️ Teknikler kaydedilemedi');
+                alert('Teknikler kaydedilirken bir hata oluştu.');
+            }
+        });
+    }
+
+    // Kaydet butonu
+    saveTechBtn.addEventListener('click', saveTechniques);
+
+    // Temizle butonu
+    clearTechBtn.addEventListener('click', function () {
+        if (confirm('Uygulanan teknikleri silmek istediğinizden emin misiniz?')) {
+            techTextarea.value = '';
+            saveTechniques(); // Boş kaydet
+            console.log('🗑️ Teknikler temizlendi');
+        }
+    });
+
+    // Sayfa yüklendiğinde mevcut teknikleri yükle
+    loadTechniques();
+        }
+
+    console.log('✅ Uygulanan teknikler sistemi hazır!');
     });
 
     // ========================================================

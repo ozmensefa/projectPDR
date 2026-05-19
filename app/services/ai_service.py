@@ -259,6 +259,9 @@ class AIService:
         # Danışan adını al
         client_name = analysis_data.get('client_name', 'Tanımsız')
         
+        # Uygulanan teknikler
+        applied_techniques = analysis_data.get('applied_techniques', '').strip()
+        
         # Finetuning verilerinden örnekler ekle
         training_examples = "\n".join([
             f"Problem: {item['Problem']}\nAçıklama: {item['Açıklama']}"
@@ -318,7 +321,7 @@ Ses Analizi Sonuçları:
         
         # --- Sabit prompt parçaları (değişmeyenler) ---
         prompt_template = """
-        Sen bir psikolojik danışmanlık uzmanısın. Aşağıdaki problemler ve açıklamalarına göre bir psikolojik danışma oturumunun analiz sonuçlarını değerlendirerek kapsamlı bir rapor hazırlayacağız. Aşağıda problemler ve açıklamaları yer almaktadır. Bununla birlikte, ses analizi, metin analizi, duygusal analiz ve beden dili analizi de ayrıca verilmiştir. Bu analizleri değerlendirerek kapsamlı bir rapor hazırlaya.
+        Sen bir psikolojik danışmanlık uzmanısın. Aşağıdaki problemler ve açıklamalarına göre bir psikolojik danışma oturumunun analiz sonuçlarını değerlendirerek kapsamlı bir rapor hazırlayacağız. Aşağıda problemler ve açıklamaları yer almaktadır. Bununla birlikte, ses analizi, metin analizi, duygusal analiz ve beden dili analizi de ayrıca verilmiştir. Bu analizleri değerlendirerek kapsamlı bir rapor hazırla.
         
         Problemler ve Açıklamaları:
         {training_examples}
@@ -336,12 +339,12 @@ Ses Analizi Sonuçları:
         
         Beden Dili Analizi:
         {body_section}
-        
-        Lütfen aşağıdaki başlıklar altında profesyonel bir değerlendirme yap:
+        {applied_techniques_section}
+        Lütfen aşağıdaki başlıklar altında profesyonel bir değerlendirme yap. Rapordaki tüm başlıklar aşağıdaki gibi olmalı ve her biri mutlaka raporda yer almalı:
         1. Psikolojik danışma seansının genel özeti (seansta üzerinde durulan ana temalar, danışanın genel görünümü, seanstaki işbirlikçi tutumu, seansta uygulanan müdahaleler/teknikler vb.)
         2. Psikolojik danışma seansında danışanın öne çıkan öznel ifadeleri
         3. Danışanın duygu, düşünce ve davranışlarına ilişkin değerlendirmeler:
-            a. Danışanın duygu durumuna ilişkin tespitler (danışanın sergilediği duygular ve yoğunluğu/derecesi)
+            a. Danışanın duygu durumuna ilişkin tespitler (danışanın sergilediği duygular arasında öne çıkanlar)
             b. Danışanın düşünce içeriklerine ilişkin tespitler (pozitif-negatif düşünce içerikleri vb.)
             c. Danışanın davranışsal tepkilerine ilişkin tespitler (örn: danışanın ilgili seansta ifade ettiği davranışları, sorumluluklarını erteleme, kalabalık ortamlara girmeme, aşırı alkol/sigara tüketme, ders devamsızlığı yapma vb.)
             d. Danışanın fizyolojik tepkilerine ilişkin tespitler (terleme, titreme, yüz kızarması vb.)
@@ -349,8 +352,17 @@ Ses Analizi Sonuçları:
         5. Takip eden seanslarda üzerinde çalışılabilecek durumlar/konular, uygulanabilecek müdahaleler/teknikler
         6. Danışanın risk durumuna ilişkin tespitler (kendine zarar verme, intihar, başkalarına zarar verme, madde kullanımı vb.)
         7. Danışanın sevk durumuna ilişkin değerlendirmeler (danışan tıbbi veya psikiyatrik bir sevke ihtiyaç duyuyor mu?)
+        8. Oturumların Sonlandırılması veya Gelecek Oturum İçin Önerilerin Verilmesi (Danışanın kaygı ile ilgili problemleri giderildiyse oturum sürecinin sonlanrırılması ile ilgili bir dönüt verilebilir. Ancak hala kaygıyla ilgili problemleri varsa ve gelecek oturum ile ilgili önerilerde bulunulmalı.)
         
-        Her başlık için detaylı ve profesyonel açıklamalar yap, önemli noktaları vurgula ve danışana yönelik öneriler sun.
+        ÖNEMLİ TALİMATLAR:
+        
+        - 5. ve 8. başlıklardaki önerilerde "BDT uygulayabilirsiniz" veya "GDBT kullanılabilir" gibi genel ifadelerden kesinlikle kaçın. Bunun yerine, ilgili psikolojik danışma ekolüne bağlı hangi spesifik tekniklerin uygulanabileceğini detaylandır ve örneklendir. Örneğin: "Bilişsel yeniden yapılandırma tekniği ile danışanın 'Hiçbir şeyi başaramıyorum' otomatik düşüncesini ele alarak, bu düşüncenin kanıtları ve karşı kanıtları sorgulatılabilir" gibi somut ve uygulanabilir öneriler sun.
+        
+        - Seans içerisinde danışman tarafından zaten uygulanmış olan teknikleri tespit et. Bu teknikleri gelecek oturumlar için yeni bir "öneri" olarak sunma. Bunun yerine, danışmanın uyguladığı tekniklerin etkisini değerlendir (4. başlık altında) ve henüz denenmemiş, tamamlayıcı teknikler öner.
+        
+        - Beden dili analizlerinde, danışanın rahat oturma pozisyonu, bacak bacak üstüne atma, kollarını rahat bırakma gibi davranışları otomatik olarak olumsuz yorumlama. Kişisel farklılıkları ve kültürel normları göz önünde bulundur. Beden dili bulgularını ancak diğer verilerle (sözel ifadeler, duygu analizi) tutarlı olduğunda anlamlı bir bulgu olarak raporla. Rahat tavırları "savunmacılık" veya "mesafe koyma" olarak yorumlamaktan kaçın.
+        
+        Her başlık için detaylı ve profesyonel açıklamalar yap, önemli noktaları vurgula.
         """
         
         # --- Sabit kısımların token maliyetini hesapla ---
@@ -438,6 +450,16 @@ Ses Analizi Sonuçları:
             final_total = template_tokens + self._estimate_tokens(text_analysis) + self._estimate_tokens(emotion_section) + self._estimate_tokens(body_section)
             print(f"   📊 Küçültme sonrası toplam: ~{int(final_total):,} token")
         
+        # --- Uygulanan teknikler bölümünü hazırla (koşullu) ---
+        if applied_techniques:
+            applied_techniques_section = f"""
+        DANIŞMAN TARAFINDAN UYGULANAN TEKNİKLER:
+        {applied_techniques}
+        
+        ÖNEMLİ: Yukarıda listelenen teknikler danışman tarafından bu seansta zaten uygulanmıştır. Bu teknikleri 5. ve 8. başlıklarda "yeni öneri" olarak sunma. Bunun yerine, bu tekniklerin danışan üzerindeki etkisini 4. başlık altında değerlendir."""
+        else:
+            applied_techniques_section = ""
+        
         # --- Prompt'u oluştur ---
         prompt = prompt_template.format(
             training_examples=training_examples,
@@ -445,7 +467,8 @@ Ses Analizi Sonuçları:
             audio_summary=audio_summary,
             text_analysis=text_analysis,
             emotion_section=emotion_section,
-            body_section=body_section
+            body_section=body_section,
+            applied_techniques_section=applied_techniques_section
         )
         
         return prompt

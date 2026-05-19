@@ -282,14 +282,19 @@ def calendar_events():
         is_past = s.date < now
         is_completed = s.analysis_results is not None
         
+        # Müşteriye göre renk belirleme
+        client_colors = [
+            '#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0', 
+            '#00bcd4', '#e91e63', '#3f51b5', '#009688', '#ffc107',
+            '#8bc34a', '#795548', '#607d8b'
+        ]
+        color = client_colors[s.client_id % len(client_colors)]
+
         if is_past and is_completed:
-            color = '#4caf50'
             status = 'Tamamlandı'
         elif is_past and not is_completed:
-            color = '#f44336'
             status = 'Tamamlanmamış'
         else:
-            color = '#2196f3'
             status = 'Yaklaşan'
         
         events.append({
@@ -811,6 +816,23 @@ def save_session_notes(session_id):
         
         data = request.get_json()
         session_obj.notes = data.get('notes', '')
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@main_bp.route('/save_applied_techniques/<int:session_id>', methods=['POST'])
+@login_required
+def save_applied_techniques(session_id):
+    """Uygulanan teknikleri veritabanına kaydet (AJAX)"""
+    try:
+        session_obj = Session.query.get_or_404(session_id)
+        if session_obj.client.counselor_id != current_user.id:
+            abort(403)
+        
+        data = request.get_json()
+        session_obj.applied_techniques = data.get('techniques', '')
         db.session.commit()
         return jsonify({'success': True})
     except Exception as e:

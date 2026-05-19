@@ -270,14 +270,14 @@ body {
 }
 
 /* Profil dropdown */
-.navbar .navbar-nav:last-child .nav-item.dropdown > .nav-link {
+.navbar .navbar-nav:last-child .nav-item.dropdown>.nav-link {
     padding: 10px 14px !important;
     border-radius: 8px;
     margin: 8px 0;
     border-bottom: none;
 }
 
-.navbar .navbar-nav:last-child .nav-item.dropdown > .nav-link:hover {
+.navbar .navbar-nav:last-child .nav-item.dropdown>.nav-link:hover {
     background: rgba(255, 255, 255, 0.12);
     border-bottom: none;
 }
@@ -319,7 +319,7 @@ body {
         background: rgba(255, 255, 255, 0.1);
     }
 
-    .navbar .navbar-nav:last-child .nav-item.dropdown > .nav-link {
+    .navbar .navbar-nav:last-child .nav-item.dropdown>.nav-link {
         margin: 4px 0;
         border-radius: 0;
     }
@@ -727,7 +727,7 @@ body {
     background: linear-gradient(to bottom, #ffffff, #f8f9fa);
     border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border: 2px solid #2193b0;
 }
 
@@ -742,7 +742,7 @@ body {
 
 .upload-box:hover {
     border-color: #007bff;
-    background-color: rgba(0,123,255,0.05);
+    background-color: rgba(0, 123, 255, 0.05);
 }
 
 .upload-box input[type="file"] {
@@ -773,30 +773,35 @@ body {
     text-align: center;
     border: 2px solid #4a90e2;
     background: linear-gradient(to bottom, #ffffff, #f8f9fa);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     padding: 20px;
     border-radius: 8px;
 }
 
 /* Her analiz türü için farklı çerçeve renkleri */
 .analysis-box:nth-child(1) {
-    border-color: #11998e; /* Metin analizi için yeşil */
+    border-color: #11998e;
+    /* Metin analizi için yeşil */
 }
 
 .analysis-box:nth-child(2) {
-    border-color: #8E2DE2; /* Ses analizi için mor */
+    border-color: #8E2DE2;
+    /* Ses analizi için mor */
 }
 
 .analysis-row:nth-child(2) .analysis-box:nth-child(1) {
-    border-color: #ee0979; /* Duygu analizi için pembe */
+    border-color: #ee0979;
+    /* Duygu analizi için pembe */
 }
 
 .analysis-row:nth-child(2) .analysis-box:nth-child(2) {
-    border-color: #1565C0; /* Beden dili analizi için mavi */
+    border-color: #1565C0;
+    /* Beden dili analizi için mavi */
 }
 
 .full-width .analysis-box {
-    border-color: #4a90e2; /* Yapay zeka analizi için orijinal mavi */
+    border-color: #4a90e2;
+    /* Yapay zeka analizi için orijinal mavi */
 }
 
 /* Analiz Butonları */
@@ -811,7 +816,7 @@ body {
     position: relative;
     overflow: hidden;
     font-weight: 500;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     margin: 0 auto;
     display: block;
     min-width: 180px;
@@ -837,7 +842,7 @@ body {
 /* Hover efektleri */
 .analyze-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .analyze-btn:active {
@@ -852,7 +857,7 @@ body {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     transform: rotate(45deg);
     transition: all 0.3s ease;
     opacity: 0;
@@ -876,7 +881,7 @@ body {
 /* Hover efektleri */
 .analyze-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .analyze-btn:active {
@@ -891,7 +896,7 @@ body {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     transform: rotate(45deg);
     transition: all 0.3s ease;
     opacity: 0;
@@ -917,14 +922,16 @@ body {
     left: 50%;
     margin-left: -8px;
     margin-top: -8px;
-    border: 2px solid rgba(255,255,255,0.3);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
     border-top-color: #fff;
     animation: spin 1s ease-in-out infinite;
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Disabled durumu */
@@ -947,7 +954,7 @@ body {
     max-width: 100%;
     max-height: 300px;
     border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     background: #000;
 }
 
@@ -999,8 +1006,13 @@ body {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Hata mesajı stilleri */
@@ -1024,7 +1036,7 @@ body {
     padding: 20px;
     background: #fff;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .ai-analysis-container h1,
@@ -1103,9 +1115,10 @@ body {
 
 .full-width .analysis-box {
     text-align: center;
-    border: 2px solid #4a90e2; /* Özel vurgu için mavi çerçeve */
+    border: 2px solid #4a90e2;
+    /* Özel vurgu için mavi çerçeve */
     background: linear-gradient(to bottom, #ffffff, #f8f9fa);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .full-width .analyze-btn {
@@ -1177,7 +1190,7 @@ body {
     border: 1px solid #ddd;
     border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .analysis-box h3 {
@@ -1191,7 +1204,7 @@ body {
     .analysis-row {
         grid-template-columns: 1fr;
     }
-    
+
     .container {
         padding: 10px;
     }
@@ -1309,7 +1322,7 @@ body {
     background: white;
     padding: 15px;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .body-language-plot h4 {
@@ -1402,6 +1415,7 @@ body {
 .modal-backdrop {
     z-index: 1040 !important;
 }
+
 .modal-dialog {
     z-index: 1060 !important;
 }
@@ -1443,8 +1457,15 @@ body {
 }
 
 @keyframes shimmer {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
 }
 
 .upcoming-session-body {
@@ -1508,16 +1529,40 @@ body {
 
 /* Animasyonlar */
 @keyframes slideInUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.upcoming-sessions-container > div:nth-child(1) { animation: slideInUp 0.3s ease-out; }
-.upcoming-sessions-container > div:nth-child(2) { animation: slideInUp 0.4s ease-out; }
-.upcoming-sessions-container > div:nth-child(3) { animation: slideInUp 0.5s ease-out; }
-.upcoming-sessions-container > div:nth-child(4) { animation: slideInUp 0.55s ease-out; }
-.upcoming-sessions-container > div:nth-child(5) { animation: slideInUp 0.6s ease-out; }
-.upcoming-sessions-container > div:nth-child(6) { animation: slideInUp 0.65s ease-out; }
+.upcoming-sessions-container>div:nth-child(1) {
+    animation: slideInUp 0.3s ease-out;
+}
+
+.upcoming-sessions-container>div:nth-child(2) {
+    animation: slideInUp 0.4s ease-out;
+}
+
+.upcoming-sessions-container>div:nth-child(3) {
+    animation: slideInUp 0.5s ease-out;
+}
+
+.upcoming-sessions-container>div:nth-child(4) {
+    animation: slideInUp 0.55s ease-out;
+}
+
+.upcoming-sessions-container>div:nth-child(5) {
+    animation: slideInUp 0.6s ease-out;
+}
+
+.upcoming-sessions-container>div:nth-child(6) {
+    animation: slideInUp 0.65s ease-out;
+}
 
 /* Bos durum kutusu */
 .empty-state-box {
@@ -1525,7 +1570,7 @@ body {
     padding: 40px 20px;
 }
 
-.empty-state-box > i {
+.empty-state-box>i {
     font-size: 3rem;
     color: #b0bec5;
     margin-bottom: 16px;
@@ -1613,6 +1658,34 @@ body {
 .recent-session-indicator.pending {
     background: #ffc107;
     box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+}
+
+.recent-session-indicator.processing {
+    background: #17a2b8;
+    box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.2);
+    animation: pulse-indicator 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-indicator {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 3px rgba(23, 162, 184, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 0 6px rgba(23, 162, 184, 0.4);
+    }
+}
+
+.recent-session-indicator.failed {
+    background: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2);
+}
+
+.recent-session-indicator.no-video {
+    background: #6c757d;
+    box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.2);
 }
 
 .recent-session-info {
@@ -1703,7 +1776,7 @@ body {
 
 .suggestion-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 .suggestion-card-icon {
@@ -1761,39 +1834,90 @@ body {
     background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
     border-color: #c5cae9;
 }
-.suggestion-primary .suggestion-card-icon { background: #1976d2; color: #fff; }
-.suggestion-primary .suggestion-card-title { color: #1a237e; }
-.suggestion-primary .suggestion-card-btn { color: #1565c0; }
+
+.suggestion-primary .suggestion-card-icon {
+    background: #1976d2;
+    color: #fff;
+}
+
+.suggestion-primary .suggestion-card-title {
+    color: #1a237e;
+}
+
+.suggestion-primary .suggestion-card-btn {
+    color: #1565c0;
+}
 
 .suggestion-success {
     background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
     border-color: #c8e6c9;
 }
-.suggestion-success .suggestion-card-icon { background: #388e3c; color: #fff; }
-.suggestion-success .suggestion-card-title { color: #1b5e20; }
-.suggestion-success .suggestion-card-btn { color: #2e7d32; }
+
+.suggestion-success .suggestion-card-icon {
+    background: #388e3c;
+    color: #fff;
+}
+
+.suggestion-success .suggestion-card-title {
+    color: #1b5e20;
+}
+
+.suggestion-success .suggestion-card-btn {
+    color: #2e7d32;
+}
 
 .suggestion-warning {
     background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
     border-color: #ffe082;
 }
-.suggestion-warning .suggestion-card-icon { background: #f57c00; color: #fff; }
-.suggestion-warning .suggestion-card-title { color: #e65100; }
-.suggestion-warning .suggestion-card-btn { color: #ef6c00; }
+
+.suggestion-warning .suggestion-card-icon {
+    background: #f57c00;
+    color: #fff;
+}
+
+.suggestion-warning .suggestion-card-title {
+    color: #e65100;
+}
+
+.suggestion-warning .suggestion-card-btn {
+    color: #ef6c00;
+}
 
 .suggestion-danger {
     background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
     border-color: #f8bbd0;
 }
-.suggestion-danger .suggestion-card-icon { background: #d32f2f; color: #fff; }
-.suggestion-danger .suggestion-card-title { color: #b71c1c; }
-.suggestion-danger .suggestion-card-btn { color: #c62828; }
+
+.suggestion-danger .suggestion-card-icon {
+    background: #d32f2f;
+    color: #fff;
+}
+
+.suggestion-danger .suggestion-card-title {
+    color: #b71c1c;
+}
+
+.suggestion-danger .suggestion-card-btn {
+    color: #c62828;
+}
 
 /* Animasyonlar */
-.suggestions-grid > div:nth-child(1) { animation: slideInUp 0.3s ease-out; }
-.suggestions-grid > div:nth-child(2) { animation: slideInUp 0.4s ease-out; }
-.suggestions-grid > div:nth-child(3) { animation: slideInUp 0.5s ease-out; }
-.suggestions-grid > div:nth-child(4) { animation: slideInUp 0.6s ease-out; }
+.suggestions-grid>div:nth-child(1) {
+    animation: slideInUp 0.3s ease-out;
+}
+
+.suggestions-grid>div:nth-child(2) {
+    animation: slideInUp 0.4s ease-out;
+}
+
+.suggestions-grid>div:nth-child(3) {
+    animation: slideInUp 0.5s ease-out;
+}
+
+.suggestions-grid>div:nth-child(4) {
+    animation: slideInUp 0.6s ease-out;
+}
 
 @media (max-width: 768px) {
     .suggestion-card {
@@ -1911,14 +2035,14 @@ body {
     font-size: 0.82rem !important;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
     overflow: hidden;
     margin-bottom: 3px !important;
 }
 
 .fc .fc-event:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.22);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
     filter: brightness(0.93);
 }
 
@@ -2018,7 +2142,7 @@ body {
 /* Popover */
 .fc .fc-popover {
     border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     border: none;
 }
 
@@ -2077,12 +2201,12 @@ body {
 
 
 /* Danışanlar tablosu */
-.table th:nth-child(5), 
+.table th:nth-child(5),
 .table th:nth-child(6) {
     min-width: 140px;
 }
 
-.table td:nth-child(5), 
+.table td:nth-child(5),
 .table td:nth-child(6) {
     vertical-align: middle;
 }
@@ -2209,7 +2333,7 @@ body {
         border-radius: 0;
         padding: 4px 0;
     }
-    
+
     .navbar .nav-item.dropdown:hover .dropdown-menu {
         transform: none;
     }
@@ -2224,7 +2348,7 @@ body {
     .dropdown-item i {
         color: rgba(255, 255, 255, 0.6);
     }
-    
+
     .dropdown-item:hover {
         background: rgba(255, 255, 255, 0.1);
         transform: none;
@@ -2255,7 +2379,7 @@ body {
     visibility: hidden;
     transform: translateY(20px) scale(0.8);
     transition: opacity 0.35s ease, transform 0.35s ease, visibility 0.35s ease,
-                background 0.25s ease, box-shadow 0.25s ease;
+        background 0.25s ease, box-shadow 0.25s ease;
 }
 
 #scrollToTopBtn.visible {
@@ -2567,5 +2691,1515 @@ table.dataTable thead th.sorting_desc::before {
         padding: 3px 6px;
         font-size: 0.72rem;
     }
+
+    /* Mobil tabloların sayfaya sığması ve yatay kaydırılabilir olması için kesin çözüm */
+    table.table, 
+    table.dataTable {
+        display: block !important;
+        width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    table.table th, 
+    table.table td,
+    table.dataTable th,
+    table.dataTable td {
+        white-space: nowrap !important;
+    }
 }
 
+/* ============================================================================
+   KARANLIK MOD (DARK MODE) - PREMIUM TASARIM
+   ============================================================================ */
+
+body.dark-mode {
+    --bg-dark: #0f172a;
+    --bg-card: transparent;
+    /* Sayfa arkaplanıyla tam uyumlu olması için şeffaf yapıldı */
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --primary: #3b82f6;
+    --primary-dark: #2563eb;
+    --primary-light: #60a5fa;
+    --accent: #8b5cf6;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --table-header: rgba(0, 0, 0, 0.2);
+    --table-row-odd: rgba(255, 255, 255, 0.02);
+    --table-row-even: transparent;
+    --table-hover: rgba(59, 130, 246, 0.15);
+
+    /* Bootstrap defaultlarını eziyoruz */
+    --bs-body-bg: var(--bg-dark);
+    --bs-body-color: var(--text-main);
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text-main);
+    --bs-table-striped-bg: var(--table-row-odd);
+    --bs-table-hover-bg: var(--table-hover);
+    --bs-table-border-color: var(--glass-border);
+    --bs-card-bg: transparent;
+
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+}
+
+body.dark-mode .page-wrapper {
+    background: transparent;
+}
+
+/* GENEL KARTLAR VE KONTEYNERLER */
+body.dark-mode .content-block,
+body.dark-mode .card,
+body.dark-mode .page-header,
+body.dark-mode .auth-card,
+body.dark-mode .modal-content,
+body.dark-mode .dropdown-menu {
+    background: var(--bg-card) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    box-shadow: none;
+    /* Arkaplanla bütünleşmesi için gölge kaldırıldı */
+    color: var(--text-main);
+    border-radius: 12px;
+}
+
+body.dark-mode .card-header,
+body.dark-mode .card-footer,
+body.dark-mode .modal-header,
+body.dark-mode .modal-footer {
+    background: rgba(0, 0, 0, 0.2);
+    border-color: var(--glass-border);
+    color: var(--text-main);
+}
+
+body.dark-mode .dropdown-item {
+    color: var(--text-main);
+}
+
+body.dark-mode .dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+body.dark-mode .dropdown-divider {
+    border-top-color: var(--glass-border);
+}
+
+/* BAŞLIKLAR VE METİNLER */
+body.dark-mode .page-header h2,
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6,
+body.dark-mode .card-title,
+body.dark-mode .text-dark,
+body.dark-mode strong {
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .text-muted {
+    color: var(--text-muted) !important;
+}
+
+body.dark-mode a {
+    color: var(--primary-light);
+}
+
+body.dark-mode a:hover {
+    color: #fff;
+    text-decoration: none;
+}
+
+/* TABLOLAR (DATATABLES & NORMAL TABLOLAR) */
+body.dark-mode .table,
+body.dark-mode table.dataTable,
+body.dark-mode .table> :not(caption)>*>* {
+    background-color: transparent !important;
+    color: var(--text-main) !important;
+    border-color: var(--glass-border);
+}
+
+body.dark-mode .table thead th,
+body.dark-mode table.dataTable thead th {
+    background: linear-gradient(180deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.7) 100%) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-top: none !important;
+    color: var(--text-muted) !important;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 16px 12px !important;
+    backdrop-filter: blur(8px);
+}
+
+body.dark-mode table.dataTable thead .sorting:before,
+body.dark-mode table.dataTable thead .sorting_asc:before,
+body.dark-mode table.dataTable thead .sorting_desc:before,
+body.dark-mode table.dataTable thead .sorting:after,
+body.dark-mode table.dataTable thead .sorting_asc:after,
+body.dark-mode table.dataTable thead .sorting_desc:after {
+    color: var(--text-muted) !important;
+    opacity: 0.4;
+}
+
+body.dark-mode table.dataTable thead .sorting_asc:before,
+body.dark-mode table.dataTable thead .sorting_desc:after {
+    color: var(--primary-light) !important;
+    opacity: 1;
+}
+
+body.dark-mode .table tbody tr {
+    background-color: var(--table-row-even) !important;
+}
+
+body.dark-mode .table tbody tr:nth-of-type(odd) {
+    background-color: var(--table-row-odd) !important;
+}
+
+body.dark-mode .table tbody td,
+body.dark-mode table.dataTable tbody td {
+    border-bottom: 1px solid var(--glass-border) !important;
+    background-color: transparent !important;
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .table-hover tbody tr:hover,
+body.dark-mode .table-hover tbody tr:hover td {
+    background-color: var(--table-hover) !important;
+    color: #fff !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_length,
+body.dark-mode .dataTables_wrapper .dataTables_filter,
+body.dark-mode .dataTables_wrapper .dataTables_info,
+body.dark-mode .dataTables_wrapper .dataTables_processing {
+    color: var(--text-main);
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button {
+    color: var(--text-main) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 6px;
+    margin: 0 4px;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #fff !important;
+    border-color: var(--primary-light) !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+    color: #fff !important;
+    border-color: rgba(59, 130, 246, 0.5) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+    color: var(--text-muted) !important;
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none;
+}
+
+/* FORM ELEMANLARI VE YER TUTUCULAR (PLACEHOLDERS) */
+body.dark-mode ::placeholder {
+    color: rgba(255, 255, 255, 0.4) !important;
+    opacity: 1 !important;
+}
+
+body.dark-mode :-ms-input-placeholder {
+    color: rgba(255, 255, 255, 0.4) !important;
+}
+
+body.dark-mode ::-ms-input-placeholder {
+    color: rgba(255, 255, 255, 0.4) !important;
+}
+
+body.dark-mode .form-control,
+body.dark-mode .form-select,
+body.dark-mode input,
+body.dark-mode textarea {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid var(--glass-border) !important;
+    color: var(--text-main) !important;
+    border-radius: 8px;
+}
+
+body.dark-mode .form-control:focus,
+body.dark-mode .form-select:focus,
+body.dark-mode input:focus,
+body.dark-mode textarea:focus {
+    background-color: rgba(0, 0, 0, 0.4) !important;
+    border-color: var(--primary-light) !important;
+    color: #fff !important;
+    box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25) !important;
+}
+
+body.dark-mode .input-group-text {
+    background-color: rgba(0, 0, 0, 0.4) !important;
+    border-color: var(--glass-border) !important;
+    color: var(--text-main) !important;
+}
+
+/* FOTOĞRAF / DOSYA YÜKLEME BUTONU */
+body.dark-mode input[type="file"]::file-selector-button {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 4px;
+    padding: 6px 12px;
+    margin-right: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+body.dark-mode input[type="file"]::file-selector-button:hover {
+    background-color: rgba(59, 130, 246, 0.25) !important;
+    border-color: var(--primary-light) !important;
+}
+
+/* TAKVİM (FULLCALENDAR) ÖZEL PREMIUM TASARIM */
+body.dark-mode .fc {
+    background: transparent;
+    padding: 15px;
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: none;
+    color: var(--text-main);
+}
+
+body.dark-mode .fc-theme-standard td,
+body.dark-mode .fc-theme-standard th,
+body.dark-mode .fc-theme-standard .fc-scrollgrid {
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .fc .fc-col-header-cell {
+    background: rgba(30, 41, 59, 0.8) !important;
+    padding: 12px 0 !important;
+    border-bottom: 2px solid var(--primary) !important;
+}
+
+body.dark-mode .fc .fc-col-header-cell-cushion {
+    color: #ffffff !important;
+    text-transform: uppercase;
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+body.dark-mode .fc .fc-daygrid-day {
+    transition: background 0.3s ease;
+}
+
+body.dark-mode .fc .fc-daygrid-day:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+body.dark-mode .fc .fc-daygrid-day-number {
+    color: #ffffff !important;
+    font-weight: 500;
+    text-decoration: none !important;
+    padding: 8px !important;
+}
+
+body.dark-mode .fc .fc-day-other .fc-daygrid-day-number {
+    color: rgba(255, 255, 255, 0.3) !important;
+}
+
+body.dark-mode .fc .fc-daygrid-day.fc-day-today {
+    background: rgba(59, 130, 246, 0.1) !important;
+    box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+body.dark-mode .fc .fc-button-primary {
+    background: rgba(30, 41, 59, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+    text-transform: capitalize;
+    box-shadow: none !important;
+}
+
+body.dark-mode .fc .fc-button-primary:hover {
+    background: rgba(59, 130, 246, 0.4) !important;
+    border-color: var(--primary-light) !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .fc .fc-button-primary:not(:disabled):active,
+body.dark-mode .fc .fc-button-primary:not(:disabled).fc-button-active {
+    background: rgba(59, 130, 246, 0.4) !important;
+    border-color: var(--primary-light) !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .fc .fc-list-empty {
+    background-color: transparent;
+}
+
+body.dark-mode .fc .fc-list-day-cushion {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* ÖNERİ VE ANALİZ KARTLARI (RENKLİ KENARLIKLI KARTLAR) */
+body.dark-mode .session-card-report,
+body.dark-mode .session-card-danger,
+body.dark-mode .session-card-video {
+    background: transparent !important;
+    border-color: var(--glass-border) !important;
+}
+
+body.dark-mode .session-card-header-report,
+body.dark-mode .session-card-header-video {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-color: var(--glass-border) !important;
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .session-card-header-danger {
+    background: rgba(239, 68, 68, 0.2) !important;
+    border-color: var(--glass-border) !important;
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .border-left-primary {
+    border-left: 4px solid var(--primary) !important;
+    background: rgba(59, 130, 246, 0.05) !important;
+}
+
+body.dark-mode .border-left-info {
+    border-left: 4px solid #06b6d4 !important;
+    background: rgba(6, 182, 212, 0.05) !important;
+}
+
+body.dark-mode .border-left-success {
+    border-left: 4px solid #10b981 !important;
+    background: rgba(16, 185, 129, 0.05) !important;
+}
+
+body.dark-mode .border-left-warning {
+    border-left: 4px solid #f59e0b !important;
+    background: rgba(245, 158, 11, 0.05) !important;
+}
+
+body.dark-mode .border-left-danger {
+    border-left: 4px solid #ef4444 !important;
+    background: rgba(239, 68, 68, 0.05) !important;
+}
+
+body.dark-mode .analysis-box {
+    background: transparent !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    color: var(--text-main);
+}
+
+body.dark-mode .analysis-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+body.dark-mode .upload-section {
+    background: transparent !important;
+    border-color: var(--primary) !important;
+    color: var(--text-main);
+}
+
+body.dark-mode .upload-box {
+    background: transparent !important;
+    border: 2px dashed rgba(255, 255, 255, 0.2) !important;
+    color: var(--text-main);
+}
+
+body.dark-mode .upload-box:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: var(--primary-light) !important;
+}
+
+/* NAV TABS */
+body.dark-mode .nav-tabs {
+    border-bottom-color: var(--glass-border);
+}
+
+body.dark-mode .nav-tabs .nav-link {
+    color: var(--text-muted);
+}
+
+body.dark-mode .nav-tabs .nav-link:hover {
+    border-color: var(--glass-border) var(--glass-border) transparent;
+    color: var(--text-main);
+}
+
+body.dark-mode .nav-tabs .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: var(--glass-border) var(--glass-border) transparent;
+    color: var(--primary-light);
+}
+
+/* LİSTELER, ROZETLER VE DİĞERLERİ */
+body.dark-mode .list-group-item {
+    background-color: transparent;
+    border-color: var(--glass-border);
+    color: var(--text-main);
+}
+
+body.dark-mode .list-group-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Rozetler (Badges) */
+body.dark-mode .badge.bg-primary {
+    background: rgba(59, 130, 246, 0.2) !important;
+    color: #60a5fa !important;
+    border: 1px solid rgba(59, 130, 246, 0.3) !important;
+}
+
+body.dark-mode .badge.bg-success {
+    background: rgba(16, 185, 129, 0.2) !important;
+    color: #34d399 !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+body.dark-mode .badge.bg-warning {
+    background: rgba(245, 158, 11, 0.2) !important;
+    color: #fbbf24 !important;
+    border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+
+body.dark-mode .badge.bg-danger {
+    background: rgba(239, 68, 68, 0.2) !important;
+    color: #f87171 !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+body.dark-mode .badge.bg-info {
+    background: rgba(14, 165, 233, 0.2) !important;
+    color: #38bdf8 !important;
+    border: 1px solid rgba(14, 165, 233, 0.3) !important;
+}
+
+body.dark-mode .badge.bg-secondary {
+    background: rgba(100, 116, 139, 0.2) !important;
+    color: #cbd5e1 !important;
+    border: 1px solid rgba(100, 116, 139, 0.3) !important;
+}
+
+body.dark-mode .badge.bg-light {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #f8fafc !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+body.dark-mode .badge.bg-dark {
+    background: rgba(0, 0, 0, 0.5) !important;
+    color: #94a3b8 !important;
+    border: 1px solid var(--glass-border) !important;
+}
+
+body.dark-mode .progress {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .empty-state {
+    color: var(--text-muted);
+}
+
+body.dark-mode .empty-state i {
+    color: rgba(255, 255, 255, 0.15);
+}
+
+body.dark-mode .empty-state h5 {
+    color: #ffffff;
+}
+
+/* =========================================
+   GENEL BOOTSTRAP VE UI BİLEŞENLERİ KAPSAMLI DÜZELTME
+   ========================================= */
+
+/* Navbar / Üst Menü */
+body.dark-mode .navbar {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+body.dark-mode .navbar .nav-link:hover,
+body.dark-mode .navbar .nav-link.active {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Uyarı Mesajları (Alerts) */
+body.dark-mode .alert-success {
+    background: rgba(16, 185, 129, 0.15) !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+    color: #34d399 !important;
+}
+
+body.dark-mode .alert-danger {
+    background: rgba(239, 68, 68, 0.15) !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+    color: #f87171 !important;
+}
+
+body.dark-mode .alert-warning {
+    background: rgba(245, 158, 11, 0.15) !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+    color: #fbbf24 !important;
+}
+
+body.dark-mode .alert-info {
+    background: rgba(14, 165, 233, 0.15) !important;
+    border-color: rgba(14, 165, 233, 0.3) !important;
+    color: #38bdf8 !important;
+}
+
+body.dark-mode .alert-primary {
+    background: rgba(59, 130, 246, 0.15) !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+    color: #60a5fa !important;
+}
+
+/* Sınır Çizgileri (Borders ve HR) */
+body.dark-mode hr,
+body.dark-mode .border,
+body.dark-mode .border-top,
+body.dark-mode .border-bottom,
+body.dark-mode .border-left,
+body.dark-mode .border-right {
+    border-color: var(--glass-border) !important;
+}
+
+/* Sayfalandırma (Pagination) */
+body.dark-mode .page-item:not(.active) .page-link {
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .page-item.active .page-link {
+    background: rgba(59, 130, 246, 0.25) !important;
+    border-color: rgba(59, 130, 246, 0.5) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+body.dark-mode .page-link:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .page-item.disabled .page-link {
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Metin Renkleri (Durum Yazıları) */
+body.dark-mode .text-primary {
+    color: #60a5fa !important;
+}
+
+body.dark-mode .text-success {
+    color: #34d399 !important;
+}
+
+body.dark-mode .text-info {
+    color: #38bdf8 !important;
+}
+
+body.dark-mode .text-warning {
+    color: #fbbf24 !important;
+}
+
+body.dark-mode .text-danger {
+    color: #f87171 !important;
+}
+
+body.dark-mode .text-secondary {
+    color: #cbd5e1 !important;
+}
+
+/* Akordiyon (Accordion) */
+body.dark-mode .accordion-item {
+    background-color: transparent !important;
+    border-color: var(--glass-border) !important;
+}
+
+body.dark-mode .accordion-button {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+body.dark-mode .accordion-button:not(.collapsed) {
+    background-color: rgba(59, 130, 246, 0.15) !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .accordion-button::after {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+body.dark-mode .accordion-body {
+    color: var(--text-main) !important;
+    background: transparent !important;
+}
+
+/* Ekmek Kırıntıları (Breadcrumbs) */
+body.dark-mode .breadcrumb-item a {
+    color: var(--primary-light) !important;
+}
+
+body.dark-mode .breadcrumb-item.active {
+    color: var(--text-muted) !important;
+}
+
+body.dark-mode .breadcrumb-item+.breadcrumb-item::before {
+    color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Tooltip & Popover */
+body.dark-mode .popover {
+    background-color: #1e293b !important;
+    border-color: var(--glass-border) !important;
+}
+
+body.dark-mode .popover-header {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    color: #ffffff !important;
+    border-bottom-color: var(--glass-border) !important;
+}
+
+body.dark-mode .popover-body {
+    color: var(--text-main) !important;
+}
+
+/* =========================================
+   ÖZEL KARTLAR VE BUTONLAR (DARK MODE)
+   ========================================= */
+
+/* Buton Renkleri ve Metin Uyumu (Premium Şeffaf/Soft Tasarım) */
+body.dark-mode .btn-primary {
+    background: rgba(59, 130, 246, 0.2) !important;
+    color: #60a5fa !important;
+    border: 1px solid rgba(59, 130, 246, 0.5) !important;
+}
+
+body.dark-mode .btn-primary:hover {
+    background: rgba(59, 130, 246, 0.4) !important;
+    color: #ffffff !important;
+    border-color: var(--primary-light) !important;
+}
+
+body.dark-mode .btn-info {
+    background: rgba(14, 165, 233, 0.2) !important;
+    color: #38bdf8 !important;
+    border: 1px solid rgba(14, 165, 233, 0.5) !important;
+}
+
+body.dark-mode .btn-info:hover {
+    background: rgba(14, 165, 233, 0.4) !important;
+    color: #ffffff !important;
+    border-color: #38bdf8 !important;
+}
+
+body.dark-mode .btn-success {
+    background: rgba(16, 185, 129, 0.2) !important;
+    color: #34d399 !important;
+    border: 1px solid rgba(16, 185, 129, 0.5) !important;
+}
+
+body.dark-mode .btn-success:hover {
+    background: rgba(16, 185, 129, 0.4) !important;
+    color: #ffffff !important;
+    border-color: #34d399 !important;
+}
+
+body.dark-mode .btn-warning {
+    background: rgba(245, 158, 11, 0.2) !important;
+    color: #fbbf24 !important;
+    border: 1px solid rgba(245, 158, 11, 0.5) !important;
+}
+
+body.dark-mode .btn-warning:hover {
+    background: rgba(245, 158, 11, 0.4) !important;
+    color: #ffffff !important;
+    border-color: #fbbf24 !important;
+}
+
+body.dark-mode .btn-danger {
+    background: rgba(239, 68, 68, 0.2) !important;
+    color: #f87171 !important;
+    border: 1px solid rgba(239, 68, 68, 0.5) !important;
+}
+
+body.dark-mode .btn-danger:hover {
+    background: rgba(239, 68, 68, 0.4) !important;
+    color: #ffffff !important;
+    border-color: #f87171 !important;
+}
+
+body.dark-mode .btn-secondary {
+    background: rgba(100, 116, 139, 0.2) !important;
+    color: #f8fafc !important;
+    border: 1px solid rgba(100, 116, 139, 0.5) !important;
+}
+
+body.dark-mode .btn-secondary:hover {
+    background: rgba(100, 116, 139, 0.4) !important;
+    color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+}
+
+body.dark-mode .btn-light {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #f8fafc !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+body.dark-mode .btn-light:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+body.dark-mode .btn-outline-primary {
+    background: transparent !important;
+    color: var(--primary-light) !important;
+    border-color: var(--primary-light) !important;
+}
+
+body.dark-mode .btn-outline-primary:hover {
+    background-color: rgba(59, 130, 246, 0.2) !important;
+    color: #ffffff !important;
+    border-color: var(--primary) !important;
+}
+
+/* Yaklaşan Oturumlar Kartı */
+body.dark-mode .upcoming-session-card {
+    background: rgba(30, 41, 59, 0.6) !important;
+    border: 1px solid var(--glass-border) !important;
+    color: var(--text-main) !important;
+    transition: all 0.3s ease;
+}
+
+body.dark-mode .upcoming-session-card:hover {
+    background: rgba(30, 41, 59, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(-3px);
+}
+
+body.dark-mode .upcoming-session-title,
+body.dark-mode .upcoming-session-client {
+    color: #ffffff !important;
+}
+
+body.dark-mode .upcoming-session-date {
+    color: var(--text-muted) !important;
+}
+
+body.dark-mode .upcoming-session-badge {
+    background: rgba(59, 130, 246, 0.2) !important;
+    color: #60a5fa !important;
+    border: 1px solid rgba(59, 130, 246, 0.3) !important;
+}
+
+body.dark-mode .upcoming-session-notes {
+    color: var(--text-muted) !important;
+}
+
+/* Geçmiş Oturumlar Kartı */
+body.dark-mode .recent-session-item {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-bottom: 1px solid var(--glass-border) !important;
+    transition: background 0.2s ease;
+}
+
+body.dark-mode .recent-session-item:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+body.dark-mode .recent-session-title {
+    color: #ffffff !important;
+}
+
+body.dark-mode .recent-session-meta {
+    color: var(--text-muted) !important;
+}
+
+/* Öneri Kartları */
+body.dark-mode .suggestion-card {
+    background: rgba(30, 41, 59, 0.6) !important;
+    border: 1px solid var(--glass-border) !important;
+    transition: all 0.3s ease;
+}
+
+body.dark-mode .suggestion-card:hover {
+    background: rgba(30, 41, 59, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(-3px);
+}
+
+body.dark-mode .suggestion-card-title {
+    color: #ffffff !important;
+}
+
+body.dark-mode .suggestion-card-desc {
+    color: var(--text-muted) !important;
+}
+
+body.dark-mode .suggestion-card-btn {
+    color: var(--primary-light) !important;
+}
+
+body.dark-mode .suggestion-card-btn:hover {
+    color: #ffffff !important;
+}
+
+/* ORB (ARKAPLAN ANİMASYONU) */
+.bg-glow {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    display: none;
+}
+
+body.dark-mode .bg-glow {
+    display: block;
+}
+
+.bg-glow .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: .15;
+    animation: orbFloat 20s ease-in-out infinite;
+}
+
+.bg-glow .orb:nth-child(1) {
+    width: 600px;
+    height: 600px;
+    background: var(--primary, #3b82f6);
+    top: -10%;
+    left: -5%;
+    animation-duration: 22s;
+}
+
+.bg-glow .orb:nth-child(2) {
+    width: 500px;
+    height: 500px;
+    background: var(--accent, #8b5cf6);
+    bottom: -10%;
+    right: -5%;
+    animation-duration: 26s;
+    animation-delay: -5s;
+}
+
+.bg-glow .orb:nth-child(3) {
+    width: 350px;
+    height: 350px;
+    background: #06b6d4;
+    top: 40%;
+    left: 50%;
+    animation-duration: 30s;
+    animation-delay: -10s;
+}
+
+@keyframes orbFloat {
+
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    33% {
+        transform: translate(40px, -30px) scale(1.05);
+    }
+
+    66% {
+        transform: translate(-30px, 20px) scale(0.95);
+    }
+}
+
+/* =========================================
+   KARANLIK MOD EK DÜZELTMELER - KAPSAMLI
+   ========================================= */
+
+/* --- Modal (Bootstrap) Dark Mode --- */
+body.dark-mode .modal-content {
+    background-color: rgba(30, 41, 59, 0.85) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border) !important;
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .modal-header {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-bottom: 1px solid var(--glass-border) !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .modal-header .modal-title {
+    color: #ffffff !important;
+}
+
+body.dark-mode .modal-header.bg-danger {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.4), rgba(220, 38, 38, 0.5)) !important;
+}
+
+body.dark-mode .modal-header.bg-info {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.4), rgba(2, 136, 209, 0.5)) !important;
+}
+
+body.dark-mode .modal-body {
+    background: transparent !important;
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .modal-body p {
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .modal-footer {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-top: 1px solid var(--glass-border) !important;
+}
+
+body.dark-mode .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* --- DataTables Select & Input Dark Mode --- */
+body.dark-mode .dataTables_wrapper .dataTables_length select {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    border-color: var(--glass-border) !important;
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_filter input {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    border-color: var(--glass-border) !important;
+    color: var(--text-main) !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%2394a3b8'%3E%3Cpath d='M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z'/%3E%3C/svg%3E");
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_filter input:focus {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    border-color: var(--primary-light) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_length select:focus {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    border-color: var(--primary-light) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+}
+
+body.dark-mode .dt-footer {
+    border-top-color: var(--glass-border);
+}
+
+/* --- Scrollbar Dark Mode --- */
+body.dark-mode ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+body.dark-mode ::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+body.dark-mode {
+    scrollbar-color: rgba(255, 255, 255, 0.15) rgba(0, 0, 0, 0.2);
+}
+
+/* --- img-thumbnail (Fotoğraf Çerçevesi) Dark Mode --- */
+body.dark-mode .img-thumbnail {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    border-color: var(--glass-border) !important;
+}
+
+/* --- Bildirim Sayfası list-group Dark Mode --- */
+body.dark-mode .list-group-item-light {
+    background-color: rgba(59, 130, 246, 0.08) !important;
+    border-color: var(--glass-border) !important;
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .list-group-item-light.border-primary {
+    border-left: 3px solid var(--primary) !important;
+}
+
+body.dark-mode .list-group-flush .list-group-item {
+    border-bottom-color: var(--glass-border) !important;
+}
+
+/* --- text-dark ve bg-warning text-dark badge uyumu --- */
+body.dark-mode .text-dark {
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .badge.bg-warning {
+    color: #fbbf24 !important;
+}
+
+/* --- form-text (help text) --- */
+body.dark-mode .form-text {
+    color: var(--text-muted) !important;
+}
+
+body.dark-mode .form-label {
+    color: var(--text-main) !important;
+}
+
+/* --- Session Card Headers Dark Mode --- */
+body.dark-mode .session-card-video {
+    border-color: rgba(2, 136, 209, 0.4) !important;
+}
+
+body.dark-mode .session-card-header-video {
+    background: linear-gradient(135deg, rgba(41, 182, 246, 0.3), rgba(2, 136, 209, 0.4)) !important;
+    border-bottom: 1px solid rgba(2, 136, 209, 0.3) !important;
+}
+
+body.dark-mode .session-card-report {
+    border-color: rgba(21, 101, 192, 0.4) !important;
+}
+
+body.dark-mode .session-card-header-report {
+    background: linear-gradient(135deg, rgba(25, 118, 210, 0.3), rgba(21, 101, 192, 0.4)) !important;
+    border-bottom: 1px solid rgba(21, 101, 192, 0.3) !important;
+}
+
+/* --- AI Analiz İçerik Dark Mode --- */
+body.dark-mode .ai-analysis-content,
+body.dark-mode .ai-analysis-container {
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .ai-analysis-content h2 {
+    color: var(--primary-light) !important;
+    border-bottom-color: var(--glass-border) !important;
+}
+
+body.dark-mode .ai-analysis-content h3 {
+    color: #e2e8f0 !important;
+}
+
+body.dark-mode .ai-analysis-content h4 {
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode .ai-analysis-content p,
+body.dark-mode .ai-analysis-content li {
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .ai-analysis-content strong {
+    color: #f1f5f9 !important;
+}
+
+/* --- Section Content Dark Mode --- */
+body.dark-mode .section-content {
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .section-content h3,
+body.dark-mode .section-content h4,
+body.dark-mode .section-content h5 {
+    color: #e2e8f0 !important;
+}
+
+body.dark-mode .section-content strong {
+    color: #f1f5f9 !important;
+}
+
+body.dark-mode .section-content blockquote {
+    border-left-color: var(--primary) !important;
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode .section-content code {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    color: #f87171 !important;
+}
+
+/* --- Scroll to Top Button Dark Mode --- */
+body.dark-mode #scrollToTopBtn {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.6), rgba(37, 99, 235, 0.8)) !important;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode #scrollToTopBtn:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 1)) !important;
+    box-shadow: 0 6px 24px rgba(59, 130, 246, 0.4);
+}
+
+/* --- Bildirim Dropdown Dark Mode --- */
+body.dark-mode .dropdown-header {
+    color: var(--text-main) !important;
+}
+
+body.dark-mode #notificationList {
+    background: rgba(30, 41, 59, 0.85) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border) !important;
+}
+
+body.dark-mode #notificationList .dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* --- Session Notes Textarea Dark Mode --- */
+body.dark-mode .session-notes-textarea {
+    border-color: var(--glass-border) !important;
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .session-notes-textarea:focus {
+    border-color: var(--primary-light) !important;
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+}
+
+body.dark-mode .session-notes-textarea::placeholder {
+    color: rgba(255, 255, 255, 0.35) !important;
+}
+
+/* --- Upload Section Dark Mode Ek --- */
+body.dark-mode .upload-box label {
+    background: rgba(59, 130, 246, 0.2) !important;
+    color: #60a5fa !important;
+    border: 1px solid rgba(59, 130, 246, 0.5) !important;
+}
+
+body.dark-mode .upload-box label:hover {
+    background: rgba(59, 130, 246, 0.4) !important;
+    color: #ffffff !important;
+    border-color: var(--primary-light) !important;
+}
+
+body.dark-mode #preview {
+    background: rgba(0, 0, 0, 0.2) !important;
+}
+
+/* --- Hata Mesajı (Error Message) Dark Mode --- */
+body.dark-mode .error-message {
+    background-color: rgba(239, 68, 68, 0.1) !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+    color: #f87171 !important;
+}
+
+/* --- Sonuç Alanları (Result) Dark Mode --- */
+body.dark-mode .result {
+    background: rgba(0, 0, 0, 0.2) !important;
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .body-language-plot {
+    background: rgba(0, 0, 0, 0.2) !important;
+}
+
+body.dark-mode .body-language-plot h4 {
+    color: #e2e8f0 !important;
+}
+
+body.dark-mode .analysis-details li {
+    background: rgba(0, 0, 0, 0.2) !important;
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .analysis-details strong {
+    color: var(--primary-light) !important;
+}
+
+/* --- Download Butonları Dark Mode --- */
+body.dark-mode .download-btn,
+body.dark-mode .download-plot-btn {
+    background: rgba(14, 165, 233, 0.2) !important;
+    color: #38bdf8 !important;
+    border: 1px solid rgba(14, 165, 233, 0.4) !important;
+}
+
+body.dark-mode .download-btn:hover,
+body.dark-mode .download-plot-btn:hover {
+    background: rgba(14, 165, 233, 0.4) !important;
+    color: #ffffff !important;
+}
+
+/* --- AI Insight & Recommendation Dark Mode --- */
+body.dark-mode .ai-insight {
+    background: rgba(59, 130, 246, 0.08) !important;
+    border-left-color: var(--primary) !important;
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .ai-recommendation {
+    background: rgba(16, 185, 129, 0.08) !important;
+    border-left-color: #10b981 !important;
+    color: var(--text-main) !important;
+}
+
+/* --- Spinner Dark Mode --- */
+body.dark-mode .spinner {
+    border-color: rgba(255, 255, 255, 0.1);
+    border-top-color: var(--primary-light);
+}
+
+/* --- Bildirim Sayfası Ek Düzeltmeler --- */
+body.dark-mode .list-group-item h5 {
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .list-group-item p {
+    color: #cbd5e1 !important;
+}
+
+/* --- Calendar Modal Dark Mode --- */
+body.dark-mode .table-borderless td {
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .table-borderless td.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* --- Link btn (btn-link) Dark Mode --- */
+body.dark-mode .btn-link {
+    color: var(--primary-light) !important;
+}
+
+body.dark-mode .btn-link:hover {
+    color: #ffffff !important;
+}
+
+/* --- İndex Giriş Yapmamış Kullanıcı Durumu --- */
+body.dark-mode .content-block .lead {
+    color: #cbd5e1 !important;
+}
+
+/* --- Takvim Detay Popup (fc-popover) Dark Mode --- */
+body.dark-mode .fc .fc-popover {
+    background: rgba(30, 41, 59, 0.85) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border) !important;
+}
+
+body.dark-mode .fc .fc-popover-body {
+    background: transparent !important;
+}
+
+/* --- Profil Kişisel Bilgi Satırları --- */
+body.dark-mode .card-body .row .col-5,
+body.dark-mode .card-body .row .col-7,
+body.dark-mode .card-body .row .col-3,
+body.dark-mode .card-body .row .col-9 {
+    color: var(--text-main);
+}
+
+/* --- Outline Buton Dark Mode Ekleri --- */
+body.dark-mode .btn-outline-secondary {
+    color: #cbd5e1 !important;
+    border-color: rgba(100, 116, 139, 0.5) !important;
+    background: transparent !important;
+}
+
+body.dark-mode .btn-outline-secondary:hover {
+    background: rgba(100, 116, 139, 0.2) !important;
+    color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+}
+
+body.dark-mode .btn-outline-danger {
+    color: #f87171 !important;
+    border-color: rgba(239, 68, 68, 0.5) !important;
+    background: transparent !important;
+}
+
+body.dark-mode .btn-outline-danger:hover {
+    background: rgba(239, 68, 68, 0.2) !important;
+    color: #ffffff !important;
+    border-color: #f87171 !important;
+}
+
+body.dark-mode .btn-outline-info {
+    color: #38bdf8 !important;
+    border-color: rgba(14, 165, 233, 0.5) !important;
+    background: transparent !important;
+}
+
+body.dark-mode .btn-outline-info:hover {
+    background: rgba(14, 165, 233, 0.2) !important;
+    color: #ffffff !important;
+    border-color: #38bdf8 !important;
+}
+
+body.dark-mode .btn-outline-warning {
+    color: #fbbf24 !important;
+    border-color: rgba(245, 158, 11, 0.5) !important;
+    background: transparent !important;
+}
+
+body.dark-mode .btn-outline-warning:hover {
+    background: rgba(245, 158, 11, 0.2) !important;
+    color: #ffffff !important;
+    border-color: #fbbf24 !important;
+}
+
+body.dark-mode .btn-outline-success {
+    color: #34d399 !important;
+    border-color: rgba(16, 185, 129, 0.5) !important;
+    background: transparent !important;
+}
+
+body.dark-mode .btn-outline-success:hover {
+    background: rgba(16, 185, 129, 0.2) !important;
+    color: #ffffff !important;
+    border-color: #34d399 !important;
+}
+
+body.dark-mode .btn-outline-light {
+    color: #f8fafc !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    background: transparent !important;
+}
+
+body.dark-mode .btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* --- btn-close-white bootstrap dark mode uyumu --- */
+body.dark-mode .btn-close-white {
+    filter: none;
+}
+
+/* --- Suggestion Kartları Ek Renk Düzeltmeleri --- */
+body.dark-mode .suggestion-primary,
+body.dark-mode .suggestion-success,
+body.dark-mode .suggestion-warning,
+body.dark-mode .suggestion-danger {
+    background: rgba(30, 41, 59, 0.6) !important;
+    border-color: var(--glass-border) !important;
+}
+
+/* --- FullCalendar List View Dark Mode --- */
+body.dark-mode .fc .fc-list-event td {
+    background: transparent !important;
+    border-color: var(--glass-border) !important;
+}
+
+body.dark-mode .fc .fc-list-event:hover td {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+body.dark-mode .fc .fc-list-day-cushion {
+    background: rgba(30, 41, 59, 0.8) !important;
+    color: #e2e8f0 !important;
+}
+
+/* --- Dark Mode Logo Geçişi İçin Yardımcı --- */
+body.dark-mode .logo-light {
+    display: none !important;
+}
+
+body.dark-mode .logo-dark {
+    display: inline-block !important;
+}
+
+body:not(.dark-mode) .logo-light {
+    display: inline-block !important;
+}
+
+body:not(.dark-mode) .logo-dark {
+    display: none !important;
+}
+
+/* --- Dropdown-menu notification listesi ek --- */
+body.dark-mode .dropdown-menu .px-3.py-2.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* =========================================
+   YAZDIRMA VE PDF ÇIKTISI (PRINT) İÇİN AYDINLIK MOD ZORLAMASI
+   ========================================= */
+@media print {
+
+    body,
+    body.dark-mode {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+
+    body.dark-mode .page-wrapper,
+    body.dark-mode .content-block,
+    body.dark-mode .card,
+    body.dark-mode .analysis-box,
+    body.dark-mode .session-card-report,
+    body.dark-mode .ai-analysis-container,
+    body.dark-mode .ai-analysis-content,
+    body.dark-mode .card-body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid #dddddd !important;
+        box-shadow: none !important;
+    }
+
+    body.dark-mode .ai-analysis-content h2,
+    body.dark-mode .ai-analysis-content h3,
+    body.dark-mode .ai-analysis-content h4,
+    body.dark-mode .ai-analysis-content p,
+    body.dark-mode .ai-analysis-content li,
+    body.dark-mode .ai-analysis-content strong {
+        color: #000000 !important;
+    }
+
+    body.dark-mode .table,
+    body.dark-mode .table th,
+    body.dark-mode .table td {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border-color: #dddddd !important;
+    }
+
+    /* Çıktıda görünmemesi gereken dekoratif elementler */
+    .bg-glow,
+    .orb,
+    .navbar,
+    .page-header {
+        display: none !important;
+    }
+}
+/* Karanlık mod takvim ikonu düzeltmesi */
+body.dark-mode input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+body.dark-mode input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}

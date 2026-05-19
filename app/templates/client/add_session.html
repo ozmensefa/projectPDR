@@ -31,14 +31,14 @@
                             {{ form.title(class="form-control", placeholder="Oturum başlığını girin...") }}
                         </div>
                         {% if form.title.errors %}
-                            {% for error in form.title.errors %}
-                                <div class="text-danger mt-2">
-                                    <i class="fas fa-exclamation-circle"></i> {{ error }}
-                                </div>
-                            {% endfor %}
+                        {% for error in form.title.errors %}
+                        <div class="text-danger mt-2">
+                            <i class="fas fa-exclamation-circle"></i> {{ error }}
+                        </div>
+                        {% endfor %}
                         {% endif %}
                     </div>
-                    
+
                     <div class="mb-3">
                         {{ form.session_date.label(class="form-label") }}
                         <div class="input-group">
@@ -48,18 +48,18 @@
                             {{ form.session_date(class="form-control") }}
                         </div>
                         {% if form.session_date.errors %}
-                            {% for error in form.session_date.errors %}
-                                <div class="text-danger mt-2">
-                                    <i class="fas fa-exclamation-circle"></i> {{ error }}
-                                </div>
-                            {% endfor %}
+                        {% for error in form.session_date.errors %}
+                        <div class="text-danger mt-2">
+                            <i class="fas fa-exclamation-circle"></i> {{ error }}
+                        </div>
+                        {% endfor %}
                         {% endif %}
                         <small class="form-text text-muted">
-                            <i class="fas fa-info-circle"></i> 
+                            <i class="fas fa-info-circle"></i>
                             Oturumun gerçekleştiği veya gerçekleşeceği tarih ve saati seçin
                         </small>
                     </div>
-                    
+
                     <div class="mb-3">
                         {{ form.notes.label(class="form-label") }}
                         <div class="input-group">
@@ -72,10 +72,24 @@
                             Bu notlar sadece sizin görebileceğiniz kişisel notlardır.
                         </small>
                     </div>
-                    
+
+                    <div class="mb-3">
+                        {{ form.applied_techniques.label(class="form-label") }}
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-tools"></i>
+                            </span>
+                            {{ form.applied_techniques(class="form-control", rows=3, placeholder="Bu oturumda uyguladığınız teknikleri yazın (ör: Bilişsel yeniden yapılandırma, Gevşeme egzersizi, Sistematik duyarsızlaştırma...)") }}
+                        </div>
+                        <small class="form-text text-muted">
+                            <i class="fas fa-info-circle"></i>
+                            Bu bölüme girdiğiniz teknikler analiz raporunda değerlendirilecektir.
+                        </small>
+                    </div>
+
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{{ url_for('client.view_client', client_id=client.id) }}" 
-                           class="btn btn-secondary me-md-2">
+                        <a href="{{ url_for('client.view_client', client_id=client.id) }}"
+                            class="btn btn-secondary me-md-2">
                             <i class="fas fa-times"></i> İptal
                         </a>
                         {{ form.submit(class="btn btn-success") }}
@@ -87,41 +101,41 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const sessionDateInput = document.getElementById('session_date');
-    
-    if (sessionDateInput) {
-        // Tarih input'una bugünün tarihini varsayılan olarak set et
-        if (!sessionDateInput.value) {
-            const now = new Date();
-            // Türkiye saat dilimi için ayarlama
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            sessionDateInput.value = now.toISOString().slice(0, 16);
-        }
-        
-        // Gelecek tarih seçildiğinde uyarı göster
-        sessionDateInput.addEventListener('change', function() {
-            const selectedDate = new Date(this.value);
-            const now = new Date();
-            
-            if (selectedDate > now) {
-                const warningDiv = document.getElementById('future-date-warning');
-                if (!warningDiv) {
-                    const warning = document.createElement('div');
-                    warning.id = 'future-date-warning';
-                    warning.className = 'alert alert-warning mt-2';
-                    warning.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Gelecek bir tarih seçtiniz. Bu oturum henüz gerçekleşmemiş bir oturum olarak kaydedilecektir.';
-                    this.parentNode.parentNode.appendChild(warning);
-                }
-            } else {
-                const warningDiv = document.getElementById('future-date-warning');
-                if (warningDiv) {
-                    warningDiv.remove();
-                }
+    document.addEventListener('DOMContentLoaded', function () {
+        const sessionDateInput = document.getElementById('session_date');
+
+        if (sessionDateInput) {
+            // Tarih input'una bugünün tarihini varsayılan olarak set et
+            if (!sessionDateInput.value) {
+                const now = new Date();
+                // Türkiye saat dilimi için ayarlama
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                sessionDateInput.value = now.toISOString().slice(0, 16);
             }
-        });
-    }
-});
+
+            // Gelecek tarih seçildiğinde uyarı göster
+            sessionDateInput.addEventListener('change', function () {
+                const selectedDate = new Date(this.value);
+                const now = new Date();
+
+                if (selectedDate > now) {
+                    const warningDiv = document.getElementById('future-date-warning');
+                    if (!warningDiv) {
+                        const warning = document.createElement('div');
+                        warning.id = 'future-date-warning';
+                        warning.className = 'alert alert-warning mt-2';
+                        warning.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Gelecek bir tarih seçtiniz. Bu oturum henüz gerçekleşmemiş bir oturum olarak kaydedilecektir.';
+                        this.parentNode.parentNode.appendChild(warning);
+                    }
+                } else {
+                    const warningDiv = document.getElementById('future-date-warning');
+                    if (warningDiv) {
+                        warningDiv.remove();
+                    }
+                }
+            });
+        }
+    });
 </script>
 
-{% endblock %} 
+{% endblock %}

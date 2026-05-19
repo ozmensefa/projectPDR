@@ -135,7 +135,8 @@ def analyze_video(self, session_id, counselor_id):
                     'audio_summary': audio_data,
                     'text_analysis': text_data,
                     'emotion_data': emotion_data,
-                    'body_data': body_data
+                    'body_data': body_data,
+                    'applied_techniques': session.applied_techniques or ''
                 }
                 
                 # ✅ Ara sonuçları hemen veritabanına kaydet

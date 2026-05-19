@@ -111,7 +111,6 @@
                                         <span class="upcoming-session-date">
                                             <i class="fas fa-clock me-1"></i>{{ session.date.strftime('%d.%m.%Y %H:%M') }}
                                         </span>
-                                        <span class="badge upcoming-session-badge">{{ session.date|friendly_date }}</span>
                                     </div>
                                     <h6 class="upcoming-session-title">{{ session.title }}</h6>
                                     <div class="upcoming-session-client">
@@ -175,7 +174,7 @@
                         {% for session in recent_sessions %}
                         <a href="{{ url_for('client.view_session', session_id=session.id) }}" class="recent-session-item">
                             <div class="recent-session-left">
-                                <div class="recent-session-indicator {% if session.analysis_results %}completed{% else %}pending{% endif %}"></div>
+                                <div class="recent-session-indicator {% if session.analysis_status == 'completed' and session.analysis_results %}completed{% elif session.analysis_status == 'processing' or session.analysis_status == 'queued' %}processing{% elif session.analysis_status == 'failed' %}failed{% elif not session.video_path %}no-video{% else %}pending{% endif %}"></div>
                                 <div class="recent-session-info">
                                     <div class="recent-session-title">{{ session.title }}</div>
                                     <div class="recent-session-meta">
@@ -185,13 +184,20 @@
                                 </div>
                             </div>
                             <div class="recent-session-right">
-                                {% if session.analysis_results %}
+                                {% if session.analysis_status == 'completed' and session.analysis_results %}
                                     <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Analiz Tamam</span>
+                                {% elif session.analysis_status == 'processing' %}
+                                    <span class="badge bg-info text-white"><i class="fas fa-spinner fa-spin me-1"></i>Analiz Ediliyor</span>
+                                {% elif session.analysis_status == 'queued' %}
+                                    <span class="badge bg-secondary"><i class="fas fa-clock me-1"></i>Sırada</span>
+                                {% elif session.analysis_status == 'failed' %}
+                                    <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Başarısız</span>
+                                {% elif session.analysis_status == 'cancelled' %}
+                                    <span class="badge bg-dark"><i class="fas fa-ban me-1"></i>İptal</span>
+                                {% elif not session.video_path %}
+                                    <span class="badge bg-warning text-dark"><i class="fas fa-video-slash me-1"></i>Video Yok</span>
                                 {% else %}
-                                    <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Bekliyor</span>
-                                {% endif %}
-                                {% if session.ai_analyses %}
-                                    <span class="badge bg-info"><i class="fas fa-robot me-1"></i>AI Raporu</span>
+                                    <span class="badge bg-primary"><i class="fas fa-hourglass-start me-1"></i>Bekliyor</span>
                                 {% endif %}
                                 <i class="fas fa-chevron-right recent-session-arrow"></i>
                             </div>
@@ -245,7 +251,8 @@
             {% endif %}
         {% else %}
             <div class="content-block text-center py-5">
-                <h1 style="color: rgb(13, 110, 253); font-weight: 700; font-size: 2.5rem;">YAKADES</h1>
+                <img src="{{ url_for('static', filename='images/logoforWhiteBackground.png') }}" alt="YAKADES Logo" class="logo-light" style="max-height: 80px; margin-bottom: 15px;">
+                <img src="{{ url_for('static', filename='images/logoforDarkBackground.png') }}" alt="YAKADES Logo" class="logo-dark" style="max-height: 80px; margin-bottom: 15px;">
                 <h5 class="text-muted mt-2">(Kaygı Problemlerine Yönelik Yapay Zeka Tabanlı Karar Destek Sistemi)</h5>
                 <hr class="mx-auto my-4" style="width: 80px; border-top: 3px solid #0d6efd;">
                 <h3>Hoş Geldiniz</h3>

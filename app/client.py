@@ -208,6 +208,7 @@ def add_session(client_id):
             title=form.title.data,
             date=form.session_date.data,
             notes=form.notes.data,
+            applied_techniques=form.applied_techniques.data,
             client_id=client.id
         )
         db.session.add(session)
@@ -260,6 +261,7 @@ def edit_session(session_id):
         session.title = form.title.data
         session.date = form.session_date.data
         session.notes = form.notes.data
+        session.applied_techniques = form.applied_techniques.data
         db.session.commit()
         flash('Oturum bilgileri güncellendi.')
         return redirect(url_for('client.view_session', session_id=session.id))

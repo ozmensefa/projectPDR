@@ -80,5 +80,5 @@ dev.db
 # Sample data
 sampleJSON/
 
-app/models/whisper/
+app/models/
 *.pt

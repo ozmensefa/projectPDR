@@ -14,35 +14,48 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "1️⃣  FLASK UYGULAMASI DURDURULUYOR"
+echo "1️⃣  UYGULAMA SUNUCUSU DURDURULUYOR (Gunicorn / Flask)"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+# Hem gunicorn hem flask dev server'ı kontrol et
+GUNICORN_PIDS=$(pgrep -f 'gunicorn.*app:create_app' 2>/dev/null)
 FLASK_PIDS=$(ps aux | grep "python3 run.py" | grep -v grep | awk '{print $2}')
-if [ -z "$FLASK_PIDS" ]; then
-    echo -e "${YELLOW}⚠️  Flask zaten durmuş${NC}"
+ALL_PIDS="$GUNICORN_PIDS $FLASK_PIDS"
+ALL_PIDS=$(echo $ALL_PIDS | xargs)  # trim
+
+if [ -z "$ALL_PIDS" ]; then
+    echo -e "${YELLOW}⚠️  Uygulama sunucusu zaten durmuş${NC}"
 else
-    echo "   Flask process'leri durduruluyor..."
-    for PID in $FLASK_PIDS; do
-        kill $PID 2>/dev/null && echo "   - PID $PID durduruldu"
-    done
+    if [ ! -z "$GUNICORN_PIDS" ]; then
+        GCOUNT=$(echo $GUNICORN_PIDS | wc -w)
+        echo "   Gunicorn process'leri durduruluyor ($GCOUNT process)..."
+        pkill -TERM -f 'gunicorn.*app:create_app' 2>/dev/null
+    fi
+    if [ ! -z "$FLASK_PIDS" ]; then
+        echo "   Flask dev server durduruluyor..."
+        for PID in $FLASK_PIDS; do
+            kill $PID 2>/dev/null && echo "   - PID $PID durduruldu"
+        done
+    fi
     sleep 2
     
     # Force kill gerekiyorsa
-    FLASK_PIDS=$(ps aux | grep "python3 run.py" | grep -v grep | awk '{print $2}')
-    if [ ! -z "$FLASK_PIDS" ]; then
+    REMAINING=$(pgrep -f 'gunicorn.*app:create_app' 2>/dev/null; ps aux | grep "python3 run.py" | grep -v grep | awk '{print $2}')
+    if [ ! -z "$REMAINING" ]; then
         echo "   Zorla durduruluyor (SIGKILL)..."
-        for PID in $FLASK_PIDS; do
+        pkill -9 -f 'gunicorn.*app:create_app' 2>/dev/null
+        for PID in $(ps aux | grep "python3 run.py" | grep -v grep | awk '{print $2}'); do
             kill -9 $PID 2>/dev/null
         done
         sleep 1
     fi
     
     # Kontrol
-    FLASK_PIDS=$(ps aux | grep "python3 run.py" | grep -v grep | awk '{print $2}')
-    if [ -z "$FLASK_PIDS" ]; then
-        echo -e "${GREEN}✅ Flask başarıyla durduruldu${NC}"
+    REMAINING=$(pgrep -f 'gunicorn.*app:create_app' 2>/dev/null; ps aux | grep "python3 run.py" | grep -v grep | awk '{print $2}')
+    if [ -z "$REMAINING" ]; then
+        echo -e "${GREEN}✅ Uygulama sunucusu başarıyla durduruldu${NC}"
     else
-        echo -e "${RED}❌ Flask durdurulamadı!${NC}"
+        echo -e "${RED}❌ Uygulama sunucusu durdurulamadı!${NC}"
     fi
 fi
 
@@ -122,13 +135,14 @@ else
     echo -e "${RED}ÇALIŞIYOR ($CELERY_COUNT process)${NC}"
 fi
 
-# Flask durumu
-FLASK_PID=$(ps aux | grep "python3 run.py" | grep -v grep | awk '{print $2}')
-echo -ne "   🔴 Flask (port 8000): "
-if [ -z "$FLASK_PID" ]; then
+# Uygulama sunucusu durumu (Gunicorn veya Flask)
+APP_PIDS=$(pgrep -f 'gunicorn.*app:create_app' 2>/dev/null; ps aux | grep "python3 run.py" | grep -v grep | awk '{print $2}')
+echo -ne "   🔴 Uygulama (port 8000): "
+if [ -z "$APP_PIDS" ]; then
     echo -e "${GREEN}DURMUŞ${NC}"
 else
-    echo -e "${RED}ÇALIŞIYOR (PID: $FLASK_PID)${NC}"
+    APP_COUNT=$(echo $APP_PIDS | wc -w)
+    echo -e "${RED}ÇALIŞIYOR ($APP_COUNT process)${NC}"
 fi
 
 echo ""

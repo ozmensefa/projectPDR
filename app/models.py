@@ -39,6 +39,7 @@ class Session(db.Model):
     title = db.Column(db.String(100), nullable=False)
     date = db.Column(db.DateTime, default=get_turkey_time)
     notes = db.Column(db.Text)
+    applied_techniques = db.Column(db.Text, nullable=True)  # Danışman tarafından uygulanan teknikler
     video_path = db.Column(db.String(255))
     analysis_results = db.Column(db.Text, nullable=True, default=None)
     analysis_status = db.Column(db.String(20), default='pending')  # pending, processing, completed, failed

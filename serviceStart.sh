@@ -69,27 +69,30 @@ fi
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "3️⃣  FLASK UYGULAMASI BAŞLATILIYOR"
+echo "3️⃣  GUNICORN UYGULAMA SUNUCUSU BAŞLATILIYOR"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# Eski Flask process'ini kontrol et
-FLASK_PID=$(ps aux | grep "python3 run.py" | grep -v grep | awk '{print $2}')
-if [ ! -z "$FLASK_PID" ]; then
-    echo -e "${YELLOW}⚠️  Flask zaten çalışıyor (PID: $FLASK_PID)${NC}"
+# Gunicorn veya Flask process'ini kontrol et
+APP_PIDS=$(pgrep -f 'gunicorn.*app:create_app' 2>/dev/null)
+if [ ! -z "$APP_PIDS" ]; then
+    APP_COUNT=$(echo $APP_PIDS | wc -w)
+    echo -e "${YELLOW}⚠️  Gunicorn zaten çalışıyor ($APP_COUNT process)${NC}"
 else
-    echo "   Flask uygulaması başlatılıyor..."
-    nohup python3 run.py > logs/flask_app.log 2>&1 &
-    FLASK_PID=$!
+    echo "   Gunicorn başlatılıyor (4 worker, port 8000)..."
+    nohup python3 -m gunicorn -w 4 -b 127.0.0.1:8000 --timeout 600 "app:create_app()" > logs/gunicorn.log 2>&1 &
+    GUNICORN_PID=$!
     sleep 3
     
     # Başarı kontrolü
-    if ps -p $FLASK_PID > /dev/null; then
-        echo -e "${GREEN}✅ Flask uygulaması başarıyla başlatıldı (PID: $FLASK_PID)${NC}"
+    APP_PIDS=$(pgrep -f 'gunicorn.*app:create_app' 2>/dev/null)
+    if [ ! -z "$APP_PIDS" ]; then
+        APP_COUNT=$(echo $APP_PIDS | wc -w)
+        echo -e "${GREEN}✅ Gunicorn başarıyla başlatıldı ($APP_COUNT process, PID: $GUNICORN_PID)${NC}"
         echo "   Port: 8000"
-        echo "   Log: logs/flask_app.log"
+        echo "   Log: logs/gunicorn.log"
     else
-        echo -e "${RED}❌ Flask uygulaması başlatılamadı!${NC}"
-        echo "   Log dosyasını kontrol edin: tail -20 logs/flask_app.log"
+        echo -e "${RED}❌ Gunicorn başlatılamadı!${NC}"
+        echo "   Log dosyasını kontrol edin: tail -20 logs/gunicorn.log"
         exit 1
     fi
 fi
@@ -115,23 +118,24 @@ else
     echo -e "${RED}DURMUŞ${NC}"
 fi
 
-# Flask durumu
-FLASK_PID=$(ps aux | grep "python3 run.py" | grep -v grep | awk '{print $2}')
-echo -ne "   🔴 Flask (port 8000): "
-if [ ! -z "$FLASK_PID" ]; then
-    echo -e "${GREEN}ÇALIŞIYOR (PID: $FLASK_PID)${NC}"
+# Uygulama sunucusu durumu
+APP_PIDS=$(pgrep -f 'gunicorn.*app:create_app' 2>/dev/null)
+echo -ne "   🟢 Gunicorn (port 8000): "
+if [ ! -z "$APP_PIDS" ]; then
+    APP_COUNT=$(echo $APP_PIDS | wc -w)
+    echo -e "${GREEN}ÇALIŞIYOR ($APP_COUNT process)${NC}"
 else
     echo -e "${RED}DURMUŞ${NC}"
 fi
 
 echo ""
 echo "🌐 WEB ADRESİ:"
-echo "   http://$(hostname -I | awk '{print $1}'):8000"
-echo "   http://localhost:8000"
+echo "   https://yakades.com.tr"
+echo "   http://127.0.0.1:8000 (yerel)"
 echo ""
 echo "📝 LOGLARI İZLEMEK İÇİN:"
-echo "   Celery:  tail -f logs/celery_worker.log"
-echo "   Flask:   tail -f logs/flask_app.log"
+echo "   Celery:   tail -f logs/celery_worker.log"
+echo "   Gunicorn: tail -f logs/gunicorn.log"
 echo ""
 echo "🛑 SERVİSLERİ DURDURMAK İÇİN:"
 echo "   ./serviceStop.sh"

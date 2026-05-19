@@ -26,6 +26,7 @@ class SessionForm(FlaskForm):
     session_date = DateTimeLocalField('Oturum Tarihi', validators=[DataRequired()], 
                                     default=datetime.now, format='%Y-%m-%dT%H:%M')
     notes = TextAreaField('Notlar', validators=[Optional()])
+    applied_techniques = TextAreaField('Uygulanan Teknikler', validators=[Optional()])
     submit = SubmitField('Kaydet')
     
     def validate_session_date(self, field):

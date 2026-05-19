@@ -485,9 +485,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Markdown formatını HTML'e çevir
             let formattedContent = data.analysis
                 // ### ile başlayan başlıkları <h2> yap
-                .replace(/###\s+(.*?)(?=\n|$)/g, '<h2 style="color: #2c3e50; margin: 20px 0 10px 0; font-size: 1.5em;">$1</h2>')
+                .replace(/###\s+(.*?)(?=\n|$)/g, '<h2 style="margin: 20px 0 10px 0; font-size: 1.5em;">$1</h2>')
                 // ## ile başlayan başlıkları <h4> yap
-                .replace(/##\s+(.*?)(?=\n|$)/g, '<h4 style="color: #34495e; margin: 25px 0 15px 0; font-size: 1.3em; border-bottom: 2px solid #3498db; padding-bottom: 8px;">$1</h4>')
+                .replace(/##\s+(.*?)(?=\n|$)/g, '<h4 style="margin: 25px 0 15px 0; font-size: 1.3em; border-bottom: 2px solid rgba(128,128,128,0.3); padding-bottom: 8px;">$1</h4>')
                 // Madde işaretlerini formatlı liste öğelerine dönüştür
                 .replace(/\*\s+(.*?)(?=\n|$)/g, '<li style="margin: 8px 0;">$1</li>')
                 // Kalın metinleri formatla
@@ -506,7 +506,7 @@ document.addEventListener('DOMContentLoaded', function() {
             );
 
             let htmlContent = `
-                <div style="padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div class="ai-analysis-container" style="padding: 20px; border-radius: 8px;">
                     <p style="margin: 10px 0; line-height: 1.6;">
                         ${formattedContent}
                     </p>

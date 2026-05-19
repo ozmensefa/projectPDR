@@ -123,10 +123,34 @@
                                             </td>
                                             <td>{{ session.title }}</td>
                                             <td>
-                                                {% if session.analysis_results %}
-                                                    <span class="badge bg-success">Analiz Tamamlandı</span>
+                                                {% if session.analysis_status == 'completed' and session.analysis_results %}
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check-circle me-1"></i>Analiz Tamamlandı
+                                                    </span>
+                                                {% elif session.analysis_status == 'processing' %}
+                                                    <span class="badge bg-info text-white">
+                                                        <i class="fas fa-spinner fa-spin me-1"></i>Analiz Ediliyor
+                                                    </span>
+                                                {% elif session.analysis_status == 'queued' %}
+                                                    <span class="badge bg-secondary">
+                                                        <i class="fas fa-clock me-1"></i>Sırada Bekliyor
+                                                    </span>
+                                                {% elif session.analysis_status == 'failed' %}
+                                                    <span class="badge bg-danger">
+                                                        <i class="fas fa-times-circle me-1"></i>Analiz Başarısız
+                                                    </span>
+                                                {% elif session.analysis_status == 'cancelled' %}
+                                                    <span class="badge bg-dark">
+                                                        <i class="fas fa-ban me-1"></i>Analiz İptal Edildi
+                                                    </span>
+                                                {% elif not session.video_path %}
+                                                    <span class="badge bg-warning text-dark">
+                                                        <i class="fas fa-video-slash me-1"></i>Video Yüklenmedi
+                                                    </span>
                                                 {% else %}
-                                                    <span class="badge bg-warning">Analiz Bekliyor</span>
+                                                    <span class="badge bg-primary">
+                                                        <i class="fas fa-hourglass-start me-1"></i>Analiz Bekliyor
+                                                    </span>
                                                 {% endif %}
                                             </td>
                                             <td>
