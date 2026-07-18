@@ -45,7 +45,7 @@ class AIService:
 
     def _get_generation_config(self, temperature=0.7):
         """Ortak generation config — output token limiti config'den okunur."""
-        max_tokens = getattr(Config, 'GEMINI_MAX_OUTPUT_TOKENS', 8192)
+        max_tokens = getattr(Config, 'GEMINI_MAX_OUTPUT_TOKENS', 65536)
         return {
             "temperature": temperature,
             "top_p": 0.9,

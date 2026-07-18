@@ -277,18 +277,31 @@ def calendar_events():
     ).order_by(Session.date.asc()).all()
     
     now = datetime.now()
+    
+    # Danışana göre renk belirleme - her danışana benzersiz renk atanır
+    client_colors_palette = [
+        '#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0', 
+        '#00bcd4', '#e91e63', '#3f51b5', '#009688', '#ffc107',
+        '#8bc34a', '#795548', '#607d8b', '#ff5722', '#673ab7',
+        '#03a9f4', '#8e24aa', '#43a047'
+    ]
+    
+    # Bu danışmanın tüm danışan ID'lerini al ve sıralı indeks oluştur
+    counselor_client_ids = db.session.query(Client.id).filter(
+        Client.counselor_id == current_user.id
+    ).order_by(Client.id.asc()).all()
+    client_color_map = {
+        cid[0]: client_colors_palette[i % len(client_colors_palette)]
+        for i, cid in enumerate(counselor_client_ids)
+    }
+    
     events = []
     for s in sessions:
         is_past = s.date < now
         is_completed = s.analysis_results is not None
         
-        # Müşteriye göre renk belirleme
-        client_colors = [
-            '#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0', 
-            '#00bcd4', '#e91e63', '#3f51b5', '#009688', '#ffc107',
-            '#8bc34a', '#795548', '#607d8b'
-        ]
-        color = client_colors[s.client_id % len(client_colors)]
+        # Danışana göre renk
+        color = client_color_map.get(s.client_id, client_colors_palette[0])
 
         if is_past and is_completed:
             status = 'Tamamlandı'
@@ -305,6 +318,7 @@ def calendar_events():
             'color': color,
             'extendedProps': {
                 'clientName': s.client.name,
+                'clientColor': color,
                 'status': status,
                 'time': s.date.strftime('%H:%M')
             }

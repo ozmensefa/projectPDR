@@ -234,15 +234,23 @@
             return originalFetch(url, options);
         };
         
-        // XMLHttpRequest için de CSRF token desteği (video upload için)
+        // XMLHttpRequest için de CSRF token desteği (video upload ve jQuery AJAX için)
         const originalXHROpen = XMLHttpRequest.prototype.open;
         const originalXHRSend = XMLHttpRequest.prototype.send;
+        const originalXHRSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
         XMLHttpRequest.prototype.open = function(method, url) {
             this._method = method;
+            this._hasCSRFToken = false;
             return originalXHROpen.apply(this, arguments);
         };
+        XMLHttpRequest.prototype.setRequestHeader = function(name, value) {
+            if (name.toLowerCase() === 'x-csrftoken') {
+                this._hasCSRFToken = true;
+            }
+            return originalXHRSetRequestHeader.apply(this, arguments);
+        };
         XMLHttpRequest.prototype.send = function(data) {
-            if (this._method && this._method.toUpperCase() !== 'GET' && csrfToken) {
+            if (this._method && this._method.toUpperCase() !== 'GET' && csrfToken && !this._hasCSRFToken) {
                 this.setRequestHeader('X-CSRFToken', csrfToken);
             }
             return originalXHRSend.apply(this, arguments);
@@ -416,6 +424,176 @@
     </script>
 
     {% block scripts %}{% endblock %}
+
+    {% if current_user.is_authenticated %}
+    <!-- Sürüm Notları Modal -->
+    <div class="modal fade" id="releaseNotesModal" tabindex="-1" aria-labelledby="releaseNotesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content" style="border:none; border-radius:18px; overflow:hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.25);">
+                <!-- Header -->
+                <div class="modal-header border-0 text-white py-3 px-4" style="background: linear-gradient(135deg, #1565c0 0%, #0d47a1 60%, #1a237e 100%);">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:46px; height:46px; background:rgba(255,255,255,0.18); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.3rem;">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title mb-0 fw-bold" id="releaseNotesModalLabel">Sürüm Notları</h5>
+                            <small style="opacity:0.8;">YAKADES — Yeni Güncelleme</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <!-- Body -->
+                <div class="modal-body px-4 py-4" style="max-height:65vh; overflow-y:auto;">
+                    <p class="text-muted mb-4" style="font-size:0.92rem; line-height:1.7;">
+                        Kullanıcı geri bildirimleri ve tasarım değerlendirme süreci doğrultusunda YAKADES sistemi üzerinde çeşitli geliştirme ve iyileştirme çalışmaları gerçekleştirilmiştir. Yeni sürüm ile birlikte kullanıcı deneyimini, raporlama doğruluğunu ve sistem kullanılabilirliğini artırmaya yönelik birçok özellik sisteme eklenmiştir.
+                    </p>
+
+                    <!-- Eğitim ve Rehber -->
+                    <div class="release-section mb-4">
+                        <h6 class="fw-bold mb-3" style="color:#1565c0;"><i class="fas fa-graduation-cap me-2"></i>Eğitim ve Rehber Sistemi</h6>
+                        <ul class="release-list">
+                            <li>Sistemi ilk kez kullanan kullanıcılar için rehber ve eğitim sistemi eklenmiştir.</li>
+                            <li>Üst menüde bulunan <strong>"Rehber"</strong> butonu üzerinden sistemin temel işlevlerine ilişkin yönlendirmelere erişilebilmektedir.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Yapay Zekâ -->
+                    <div class="release-section mb-4">
+                        <h6 class="fw-bold mb-3" style="color:#7b1fa2;"><i class="fas fa-robot me-2"></i>Yapay Zekâ ve Raporlama Geliştirmeleri</h6>
+                        <ul class="release-list">
+                            <li>Yapay zekâ destekli raporlar geliştirilmiş; raporlama sonunda sunulan öneri bölümü, daha spesifik teknikler, uygulama örnekleri ve yönlendirmeler içerecek şekilde geliştirilmiştir.</li>
+                            <li>Danışman tarafından oturum sırasında uygulanmış tekniklerin sisteme girilebilmesi sağlanmıştır. Böylece sistem aynı teknikleri tekrar yeni öneri olarak sunmamaktadır. Bu özelliği kullanabilmek için danışmanların ilgili oturumun analizini yapmadan önce, sayfada bulunan <strong>"Uygulanan Teknikler"</strong> bölümüne uyguladıkları tekniklerin isimlerini girmelidir. Eğer danışman tarafından teknik girilmemişse raporda tekniğe yer verilmemektedir.</li>
+                            <li>Beden dili analizleri daha bağlama duyarlı hale getirilmiş; doğal ve rahat davranışların otomatik olarak olumsuz yorumlanmasının önüne geçilmiştir.</li>
+                            <li>Transkripsiyon doğruluğunu artırmak amacıyla daha güncel bir modele geçiş yapılmıştır.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Arayüz -->
+                    <div class="release-section mb-4">
+                        <h6 class="fw-bold mb-3" style="color:#00897b;"><i class="fas fa-paint-brush me-2"></i>Arayüz ve Kullanıcı Deneyimi Güncellemeleri</h6>
+                        <ul class="release-list">
+                            <li>YAKADES logo tasarımı ve sistem genelindeki görsel kimlik yapısı yenilenmiştir.</li>
+                            <li>Sisteme karanlık mod (dark mode) desteği eklenmiştir.</li>
+                            <li>Modern kullanıcı deneyimini desteklemek amacıyla glassmorphism tasarım yapısı uygulanmıştır.</li>
+                            <li>Mobil cihaz kullanımında yaşanan görüntüleme ve kaydırma sorunları giderilmiştir.</li>
+                            <li>Takvim ekranındaki oturumlar kullanıcı bazlı olarak renklendirilmiştir.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Durum Bildirim -->
+                    <div class="release-section mb-3">
+                        <h6 class="fw-bold mb-3" style="color:#e65100;"><i class="fas fa-bell me-2"></i>Durum Bildirim Sistemi Güncellendi</h6>
+                        <p class="text-muted mb-2" style="font-size:0.88rem;">Analiz süreçlerinin daha anlaşılır takip edilebilmesi amacıyla yeni durum sistemi eklenmiştir:</p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge rounded-pill" style="background:#e3f2fd; color:#1565c0; font-size:0.78rem; padding:6px 12px;">Video Yüklenmedi</span>
+                            <span class="badge rounded-pill" style="background:#fff3e0; color:#e65100; font-size:0.78rem; padding:6px 12px;">Analiz Bekliyor</span>
+                            <span class="badge rounded-pill" style="background:#fce4ec; color:#c62828; font-size:0.78rem; padding:6px 12px;">Sırada Bekliyor</span>
+                            <span class="badge rounded-pill" style="background:#e8f5e9; color:#2e7d32; font-size:0.78rem; padding:6px 12px;">Analiz Ediliyor</span>
+                            <span class="badge rounded-pill" style="background:#e8f5e9; color:#1b5e20; font-size:0.78rem; padding:6px 12px;">Analiz Tamamlandı</span>
+                            <span class="badge rounded-pill" style="background:#ffebee; color:#b71c1c; font-size:0.78rem; padding:6px 12px;">Analiz Başarısız</span>
+                            <span class="badge rounded-pill" style="background:#efebe9; color:#4e342e; font-size:0.78rem; padding:6px 12px;">Analiz İptal Edildi</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Footer -->
+                <div class="modal-footer border-0 px-4 py-3" style="background:#f8f9fa;">
+                    <small class="text-muted me-auto"><i class="fas fa-heart me-1" style="color:#e91e63;"></i>YAKADES'in geliştirilmesine katkı sağlayan tüm kullanıcılarımıza teşekkür ederiz.</small>
+                    <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal" style="border-radius:10px; background:linear-gradient(135deg,#1565c0,#0d47a1); border:none;">
+                        <i class="fas fa-check me-1"></i> Anladım
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .release-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .release-list li {
+            position: relative;
+            padding: 8px 0 8px 24px;
+            font-size: 0.88rem;
+            line-height: 1.65;
+            color: #455a64;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .release-list li:last-child {
+            border-bottom: none;
+        }
+        .release-list li::before {
+            content: '';
+            position: absolute;
+            left: 4px;
+            top: 16px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1976d2, #0d47a1);
+        }
+        .release-section {
+            background: #fafbfc;
+            border-radius: 12px;
+            padding: 18px 20px;
+            border: 1px solid #eef0f2;
+        }
+        /* Dark mode uyumu */
+        body.dark-mode .release-section {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(255,255,255,0.08);
+        }
+        body.dark-mode .release-list li {
+            color: rgba(255,255,255,0.78);
+            border-bottom-color: rgba(255,255,255,0.06);
+        }
+        body.dark-mode #releaseNotesModal .modal-content {
+            background: #1e1e2e;
+        }
+        body.dark-mode #releaseNotesModal .modal-body {
+            color: rgba(255,255,255,0.85);
+        }
+        body.dark-mode #releaseNotesModal .modal-body p.text-muted {
+            color: rgba(255,255,255,0.6) !important;
+        }
+        body.dark-mode #releaseNotesModal .modal-footer {
+            background: rgba(255,255,255,0.03) !important;
+        }
+        body.dark-mode #releaseNotesModal .modal-footer .text-muted {
+            color: rgba(255,255,255,0.5) !important;
+        }
+        /* Modal animasyonu */
+        #releaseNotesModal .modal-content {
+            animation: releaseModalIn 0.4s ease-out;
+        }
+        @keyframes releaseModalIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+    </style>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var RELEASE_VERSION = 'v2.1';
+        var storageKey = 'yakades_release_notes_dismissed';
+        
+        var dismissed = localStorage.getItem(storageKey);
+        if (dismissed !== RELEASE_VERSION) {
+            var modalEl = document.getElementById('releaseNotesModal');
+            if (modalEl) {
+                var modal = new bootstrap.Modal(modalEl);
+                modal.show();
+                
+                modalEl.addEventListener('hidden.bs.modal', function() {
+                    localStorage.setItem(storageKey, RELEASE_VERSION);
+                });
+            }
+        }
+    });
+    </script>
+    {% endif %}
 
     <!-- Karanlık Mod İşlevselliği -->
     <script>

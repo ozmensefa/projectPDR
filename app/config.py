@@ -12,7 +12,7 @@ class Config:
     # Gemini API - Oturum ve İlerleyiş analizi için ayrı anahtarlar
     GEMINI_API_KEY_SESSION = os.environ.get('GEMINI_API_KEY_SESSION', '')
     GEMINI_API_KEY_PROGRESS = os.environ.get('GEMINI_API_KEY_PROGRESS', '')
-    GEMINI_MAX_OUTPUT_TOKENS = int(os.environ.get('GEMINI_MAX_OUTPUT_TOKENS', '8192'))
+    GEMINI_MAX_OUTPUT_TOKENS = int(os.environ.get('GEMINI_MAX_OUTPUT_TOKENS', '65536'))
     
     # SQLAlchemy ayarları
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \

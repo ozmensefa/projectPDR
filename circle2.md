@@ -56,8 +56,8 @@ göze gelen birkaç ufak düzeltme var:
 
 
 
-
-
+Oturum ekleme sayfasında (session/add) uygulanan teknikler bölümüne bir teknik yazınca kaydediyor.
+Oturum eklendikten sonra ilgili oturumun sayfasında (session/view) bulunan uygulanan teknikler bölümünde düzenleme yapınca ise "Teknikler kaydedilirken bir hata oluştu." hatası geliyor.
 
 
 
